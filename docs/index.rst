@@ -1,5 +1,5 @@
-Welcome to the documentation for the SEAMM Installer Step
-======================================
+Welcome to the documentation for the SEAMM Installer
+====================================================
 
 Contents:
 

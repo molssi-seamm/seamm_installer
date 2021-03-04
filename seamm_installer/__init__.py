@@ -8,10 +8,11 @@ The installer/updater for SEAMM.
 # Bring up the classes so that they appear to be directly in
 # the seamm_installer package.
 
-from seamm_installer.seamm_inst import SeammInstaller  # noqa: F401, E501
-from seamm_installer.seamm_inst_parameters import SeammInstallerParameters  # noqa: F401, E501
-from seamm_installer.seamm_inst_step import SeammInstallerStep  # noqa: F401, E501
-from seamm_installer.tk_seamm_inst import TkSeammInstaller  # noqa: F401, E501
+from seamm_installer.conda import Conda  # noqa: F401
+from seamm_installer.configuration import Configuration  # noqa: F401
+from seamm_installer.installer_base import InstallerBase  # noqa: F401
+from seamm_installer.pip import Pip  # noqa: F401
+from seamm_installer.seamm_installer import SEAMMInstaller  # noqa: F401
 
 # Handle versioneer
 from ._version import get_versions

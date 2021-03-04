@@ -1,15 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
-seamm_installer
-The installer/updater for SEAMM.
+"""seamm_installer
+The installer/updater for SEAMM (Simulation Environment for Atomistic and Molecular Simulations).
 """
 import sys
 from setuptools import setup, find_packages
 import versioneer
-
-short_description = __doc__.split("\n")
 
 # from https://github.com/pytest-dev/pytest-runner#conditional-requirement
 needs_pytest = {'pytest', 'test', 'ptr'}.intersection(sys.argv)
@@ -28,7 +25,7 @@ setup(
     name='seamm_installer',
     author="Paul Saxe",
     author_email='psaxe@molssi.org',
-    description=short_description[1],
+    description=__doc__.splitlines()[1],
     long_description=readme + '\n\n' + history,
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
@@ -64,24 +61,24 @@ setup(
     # prevent the .egg from being made
     zip_safe=True,
 
-    keywords='seamm_installer',
+    keywords=['SEAMM', 'plug-in', 'flowchart', 'installer', 'updater'],
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Chemistry',
         'Topic :: Scientific/Engineering :: Physics',
-        'License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)',
+        (
+            'License :: OSI Approved :: GNU Lesser General Public License v3 '
+            'or later (LGPLv3+)'
+        ),
         'Natural Language :: English',
         'Programming Language :: Python :: 3 :: Only',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
     ],
     entry_points={
-        'org.molssi.seamm': [
-            'SEAMM Installer = seamm_installer:SeammInstallerStep',
-        ],
-        'org.molssi.seamm.tk': [
-            'SEAMM Installer = seamm_installer:SeammInstallerStep',
+        'console_scripts': [
+            'seamm_installer=seamm_installer.__main__:run',
         ],
     }
 )
