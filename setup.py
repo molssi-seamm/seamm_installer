@@ -78,7 +78,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'seamm_installer=seamm_installer.__main__:run',
+            'seamm-installer=seamm_installer.__main__:run',
         ],
     }
 )

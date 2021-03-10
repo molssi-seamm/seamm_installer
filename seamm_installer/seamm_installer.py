@@ -25,7 +25,7 @@ core_packages = (
     'seamm', 'seamm-jobserver', 'seamm-util', 'seamm-widgets', 'seamm-ff-util',
     'molsystem', 'reference-handler'
 )
-exclude_plug_ins = ('cassandra-step', 'solvate-step')
+exclude_plug_ins = ('seamm-cookiecutter', 'cassandra-step', 'solvate-step')
 
 
 class SEAMMInstaller(object):
@@ -47,6 +47,7 @@ class SEAMMInstaller(object):
         """
         logger.debug('Creating SEAMM Installer {}'.format(self))
 
+        self.options = None
         self._seamm_environment = seamm
         self._conda = Conda()
         self._pip = Pip()
@@ -76,6 +77,333 @@ class SEAMMInstaller(object):
         """The Conda environment for SEAMM."""
         return self._seamm_environment
 
+    @seamm_environment.setter
+    def seamm_environment(self, value):
+        self._seamm_environment = value
+
+    def check(self, *modules, yes=False):
+        """Check the requested modules.
+
+        Parameters
+        ----------
+        *modules: [str]
+            A list of modules to install. May be 'all', 'core', or 'plug-ins'
+            to request either all modules, or just the core or plug-ins be
+            installed.
+        yes: bool
+            Answer 'yes' to all prompts.
+        **kwargs: dict(str, str)
+            Other optional keyword arguments.
+        """
+        # See if Conda is installed
+        if not self.conda.is_installed:
+            print("Conda is not installed, so none of SEAMM is.")
+            return
+
+        # Activate the seamm environment, if it exists.
+        if not self.conda.exists(self.seamm_environment):
+            print(
+                f"The '{self.seamm_environment}' Conda environment is not "
+                "installed."
+            )
+            return
+        self.conda.activate(self.seamm_environment)
+
+        packages = self.find_packages()
+
+        if 'all' in modules or 'core' in modules:
+            print('')
+            print('Checking the core packages of SEAMM:')
+            for package in core_packages:
+                if package == 'seamm':
+                    # seamm has no installer, but is an executable
+                    continue
+                # See if the package has an installer
+                installer = shutil.which(package)
+                if installer is not None:
+                    print(f"   Checking the installation for {package}")
+                    if yes:
+                        subprocess.run([installer, 'check', '--yes'])
+                    else:
+                        subprocess.run([installer, 'check'])
+                    print("   Done.")
+
+        if 'all' in modules or 'plug-ins' in modules or 'plugins' in modules:
+            print('')
+            print('Checking the plug-ins for SEAMM:')
+            for package in packages:
+                if package in core_packages:
+                    continue
+
+                if package in exclude_plug_ins:
+                    continue
+
+                installer = shutil.which(package)
+                if installer is not None:
+                    print(f"   Checking the installation for {package}.")
+                    if yes:
+                        subprocess.run([installer, 'check', '--yes'])
+                    else:
+                        subprocess.run([installer, 'check'])
+                    print("   Done.")
+
+        # Any modules given explicitly
+        explicit = []
+        for module in modules:
+            if module not in ('core', 'plug-ins', 'plugins', 'all', 'seamm'):
+                explicit.append(module)
+
+        if len(explicit) > 0:
+            print('')
+            print('Checking the specified modules in SEAMM:')
+
+            for package in explicit:
+                if package not in packages:
+                    print(f"    {package} is not installed.")
+                else:
+                    # See if the package has an installer
+                    installer = shutil.which(package)
+                    if installer is not None:
+                        print(f"   Checking the installation for {package}.")
+                        if yes:
+                            subprocess.run([installer, 'check', '--yes'])
+                        else:
+                            subprocess.run([installer, 'check'])
+                        print("   Done.")
+
+    def find_packages(self):
+        """Find the Python packages in SEAMM.
+
+        Returns
+        -------
+        dict(str, str)
+            A dictionary with information abut the packages.
+        """
+        # Use pip to find possible packages.
+        packages = self.pip.search(query='SEAMM')
+
+        # Need to add molsystem and reference-handler by hand
+        for package in ('molsystem', 'reference-handler'):
+            tmp = self.pip.search(query=package, exact=True)
+            logger.debug(
+                f"Query for package {package}\n"
+                f"{json.dumps(tmp, indent=4, sort_keys=True)}\n"
+            )
+            if package in tmp:
+                packages[package] = tmp[package]
+        return packages
+
+    def install(self, *modules, **kwargs):
+        """Install the requested modules.
+
+        Parameters
+        ----------
+        *modules: [str]
+            A list of modules to install. May be 'all', 'core', or 'plug-ins'
+            to request either all modules, or just the core or plug-ins be
+            installed.
+        **kwargs: dict(str, str)
+            Other optional keyword arguments.
+        """
+        # See if Conda is installed
+        if not self.conda.is_installed:
+            print("Conda is not installed, so none of SEAMM is.")
+            return
+
+        # Activate the seamm environment, if it exists.
+        if not self.conda.exists(self.seamm_environment):
+            print(
+                f"Installing the '{self.seamm_environment}' Conda environment."
+                " This will take a minute or two."
+            )
+            # Get the path to seamm.yml
+            path = Path(pkg_resources.resource_filename(__name__, 'data/'))
+            logger.debug(f"data directory: {path}")
+            self.conda.create_environment(
+                path / 'seamm.yml', name=self.seamm_environment
+            )
+            print('')
+            self.conda.activate(self.seamm_environment)
+            packages = self.find_packages()
+            for package in packages:
+                print(f"   Installed {package}")
+            print('')
+        else:
+            self.conda.activate(self.seamm_environment)
+            packages = self.find_packages()
+            if 'all' in modules or 'core' in modules:
+                print('')
+                print('Installing the core packages of SEAMM:')
+                to_install = []
+                for package in core_packages:
+                    try:
+                        version = self.pip.show(package)['version']
+                    except Exception as e:
+                        print(e)
+                        if package in packages:
+                            to_install.append(package)
+                else:
+                    if package in packages:
+                        available = packages[package]['version']
+                        v_installed = pkg_resources.parse_version(version)
+                        v_available = pkg_resources.parse_version(available)
+                        if v_installed < v_available:
+                            to_install.append(package)
+
+                for package in to_install:
+                    print(f"   Installing {package}")
+                    self.pip.install(package)
+
+                    # See if the package has an installer
+                    if package == 'seamm':
+                        # seamm has no installer, but is an executable
+                        continue
+                    else:
+                        installer = shutil.which(package)
+                        if installer is not None:
+                            subprocess.run([installer, 'install'])
+
+        if 'all' in modules or 'plug-ins' in modules or 'plugins' in modules:
+            print('')
+            print('Installing all of the plug-ins for SEAMM:')
+            for package in packages:
+                if package in core_packages:
+                    continue
+
+                if package in exclude_plug_ins:
+                    continue
+
+                install = 'no'
+                try:
+                    version = self.pip.show(package)['version']
+                except Exception:
+                    install = 'full'
+                else:
+                    available = packages[package]['version']
+                    v_installed = pkg_resources.parse_version(version)
+                    v_available = pkg_resources.parse_version(available)
+                    if v_installed < v_available:
+                        to_install.append(package)
+                    else:
+                        # See if the package has an installer
+                        if package == 'seamm':
+                            # seamm has no installer, but is an executable
+                            installer = None
+                        else:
+                            installer = shutil.which(package)
+                        if installer is not None:
+                            result = subprocess.run(
+                                [installer, 'check', '--yes'],
+                                text=True,
+                                capture_output=True
+                            )
+                            if result.returncode == 0:
+                                if 'need to install' in result.stdout:
+                                    install = 'package installer'
+
+                if install == 'full':
+                    print(f"   Installing {package}")
+                    self.pip.install(package)
+
+                    # See if the package has an installer
+                    if package == 'seamm':
+                        # seamm has no installer, but is an executable
+                        installer = None
+                    else:
+                        installer = shutil.which(package)
+                    if installer is not None:
+                        subprocess.run([installer, 'install'])
+                elif install == 'package installer':
+                    print(
+                        f"   {package} is installed, but its installer needs "
+                        "to be run"
+                    )
+                    if package == 'seamm':
+                        # seamm has no installer, but is an executable
+                        installer = None
+                    else:
+                        installer = shutil.which(package)
+                    if installer is not None:
+                        subprocess.run([installer, 'install'])
+
+        # Any modules given explicitly
+        explicit = []
+        for module in modules:
+            if module not in ('core', 'plug-ins', 'plugins', 'all'):
+                explicit.append(module)
+
+        if len(explicit) > 0:
+            print('')
+            print('Installing the specified modules in SEAMM:')
+
+            for package in explicit:
+                if package not in packages:
+                    print(
+                        f"Package '{package}' is not available for "
+                        "installation."
+                    )
+                    continue
+
+                install = 'no'
+                try:
+                    version = self.pip.show(package)['version']
+                except Exception:
+                    install = 'full'
+                else:
+                    # See if the package has an installer
+                    if package == 'seamm':
+                        # seamm has no installer, but is an executable
+                        installer = None
+                    else:
+                        installer = shutil.which(package)
+                    if installer is not None:
+                        result = subprocess.run(
+                            [installer, 'show'],
+                            text=True,
+                            capture_output=True
+                        )
+                        if result.returncode == 0:
+                            if (
+                                'need to install' in result.stdout or
+                                'not configured' in result.stdout
+                            ):
+                                install = 'package installer'
+                        else:
+                            print(
+                                "Encountered an error checking the "
+                                f"installation for {package}: "
+                                f"{result.returncode}"
+                            )
+                            print(f"\nstdout:\n{result.stdout}")
+                            print(f"\nstderr:\n{result.stderr}")
+                    available = packages[package]['version']
+                    v_installed = pkg_resources.parse_version(version)
+                    v_available = pkg_resources.parse_version(available)
+                    if v_installed < v_available:
+                        print(f"{package} is installed but should be updated.")
+                    elif install == 'no':
+                        print(f"{package} is already installed.")
+
+                if install == 'full':
+                    print(f"Installing {package}")
+                    self.pip.install(package)
+
+                    # See if the package has an installer
+                    if package == 'seamm':
+                        # seamm has no installer, but is an executable
+                        installer = None
+                    else:
+                        installer = shutil.which(package)
+                    if installer is not None:
+                        subprocess.run([installer, 'install'])
+                elif install == 'package installer':
+                    if package == 'seamm':
+                        # seamm has no installer, but is an executable
+                        installer = None
+                    else:
+                        installer = shutil.which(package)
+                    subprocess.run([installer, 'install'])
+
     def run(self):
         """Run the installer/updater
         """
@@ -103,6 +431,403 @@ class SEAMMInstaller(object):
         self._handle_plugins(packages)
 
         print('All done.')
+
+    def show(self, *modules, **kwargs):
+        """Show the current status of the installation.
+
+        Parameters
+        ----------
+        modules : [str]
+            The modules to show, or 'all', 'core' or 'plug-ins'.
+        """
+        logger.debug('Entering run method of the SEAMM installer')
+        logger.debug(f"    modules = {modules}")
+
+        # See if Conda is installed
+        if not self.conda.is_installed:
+            print("Conda is not installed, so none of SEAMM is.")
+            return
+
+        # Activate the seamm environment, if it exists.
+        if not self.conda.exists(self.seamm_environment):
+            print(
+                f"The '{self.seamm_environment}' Conda environment is not "
+                "installed."
+            )
+            return
+        self.conda.activate(self.seamm_environment)
+
+        packages = self.find_packages()
+
+        if 'all' in modules or 'core' in modules:
+            print('')
+            print('Showing the core packages of SEAMM:')
+            data = []
+            line_no = 1
+            am_current = True
+            for package in core_packages:
+                try:
+                    version = self.pip.show(package)['version']
+                except Exception as e:
+                    print(e)
+                    if package in packages:
+                        available = packages[package]['version']
+                        description = packages[package]['description']
+                        data.append(
+                            [line_no, package, '--', available, description]
+                        )
+                        am_current = False
+                    else:
+                        data.append(
+                            [line_no, package, '--', '--', 'not available']
+                        )
+                else:
+                    if package in packages:
+                        available = packages[package]['version']
+                        description = packages[package]['description']
+                        data.append(
+                            [
+                                line_no, package, version, available,
+                                description
+                            ]
+                        )
+                        v_installed = pkg_resources.parse_version(version)
+                        v_available = pkg_resources.parse_version(available)
+                        if v_installed < v_available:
+                            am_current = False
+                    else:
+                        data.append(
+                            [line_no, package, version, '--', 'not available']
+                        )
+                line_no += 1
+
+            headers = [
+                'Number', 'Package', 'Installed', 'Available', 'Description'
+            ]
+            print(tabulate(data, headers, tablefmt='fancy_grid'))
+            if am_current:
+                print("The core packages are up-to-date.")
+            print('')
+        if 'all' in modules or 'plug-ins' in modules or 'plugins' in modules:
+            print('')
+            print('Showing the plug-ins for SEAMM:')
+            data = []
+            am_current = True
+            all_installed = True
+            state = {}
+            for package in packages:
+                if package in core_packages:
+                    continue
+
+                if package in exclude_plug_ins:
+                    continue
+
+                if 'description' in packages[package]:
+                    description = packages[package]['description'].strip()
+                    description = textwrap.fill(description, width=50)
+                else:
+                    description = 'description unavailable'
+
+                try:
+                    version = self.pip.show(package)['version']
+                except Exception:
+                    if package in packages:
+                        available = packages[package]['version']
+                        data.append([package, '--', available, description])
+                        all_installed = False
+                        state[package] = 'not installed'
+                    else:
+                        data.append([package, '--', '--', 'not available'])
+                        state[package] = 'not installed, not available'
+                else:
+                    if package in packages:
+                        available = packages[package]['version']
+                        v_installed = pkg_resources.parse_version(version)
+                        v_available = pkg_resources.parse_version(available)
+                        if v_installed < v_available:
+                            am_current = False
+                            state[package] = 'not up-to-date'
+                        else:
+                            state[package] = 'up-to-date'
+
+                        # See if the package has an installer
+                        installer = shutil.which(package)
+                        if installer is not None:
+                            result = subprocess.run(
+                                [installer, 'show'],
+                                text=True,
+                                capture_output=True
+                            )
+                            if result.returncode == 0:
+                                print(type(result.stdout))
+                                print(result.stdout)
+                                for line in result.stdout.splitlines():
+                                    description += f"\n{line}"
+                            else:
+                                description += (
+                                    f"\nThe installer for {package} "
+                                    f"returned code {result.returncode}"
+                                )
+                                for line in result.stderr.splitlines():
+                                    description += f"\n    {line}"
+                        data.append([package, version, available, description])
+                    else:
+                        data.append([package, version, '--', 'not available'])
+                        state[package] = 'installed, not available'
+
+            # Sort by the plug-in names
+            data.sort(key=lambda x: x[0])
+
+            # And number
+            for i, line in enumerate(data, start=1):
+                line.insert(0, i)
+
+            headers = [
+                'Number', 'Plug-in', 'Installed', 'Available', 'Description'
+            ]
+            print('')
+            print(tabulate(data, headers, tablefmt='fancy_grid'))
+            if am_current:
+                if all_installed:
+                    print("The plug-ins are up-to-date.")
+                else:
+                    print(
+                        "The installed plug-ins are up-to-date; however, not "
+                        "all the plug-ins are installed"
+                    )
+                print('')
+            else:
+                if all_installed:
+                    print("The plug-ins are not up-to-date.")
+                else:
+                    print(
+                        "The plug-ins are not up-to-date and some are not "
+                        "installed."
+                    )
+
+        # Any modules given explicitly
+        explicit = []
+        for module in modules:
+            if module not in ('core', 'plug-ins', 'plugins', 'all'):
+                explicit.append(module)
+
+        if len(explicit) > 0:
+            print('')
+            print('Showing the specified modules in SEAMM:')
+            data = []
+            am_current = True
+            state = {}
+            for package in explicit:
+                if package in packages and 'description' in packages[package]:
+                    description = packages[package]['description'].strip()
+                    description = textwrap.fill(description, width=50)
+                else:
+                    description = 'description unavailable'
+
+                try:
+                    version = self.pip.show(package)['version']
+                except Exception:
+                    if package in packages:
+                        available = packages[package]['version']
+                        data.append([package, '--', available, description])
+                        am_current = False
+                        state[package] = 'not installed'
+                    else:
+                        data.append([package, '--', '--', 'not available'])
+                        state[package] = 'not installed, not available'
+                else:
+                    if package in packages:
+                        available = packages[package]['version']
+                        v_installed = pkg_resources.parse_version(version)
+                        v_available = pkg_resources.parse_version(available)
+                        if v_installed < v_available:
+                            am_current = False
+                            state[package] = 'not up-to-date'
+                        else:
+                            state[package] = 'up-to-date'
+
+                        # See if the package has an installer
+                        installer = shutil.which(package)
+                        if installer is not None:
+                            result = subprocess.run(
+                                [installer, 'show'],
+                                text=True,
+                                capture_output=True
+                            )
+                            if result.returncode == 0:
+                                for line in result.stdout.splitlines():
+                                    description += f"\n{line}"
+                            else:
+                                description += (
+                                    f"\nThe installer for {package} "
+                                    f"returned code {result.returncode}"
+                                )
+                                for line in result.stderr.splitlines():
+                                    description += f"\n    {line}"
+                        data.append([package, version, available, description])
+                    else:
+                        data.append([package, version, '--', 'not available'])
+                        state[package] = 'installed, not available'
+
+            # Sort by the plug-in names
+            data.sort(key=lambda x: x[0])
+
+            # And number
+            for i, line in enumerate(data, start=1):
+                line.insert(0, i)
+
+            headers = [
+                'Number', 'Plug-in', 'Installed', 'Available', 'Description'
+            ]
+            print('')
+            print(tabulate(data, headers, tablefmt='fancy_grid'))
+            if am_current:
+                print("The plug-ins are up-to-date.")
+            print('')
+
+    def uninstall(self, *modules, **kwargs):
+        if 'all' in modules or 'core' in modules:
+            print('')
+            print('Core packages of SEAMM:')
+        if 'all' in modules or 'plug-ins' in modules or 'plugins' in modules:
+            print('')
+            print('Plug-ins for SEAMM:')
+
+        # Any modules given explicitly
+        explicit = []
+        for module in modules:
+            if module not in ('core', 'plug-ins', 'plugins', 'all'):
+                explicit.append(module)
+
+        if len(explicit) > 0:
+            print('')
+            print('Uninstalling the specified modules in SEAMM:')
+
+    def update(self, *modules, **kwargs):
+        """Update the requested modules.
+
+        Parameters
+        ----------
+        *modules: [str]
+            A list of modules to install. May be 'all', 'core', or 'plug-ins'
+            to request either all modules, or just the core or plug-ins be
+            installed.
+        **kwargs: dict(str, str)
+            Other optional keyword arguments.
+        """
+        # See if Conda is installed
+        if not self.conda.is_installed:
+            print("Conda is not installed, so none of SEAMM is.")
+            return
+
+        # Activate the seamm environment, if it exists.
+        if not self.conda.exists(self.seamm_environment):
+            print(
+                f"The '{self.seamm_environment}' Conda environment is not "
+                "installed."
+            )
+            return
+        self.conda.activate(self.seamm_environment)
+
+        packages = self.find_packages()
+
+        if 'all' in modules or 'core' in modules:
+            print('')
+            print('Updating the core packages of SEAMM:')
+            for package in core_packages:
+                try:
+                    version = self.pip.show(package)['version']
+                except Exception:
+                    pass
+            else:
+                if package in packages:
+                    available = packages[package]['version']
+                    v_installed = pkg_resources.parse_version(version)
+                    v_available = pkg_resources.parse_version(available)
+                    if v_installed < v_available:
+                        print(f"   Updating {package}")
+                        self.pip.update(package)
+
+                        # See if the package has an installer
+                        installer = shutil.which(package)
+                        if installer is not None:
+                            subprocess.run([installer, 'update'])
+
+        if 'all' in modules or 'plug-ins' in modules or 'plugins' in modules:
+            print('')
+            print('Plug-ins for SEAMM:')
+            for package in packages:
+                if package in core_packages:
+                    continue
+
+                if package in exclude_plug_ins:
+                    continue
+
+                try:
+                    version = self.pip.show(package)['version']
+                except Exception:
+                    pass
+                else:
+                    available = packages[package]['version']
+                    v_installed = pkg_resources.parse_version(version)
+                    v_available = pkg_resources.parse_version(available)
+                    if v_installed < v_available:
+                        print(
+                            f"   Updating {package} from {v_installed} to "
+                            f"{v_available}."
+                        )
+                        self.pip.update(package)
+
+                        # See if the package has an installer
+                        installer = shutil.which(package)
+                        if installer is not None:
+                            print(
+                                f"   Updating the installation for {package}."
+                            )
+                            subprocess.run([installer, 'update'])
+                        print("    Done.")
+
+        # Any modules given explicitly
+        explicit = []
+        for module in modules:
+            if module not in ('core', 'plug-ins', 'plugins', 'all'):
+                explicit.append(module)
+
+        if len(explicit) > 0:
+            print('')
+            print('Updating the specified modules in SEAMM:')
+
+            for package in explicit:
+                if package not in packages:
+                    print(
+                        f"Package '{package}' is not available for "
+                        "upgrading."
+                    )
+                    continue
+
+                try:
+                    version = self.pip.show(package)['version']
+                except Exception:
+                    pass
+                else:
+                    available = packages[package]['version']
+                    v_installed = pkg_resources.parse_version(version)
+                    v_available = pkg_resources.parse_version(available)
+                    if v_installed < v_available:
+                        print(
+                            f"   Updating {package} from {v_installed} to "
+                            f"{v_available}."
+                        )
+                        self.pip.update(package)
+
+                        # See if the package has an installer
+                        installer = shutil.which(package)
+                        if installer is not None:
+                            print(
+                                f"   Updating the installation for {package}."
+                            )
+                            subprocess.run([installer, 'update'])
+                        print("    Done.")
 
     def _execute(self, command, poll_interval=2):
         """Execute the command as a subprocess.
@@ -463,7 +1188,7 @@ class SEAMMInstaller(object):
                 self.pip.install(package)
 
                 # See if the package has an installer
-                installer = shutil.which(f"{package}-installer")
+                installer = shutil.which(package)
                 if installer is not None:
                     print(f"{package} has an installer")
                     subprocess.run(installer)
