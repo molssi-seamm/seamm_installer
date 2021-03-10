@@ -1,6 +1,5 @@
 name: test
 channels:
-  - default
   - conda-forge
 dependencies:
   # Base depends
@@ -8,18 +7,21 @@ dependencies:
   - pip
 
   # Testing
-  - coverage
+  - codecov
   - flake8
   - pytest
   - pytest-cov
-  - pytest-runner
 
     # Pip-only installs
   - pip:
     - requests
     - tabulate
 
-      # Testing
-    - codecov
+    # Testing
     - yapf
 
+    # Documentation
+    - rinohtype
+    - pygments
+    - sphinx-rtd-theme
+    - pystemmer
