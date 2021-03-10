@@ -7,9 +7,6 @@ dependencies:
   - python
   - pip
 
-  # molsystem needs this, so assuming it is needed here.
-  - openbabel
-
   # Testing
   - coverage
   - flake8
@@ -19,9 +16,8 @@ dependencies:
 
     # Pip-only installs
   - pip:
-    - seamm
-    - seamm-util
-    - seamm-widgets
+    - requests
+    - tabulate
 
       # Testing
     - codecov
