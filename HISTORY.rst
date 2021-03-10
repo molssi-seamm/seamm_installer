@@ -2,7 +2,7 @@
 History
 =======
 
-0.1 (2021-02-05)
-------------------
+2021.3.10 (10 March 2021)
+-------------------------
 
-* First release on PyPI.
+* First release on PyPI. A working version! But surely issues will appear...
