@@ -11,7 +11,6 @@ from pathlib import Path
 
 
 class Configuration(object):
-
     def __init__(self, path=None):
         self._path = None
 
@@ -48,7 +47,7 @@ class Configuration(object):
                 else:
                     self._data = {}
 
-    def add_prolog(self, text='', force=False):
+    def add_prolog(self, text="", force=False):
         """Add the prolog to the configuration.
 
         Parameters
@@ -58,11 +57,11 @@ class Configuration(object):
         force : bool = True
             Whether to overwrite an existing prolog.
         """
-        if 'PROLOG' in self._data and not force:
+        if "PROLOG" in self._data and not force:
             raise KeyError("The prolog already exists.")
-        self._data['PROLOG'] = text.splitlines()
+        self._data["PROLOG"] = text.splitlines()
 
-    def add_section(self, name, text='', force=False):
+    def add_section(self, name, text="", force=False):
         """Add a new section to the configuration.
 
         Parameters
@@ -81,7 +80,7 @@ class Configuration(object):
         lines = text.splitlines()
         if len(lines) > 0:
             tmp = lines[0].strip()
-            if tmp[0] == '[' and tmp[-1] == ']':
+            if tmp[0] == "[" and tmp[-1] == "]":
                 if tmp[1:-1] != name:
                     raise ValueError(
                         "Section name doesn't match: '{tmp[1:-1]}' vs '{name}'"
@@ -105,13 +104,13 @@ class Configuration(object):
             The configuration data as text.
         """
         self._data = {}
-        section = 'PROLOG'
+        section = "PROLOG"
         lines = []
         for line in text.splitlines():
             if len(line) > 0:
                 # Look for a section name, like [<name>]
                 tmp = line.strip()
-                if tmp[0] == '[' and tmp[-1] == ']':
+                if tmp[0] == "[" and tmp[-1] == "]":
                     self._data[section] = lines
                     section = tmp[1:-1].lower()
                     lines = []
@@ -127,10 +126,10 @@ class Configuration(object):
         str
             The prolog of the configuration.
         """
-        if 'PROLOG' in self._data:
-            result = '\n'.join(self._data['PROLOG']) + '\n'
+        if "PROLOG" in self._data:
+            result = "\n".join(self._data["PROLOG"]) + "\n"
         else:
-            result = ''
+            result = ""
         return result
 
     def get_values(self, section):
@@ -155,16 +154,15 @@ class Configuration(object):
             for line in self._data[section.lower()]:
                 line = line.strip()
                 if len(line) > 0:
-                    if line[0] == '#':
+                    if line[0] == "#":
                         continue
-                    if '=' in line:
-                        key, value = line.split('=', maxsplit=1)
+                    if "=" in line:
+                        key, value = line.split("=", maxsplit=1)
                         result[key.strip()] = value.strip()
         return result
 
     def _read(self):
-        """Read the configuration file and split into sections.
-        """
+        """Read the configuration file and split into sections."""
         self.from_string(self.path.read_text())
 
     def save(self):
@@ -180,14 +178,14 @@ class Configuration(object):
             The list of sections.
         """
         result = sorted(self._data.keys())
-        if 'PROLOG' in result:
-            result.remove('PROLOG')
-        if 'seamm' in result:
-            result.remove('seamm')
-            result.insert(0, 'seamm')
-        if 'default' in result:
-            result.remove('default')
-            result.insert(0, 'default')
+        if "PROLOG" in result:
+            result.remove("PROLOG")
+        if "seamm" in result:
+            result.remove("seamm")
+            result.insert(0, "seamm")
+        if "default" in result:
+            result.remove("default")
+            result.insert(0, "default")
         return result
 
     def section_exists(self, section):
@@ -223,8 +221,8 @@ class Configuration(object):
         found = False
         i = 0
         for line in lines:
-            if '=' in line:
-                if line.strip().split('=', maxsplit=1)[0].strip() == key:
+            if "=" in line:
+                if line.strip().split("=", maxsplit=1)[0].strip() == key:
                     found = True
                     lines[i] = f"{key} = {value}"
                     break
@@ -238,9 +236,9 @@ class Configuration(object):
                 found = False
                 i = 0
                 for line in lines:
-                    line = line.lstrip('#').strip()
-                    if '=' in line:
-                        if line.split('=', maxsplit=1)[0].strip() == key:
+                    line = line.lstrip("#").strip()
+                    if "=" in line:
+                        if line.split("=", maxsplit=1)[0].strip() == key:
                             found = True
                             lines[i] = f"{key} = {value}"
                             break
@@ -258,11 +256,11 @@ class Configuration(object):
         """
         if section is None:
             result = []
-            if 'PROLOG' in self._data:
-                result.extend(self._data['PROLOG'])
+            if "PROLOG" in self._data:
+                result.extend(self._data["PROLOG"])
             for section in self.sections():
                 result.extend(self._data[section])
         else:
             result = self._data[section.lower()]
 
-        return '\n'.join(result) + '\n'
+        return "\n".join(result) + "\n"

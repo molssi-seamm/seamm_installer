@@ -24,4 +24,4 @@ def test_is_installed():
 def test_environments():
     """Test that we can get the environments."""
     installer = seamm_installer.SEAMMInstaller()
-    assert installer.conda.environments[0] == 'base'
+    assert installer.conda.environments[0] == "base"

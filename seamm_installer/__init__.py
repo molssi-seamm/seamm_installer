@@ -18,8 +18,8 @@ from seamm_installer.seamm_installer import SEAMMInstaller  # noqa: F401
 from ._version import get_versions
 
 __author__ = """Paul Saxe"""
-__email__ = 'psaxe@molssi.org'
+__email__ = "psaxe@molssi.org"
 versions = get_versions()
-__version__ = versions['version']
-__git_revision__ = versions['full-revisionid']
+__version__ = versions["version"]
+__git_revision__ = versions["full-revisionid"]
 del get_versions, versions

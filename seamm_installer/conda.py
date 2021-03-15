@@ -33,16 +33,16 @@ class Conda(object):
         if self.is_installed:
             return json.dumps(self._data, indent=4, sort_keys=True)
         else:
-            return 'Conda does not appear to be installed!'
+            return "Conda does not appear to be installed!"
 
     @property
     def environments(self):
         """The available conda environments."""
         if self.is_installed:
             result = []
-            for env in self._data['envs']:
+            for env in self._data["envs"]:
                 if env == self.root_prefix:
-                    result.append('base')
+                    result.append("base")
                 else:
                     path = Path(env)
                     result.append(path.name)
@@ -59,7 +59,7 @@ class Conda(object):
     def prefix(self):
         """The path for the conda root."""
         if self.is_installed:
-            return self._data['conda_prefix']
+            return self._data["conda_prefix"]
         else:
             return None
 
@@ -67,41 +67,38 @@ class Conda(object):
     def root_prefix(self):
         """The root prefix of the conda installation."""
         if self.is_installed:
-            return self._data['root_prefix']
+            return self._data["root_prefix"]
         else:
             return None
 
     def activate(self, environment):
         """Activate the requested environment."""
         if not self.is_installed:
-            raise RuntimeError('Conda is not installed.')
+            raise RuntimeError("Conda is not installed.")
         if not self.exists(environment):
-            raise ValueError(
-                f"Conda environment '{environment}' does not exist."
-            )
+            raise ValueError(f"Conda environment '{environment}' does not exist.")
 
         # Set the various environment variables that 'conda activate' does
-        if 'CONDA_SHLVL' in os.environ:
-            level = int(os.environ['CONDA_SHLVL'])
+        if "CONDA_SHLVL" in os.environ:
+            level = int(os.environ["CONDA_SHLVL"])
             os.environ[f"CONDA_PREFIX_{level}"] = os.environ["CONDA_PREFIX"]
             level += 1
-            os.environ['CONDA_SHLVL'] = str(level)
-        os.environ['CONDA_PROMPT_MODIFIER'] = f"({environment})"
+            os.environ["CONDA_SHLVL"] = str(level)
+        os.environ["CONDA_PROMPT_MODIFIER"] = f"({environment})"
 
-        path = os.environ['PATH'].split(os.pathsep)
+        path = os.environ["PATH"].split(os.pathsep)
         if level == 1:
-            path.insert(0, str(self.path(environment) / 'bin'))
+            path.insert(0, str(self.path(environment) / "bin"))
         elif level >= 2:
-            path[0] = str(self.path(environment) / 'bin')
-        os.environ['PATH'] = os.pathsep.join(path)
+            path[0] = str(self.path(environment) / "bin")
+        os.environ["PATH"] = os.pathsep.join(path)
 
-        os.environ['CONDA_PREFIX'] = str(self.path(environment))
-        os.environ['CONDA_DEFAULT_ENV'] = environment
+        os.environ["CONDA_PREFIX"] = str(self.path(environment))
+        os.environ["CONDA_DEFAULT_ENV"] = environment
 
     def _initialize(self):
-        """Get the information about the current Conda installation.
-        """
-        command = 'conda info --json'
+        """Get the information about the current Conda installation."""
+        command = "conda info --json"
         try:
             result = subprocess.check_output(
                 command, shell=True, text=True, stderr=subprocess.STDOUT
@@ -116,7 +113,7 @@ class Conda(object):
 
         self._is_installed = True
         self._data = json.loads(result)
-        tmp = '\n\t'.join(self.environments)
+        tmp = "\n\t".join(self.environments)
         self.logger.info(f"environments:\n\t{tmp}")
 
     def create_environment(self, environment_file, name=None, force=False):
@@ -193,7 +190,7 @@ class Conda(object):
             self.logger.warning(f"Output:\n\n{e.output}\n\n")
             raise
 
-        return {x['name']: x for x in json.loads(stdout)}
+        return {x["name"]: x for x in json.loads(stdout)}
 
     def path(self, environment):
         """The path for an environment.
@@ -208,10 +205,10 @@ class Conda(object):
         pathlib.Path
             The path to the environment.
         """
-        if environment == 'base':
+        if environment == "base":
             return Path(self.root_prefix)
         else:
-            for env in self._data['envs']:
+            for env in self._data["envs"]:
                 if env != self.root_prefix:
                     path = Path(env)
                     if environment == path.name:
@@ -280,34 +277,34 @@ class Conda(object):
             bufsize=1,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            universal_newlines=True
+            universal_newlines=True,
         )
         n = 0
-        stdout = ''
-        stderr = ''
+        stdout = ""
+        stderr = ""
         while True:
-            self.logger.debug('    checking if finished')
+            self.logger.debug("    checking if finished")
             result = process.poll()
             if result is not None:
                 self.logger.info(f"    finished! result = {result}")
                 break
             try:
-                self.logger.debug('    calling communicate')
+                self.logger.debug("    calling communicate")
                 output, errors = process.communicate(timeout=poll_interval)
             except subprocess.TimeoutExpired:
-                self.logger.debug('    timed out')
-                print('.', end='')
+                self.logger.debug("    timed out")
+                print(".", end="")
                 n += 1
                 if n >= 50:
-                    print('')
+                    print("")
                     n = 0
                 sys.stdout.flush()
             else:
-                if output != '':
+                if output != "":
                     stdout += output
                     self.logger.debug(output)
-                if errors != '':
+                if errors != "":
                     stderr += errors
                     self.logger.debug(f"stderr: '{errors}'")
-        print('')
+        print("")
         return result, stdout, stderr

@@ -9,13 +9,13 @@ import pytest
 import seamm_installer
 
 path = Path(__file__).resolve().parent
-data_path = path / 'data'
+data_path = path / "data"
 
 
 @pytest.fixture()
 def seamm_conf():
     """Create a configuration initialized with seamm.ini."""
-    return seamm_installer.Configuration(data_path / 'seamm.ini')
+    return seamm_installer.Configuration(data_path / "seamm.ini")
 
 
 @pytest.fixture()

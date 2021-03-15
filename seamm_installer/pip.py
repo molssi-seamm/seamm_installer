@@ -11,15 +11,10 @@ logger = logging.getLogger(__name__)
 # Regular expressions for pypi query results.
 SNIPPET_RE = re.compile(r"<a class=\"package-snippet\".*>")
 NAME_RE = re.compile(r"<span class=\"package-snippet__name\">(.+)</span>")
-VERSION_RE = re.compile(
-    r".*<span class=\"package-snippet__version\">(.+)</span>"
-)
-DESCRIPTION_RE = re.compile(
-    r".*<p class=\"package-snippet__description\">(.+)</p>"
-)
+VERSION_RE = re.compile(r".*<span class=\"package-snippet__version\">(.+)</span>")
+DESCRIPTION_RE = re.compile(r".*<p class=\"package-snippet__description\">(.+)</p>")
 NEXT_RE = re.compile(
-    r'<a href="/search/.*page=(.+)" '
-    'class="button button-group__button">Next</a>'
+    r'<a href="/search/.*page=(.+)" ' 'class="button button-group__button">Next</a>'
 )
 
 
@@ -35,7 +30,7 @@ class Pip(object):
     def __init__(self):
         logger.debug("Creating Pip {str(type(self))}")
 
-        self._base_url = 'https://pypi.org/search/'
+        self._base_url = "https://pypi.org/search/"
 
     def install(self, package):
         """Install the requested package.
@@ -70,12 +65,10 @@ class Pip(object):
         command = "pip list"
         if outdated:
             if uptodate:
-                raise ValueError(
-                    "May only use one of 'outdated' and 'uptodate'."
-                )
-            command += ' --outdated'
+                raise ValueError("May only use one of 'outdated' and 'uptodate'.")
+            command += " --outdated"
         elif uptodate:
-            command += ' --uptodate'
+            command += " --uptodate"
         try:
             output = subprocess.check_output(
                 command, shell=True, text=True, stderr=subprocess.STDOUT
@@ -115,9 +108,9 @@ class Pip(object):
             exact = False
 
         # Set up the arguments for the http get
-        args = {'q': query}
+        args = {"q": query}
         if framework is not None:
-            args['c'] = f"Framework::{framework}"
+            args["c"] = f"Framework::{framework}"
 
         logger.debug(f"search query: {args}")
 
@@ -140,16 +133,16 @@ class Pip(object):
                 if len(name) > 0:
                     if not exact or name[0] == query:
                         if len(version) == 0:
-                            version = 'unknown'
+                            version = "unknown"
                         else:
                             version = version[0]
                         if len(description) == 0:
-                            description = 'no description given'
+                            description = "no description given"
                         else:
                             description = description[0]
                         result[name[0]] = {
-                            'version': version,
-                            'description': description
+                            "version": version,
+                            "description": description,
                         }
 
                         if exact:
@@ -158,16 +151,16 @@ class Pip(object):
             if progress:
                 count += 1
                 if count <= 50:
-                    print('.', end='')
+                    print(".", end="")
                 else:
                     count = 0
-                    print('\n.', end='')
+                    print("\n.", end="")
             # See if there is a next page
             next_page = NEXT_RE.findall(snippet)
             if len(next_page) == 0:
                 break
             else:
-                args['page'] = next_page[0]
+                args["page"] = next_page[0]
 
         tmp = json.dumps(result, indent=4, sort_keys=True)
         logger.debug(f"Package information:\n{tmp}")
@@ -188,8 +181,8 @@ class Pip(object):
                 command, shell=True, text=True, stderr=subprocess.STDOUT
             )
         except subprocess.CalledProcessError as e:
-            if 'Package(s) not found:' in e.output:
-                result = ''
+            if "Package(s) not found:" in e.output:
+                result = ""
             else:
                 logger.warning(f"Calling pip, returncode = {e.returncode}")
                 logger.warning(f"Output: {e.output}")
@@ -197,16 +190,14 @@ class Pip(object):
 
         data = {}
         for line in result.splitlines():
-            key, value = line.split(':', maxsplit=1)
+            key, value = line.split(":", maxsplit=1)
             key = key.lower()
             value = value.strip()
-            if 'require' in key:
-                value = [x.strip() for x in value.split(',')]
+            if "require" in key:
+                value = [x.strip() for x in value.split(",")]
             data[key] = value
 
-        logger.debug(
-            f"{command}\n{json.dumps(data, indent=4, sort_keys=True)}"
-        )
+        logger.debug(f"{command}\n{json.dumps(data, indent=4, sort_keys=True)}")
 
         return data
 
@@ -243,7 +234,7 @@ class Pip(object):
             )
         except subprocess.CalledProcessError as e:
             line = e.output.splitlines()[-1]
-            if 'FileNotFoundError' in line:
+            if "FileNotFoundError" in line:
                 logger.warning(f"Pip returned a warning: {line}")
             else:
                 logger.warning(f"Calling pip, returncode = {e.returncode}")

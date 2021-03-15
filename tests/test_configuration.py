@@ -20,8 +20,14 @@ def test_construction():
 def test_sections(seamm_conf):
     """Test getting the sections from the configuration file."""
     answer = [
-        'default', 'seamm', 'dftbplus-step', 'from-smiles-step', 'lammps-step',
-        'mopac-step', 'packmol-step', 'psi4-step'
+        "default",
+        "seamm",
+        "dftbplus-step",
+        "from-smiles-step",
+        "lammps-step",
+        "mopac-step",
+        "packmol-step",
+        "psi4-step",
     ]
     sections = seamm_conf.sections()
     if sections != answer:
@@ -31,8 +37,8 @@ def test_sections(seamm_conf):
 
 def test_get_values(seamm_conf):
     """Get the values from a section."""
-    answer = {'datastore': '/Users/psaxe/Jobs', 'project': 'dev'}
-    values = seamm_conf.get_values('SEAMM')
+    answer = {"datastore": "/Users/psaxe/Jobs", "project": "dev"}
+    values = seamm_conf.get_values("SEAMM")
     if values != answer:
         print(values)
     assert values == answer
@@ -41,12 +47,12 @@ def test_get_values(seamm_conf):
 def test_get_values_with_empty_value(seamm_conf):
     """Get the values from a section where some have no value."""
     answer = {
-        'installation': 'conda',
-        'conda-environment': 'seamm-lammps',
-        'module': '',
-        'lammps-path': '/Users/psaxe/opt/miniconda3/envs/seamm-lammps/bin'
+        "installation": "conda",
+        "conda-environment": "seamm-lammps",
+        "module": "",
+        "lammps-path": "/Users/psaxe/opt/miniconda3/envs/seamm-lammps/bin",
     }
-    values = seamm_conf.get_values('lammps-step')
+    values = seamm_conf.get_values("lammps-step")
     if values != answer:
         print(values)
     assert values == answer
@@ -99,7 +105,7 @@ lammps-path = /Users/psaxe/opt/miniconda3/envs/seamm-lammps/bin
 
 """
 
-    result = seamm_conf.to_string('lammps-step')
+    result = seamm_conf.to_string("lammps-step")
     if result != answer:
         print(result)
     assert result == answer
@@ -152,8 +158,8 @@ lammps-path = /Users/psaxe/opt/miniconda3/envs/seamm-lammps/bin
 
 """
 
-    seamm_conf.set_value('lammps-step', 'lammps-atoms-per-core', '1000')
-    result = seamm_conf.to_string('lammps-step')
+    seamm_conf.set_value("lammps-step", "lammps-atoms-per-core", "1000")
+    result = seamm_conf.to_string("lammps-step")
     if result != answer:
         print(result)
     assert result == answer
@@ -169,8 +175,8 @@ value2 = 54
 
 # The end!
 """
-    seamm_conf.add_section('test', text)
-    assert seamm_conf.to_string('TEST') == '[test]\n' + text
+    seamm_conf.add_section("test", text)
+    assert seamm_conf.to_string("TEST") == "[test]\n" + text
 
 
 def test_get_prolog(seamm_conf):
@@ -233,7 +239,7 @@ value2 = 54
 """
     conf2 = seamm_installer.Configuration()
     conf2.add_prolog(prolog)
-    conf2.add_section('TEST', section_data)
+    conf2.add_section("TEST", section_data)
 
     assert str(conf2) == str(conf)
     assert conf2 == conf
@@ -251,7 +257,7 @@ value1 = 53
 value2 = 54
 value3 = 55
 """
-    conf.set_value('Test', 'value3', 55)
+    conf.set_value("Test", "value3", 55)
     assert str(conf) == answer
 
 
@@ -267,35 +273,35 @@ value1 = 53
 value2 = 54
 """
     with pytest.raises(KeyError, match="'value3' not in section Test."):
-        conf.set_value('Test', 'value3', 55, strict=True)
+        conf.set_value("Test", "value3", 55, strict=True)
     assert str(conf) == answer
 
 
 def test_add_prolog_error(conf):
     """Test trying to overwrite the prolog."""
     with pytest.raises(KeyError, match="The prolog already exists."):
-        conf.add_prolog('This will cause an error!')
+        conf.add_prolog("This will cause an error!")
 
 
 def test_add_section_error(conf):
     """Test trying to overwrite a section."""
     with pytest.raises(KeyError, match="Section 'TEST' already exists."):
-        conf.add_section('TEST', 'This will cause an error!')
+        conf.add_section("TEST", "This will cause an error!")
 
 
 def test_exists():
     """Test the functionality for whether the file exists."""
     conf = seamm_installer.Configuration()
     assert not conf.file_exists()
-    conf.path = './does_not_exist.ini'
+    conf.path = "./does_not_exist.ini"
     assert not conf.file_exists()
 
     path = Path(__file__).resolve().parent
-    conf.path = path / 'data' / 'seamm.ini'
+    conf.path = path / "data" / "seamm.ini"
     assert conf.file_exists()
 
 
 def test_empty_prolog():
     """Test what happens when ther is no prolog."""
     conf = seamm_installer.Configuration()
-    assert conf.get_prolog() == ''
+    assert conf.get_prolog() == ""

@@ -48,14 +48,7 @@ class TkSeammInstaller(seamm.TkNode):
     """
 
     def __init__(
-        self,
-        tk_flowchart=None,
-        node=None,
-        canvas=None,
-        x=None,
-        y=None,
-        w=200,
-        h=50
+        self, tk_flowchart=None, node=None, canvas=None, x=None, y=None, w=200, h=50
     ):
         """
         Initialize a graphical node.
@@ -86,13 +79,7 @@ class TkSeammInstaller(seamm.TkNode):
         self.dialog = None
 
         super().__init__(
-            tk_flowchart=tk_flowchart,
-            node=node,
-            canvas=canvas,
-            x=x,
-            y=y,
-            w=w,
-            h=h
+            tk_flowchart=tk_flowchart, node=node, canvas=canvas, x=x, y=y, w=w, h=h
         )
 
     def create_dialog(self):
@@ -114,7 +101,7 @@ class TkSeammInstaller(seamm.TkNode):
         TkSeammInstaller.reset_dialog
         """
 
-        frame = super().create_dialog(title='SEAMM Installer')
+        frame = super().create_dialog(title="SEAMM Installer")
         # Shortcut for parameters
         P = self.node.parameters
 
@@ -150,7 +137,7 @@ class TkSeammInstaller(seamm.TkNode):
         """
 
         # Remove any widgets previously packed
-        frame = self['frame']
+        frame = self["frame"]
         for slave in frame.grid_slaves():
             slave.grid_forget()
 
@@ -210,7 +197,7 @@ class TkSeammInstaller(seamm.TkNode):
         if self.dialog is None:
             self.create_dialog()
 
-        self.dialog.activate(geometry='centerscreenfirst')
+        self.dialog.activate(geometry="centerscreenfirst")
 
     def handle_dialog(self, result):
         """Handle the closing of the edit dialog
@@ -230,19 +217,17 @@ class TkSeammInstaller(seamm.TkNode):
         None
         """
 
-        if result is None or result == 'Cancel':
+        if result is None or result == "Cancel":
             self.dialog.deactivate(result)
             return
 
-        if result == 'Help':
+        if result == "Help":
             # display help!!!
             return
 
         if result != "OK":
             self.dialog.deactivate(result)
-            raise RuntimeError(
-                "Don't recognize dialog result '{}'".format(result)
-            )
+            raise RuntimeError("Don't recognize dialog result '{}'".format(result))
 
         self.dialog.deactivate(result)
         # Shortcut for parameters
@@ -265,4 +250,4 @@ class TkSeammInstaller(seamm.TkNode):
         -------
         None
         """
-        print('Help not implemented yet for SEAMM Installer!')
+        print("Help not implemented yet for SEAMM Installer!")

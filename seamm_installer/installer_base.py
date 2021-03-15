@@ -67,7 +67,7 @@ class InstallerBase(object):
         The section of the configuration file to use. Defaults to None.
     """
 
-    def __init__(self, ini_file='~/.seamm/seamm.ini', logger=logger):
+    def __init__(self, ini_file="~/.seamm/seamm.ini", logger=logger):
         # Create the ini file if it does not exist.
         self._check_ini_file(ini_file)
 
@@ -113,24 +113,24 @@ class InstallerBase(object):
         """
         if default is None:
             answer = input(f"{text} y/n: ")
-        elif default == 'yes':
+        elif default == "yes":
             answer = input(f"{text} [y]/n: ")
-        elif default == 'no':
+        elif default == "no":
             answer = input(f"{text} y/[n]: ")
         else:
             answer = input(f"{text} y/n: ")
 
         while True:
             if len(answer) == 0:
-                if default == 'yes':
+                if default == "yes":
                     return True
-                elif default == 'no':
+                elif default == "no":
                     return False
             else:
                 answer = answer[0].lower()
-                if answer == 'y':
+                if answer == "y":
                     return True
-                elif answer == 'n':
+                elif answer == "n":
                     return False
             input("Please answer 'y' or 'n': ")
 
@@ -164,52 +164,44 @@ class InstallerBase(object):
         parser = argparse.ArgumentParser()
 
         parser.add_argument(
-            '--log-level',
-            default='WARNING',
+            "--log-level",
+            default="WARNING",
             type=str.upper,
-            choices=[
-                'NOTSET', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
-            ],
-            help=(
-                "The level of informational output, defaults to "
-                "'%(default)s'"
-            )
+            choices=["NOTSET", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+            help=("The level of informational output, defaults to " "'%(default)s'"),
         )
         parser.add_argument(
-            '--seamm',
-            default='seamm',
+            "--seamm",
+            default="seamm",
             type=str.lower,
-            help="The conda environment for seamm, defaults to '%(default)s'"
+            help="The conda environment for seamm, defaults to '%(default)s'",
         )
 
         subparsers = parser.add_subparsers()
-        self.subparser['subparsers'] = subparsers
+        self.subparser["subparsers"] = subparsers
 
         # check
-        self.subparser['check'] = check = subparsers.add_parser('check')
+        self.subparser["check"] = check = subparsers.add_parser("check")
         check.add_argument(
-            '-y',
-            '--yes',
-            action='store_true',
-            help="Answer 'yes' to all prompts"
+            "-y", "--yes", action="store_true", help="Answer 'yes' to all prompts"
         )
         check.set_defaults(method=self.check)
 
         # install
-        self.subparser['install'] = install = subparsers.add_parser('install')
+        self.subparser["install"] = install = subparsers.add_parser("install")
         install.set_defaults(method=self.install)
 
         # update
-        self.subparser['update'] = update = subparsers.add_parser('update')
+        self.subparser["update"] = update = subparsers.add_parser("update")
         update.set_defaults(method=self.update)
 
         # uninstall
-        uninstall = subparsers.add_parser('uninstall')
-        self.subparser['uninstall'] = uninstall
+        uninstall = subparsers.add_parser("uninstall")
+        self.subparser["uninstall"] = uninstall
         uninstall.set_defaults(method=self.uninstall)
 
         # show
-        self.subparser['show'] = show = subparsers.add_parser('show')
+        self.subparser["show"] = show = subparsers.add_parser("show")
         show.set_defaults(method=self.show)
 
         # Parse what we know so that we can set up logging.
