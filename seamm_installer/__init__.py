@@ -16,6 +16,7 @@ from seamm_installer.seamm_installer import SEAMMInstaller  # noqa: F401
 
 # Handle versioneer
 from ._version import get_versions
+
 __author__ = """Paul Saxe"""
 __email__ = 'psaxe@molssi.org'
 versions = get_versions()
