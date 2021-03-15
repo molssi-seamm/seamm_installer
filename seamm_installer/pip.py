@@ -55,17 +55,29 @@ class Pip(object):
             logger.warning(f"Output: {e.output}")
             raise
 
-    def uninstall(self, package):
-        """Remove the requested package.
+    def list(self, outdated=False, uptodate=False):
+        """List the installed packages.
 
         Parameters
         ----------
-        package : str
-            The package of interest.
+        outdated: bool
+            If true, list only the outdated packages. Cannot be used with
+            `uptodate`.
+        uptodate: bool
+            If true, list only the up-to-date packages. Cannot be used with
+            `outdated`.
         """
-        command = f"pip uninstall --yes '{package}'"
+        command = "pip list"
+        if outdated:
+            if uptodate:
+                raise ValueError(
+                    "May only use one of 'outdated' and 'uptodate'."
+                )
+            command += ' --outdated'
+        elif uptodate:
+            command += ' --uptodate'
         try:
-            subprocess.check_output(
+            output = subprocess.check_output(
                 command, shell=True, text=True, stderr=subprocess.STDOUT
             )
         except subprocess.CalledProcessError as e:
@@ -73,29 +85,13 @@ class Pip(object):
             logger.warning(f"Output: {e.output}")
             raise
 
-    def update(self, package):
-        """Update the requested package.
+        result = {}
+        for line in output.splitlines():
+            package, version = line.split()
+            result[package] = version
+        return result
 
-        Parameters
-        ----------
-        package : str
-            The package of interest.
-        """
-        command = f"pip install --upgrade '{package}'"
-        try:
-            subprocess.check_output(
-                command, shell=True, text=True, stderr=subprocess.STDOUT
-            )
-        except subprocess.CalledProcessError as e:
-            line = e.output.splitlines()[-1]
-            if 'FileNotFoundError' in line:
-                logger.warning(f"Pip returned a warning: {line}")
-            else:
-                logger.warning(f"Calling pip, returncode = {e.returncode}")
-                logger.warning(f"Output: {e.output}")
-                raise
-
-    def search(self, query=None, framework=None, exact=False):
+    def search(self, query=None, framework=None, exact=False, progress=False):
         """Search PyPi for packages.
 
         Parameters
@@ -105,7 +101,9 @@ class Pip(object):
         framework : str
             The framework classifier, if any.
         exact : bool
-            Whether to only return athe exact match, defaults to False.
+            Whether to only return the exact match, defaults to False.
+        progress : bool
+            Whether to show progress dots.
 
         Returns
         -------
@@ -124,6 +122,8 @@ class Pip(object):
         logger.debug(f"search query: {args}")
 
         # PyPi serves up the results one page at a time, so loop
+        if progress:
+            count = 0
         result = {}
         while True:
             response = requests.get(self._base_url, params=args)
@@ -155,6 +155,13 @@ class Pip(object):
                         if exact:
                             break
 
+            if progress:
+                count += 1
+                if count <= 50:
+                    print('.', end='')
+                else:
+                    count = 0
+                    print('\n.', end='')
             # See if there is a next page
             next_page = NEXT_RE.findall(snippet)
             if len(next_page) == 0:
@@ -202,3 +209,43 @@ class Pip(object):
         )
 
         return data
+
+    def uninstall(self, package):
+        """Remove the requested package.
+
+        Parameters
+        ----------
+        package : str
+            The package of interest.
+        """
+        command = f"pip uninstall --yes '{package}'"
+        try:
+            subprocess.check_output(
+                command, shell=True, text=True, stderr=subprocess.STDOUT
+            )
+        except subprocess.CalledProcessError as e:
+            logger.warning(f"Calling pip, returncode = {e.returncode}")
+            logger.warning(f"Output: {e.output}")
+            raise
+
+    def update(self, package):
+        """Update the requested package.
+
+        Parameters
+        ----------
+        package : str
+            The package of interest.
+        """
+        command = f"pip install --upgrade '{package}'"
+        try:
+            subprocess.check_output(
+                command, shell=True, text=True, stderr=subprocess.STDOUT
+            )
+        except subprocess.CalledProcessError as e:
+            line = e.output.splitlines()[-1]
+            if 'FileNotFoundError' in line:
+                logger.warning(f"Pip returned a warning: {line}")
+            else:
+                logger.warning(f"Calling pip, returncode = {e.returncode}")
+                logger.warning(f"Output: {e.output}")
+                raise
