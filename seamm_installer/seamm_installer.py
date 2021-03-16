@@ -176,8 +176,7 @@ class SEAMMInstaller(object):
         tmp = self.pip.search(query=package, exact=True, progress=False)
         try:
             version = self.pip.show(package)["version"]
-        except Exception as e:
-            print(e)
+        except Exception:
             if package in tmp:
                 available = tmp[package]["version"]
                 if yes:
@@ -304,19 +303,18 @@ class SEAMMInstaller(object):
                 for package in core_packages:
                     try:
                         version = self.pip.show(package)["version"]
-                    except Exception as e:
-                        print(e)
+                    except Exception:
                         if package in packages:
                             to_install.append(package)
-                else:
-                    if package in packages:
-                        available = packages[package]["version"]
-                        v_installed = pkg_resources.parse_version(version)
-                        v_available = pkg_resources.parse_version(available)
-                        if v_installed < v_available:
-                            to_install.append(package)
+                    else:
+                        if package in packages:
+                            available = packages[package]["version"]
+                            v_installed = pkg_resources.parse_version(version)
+                            v_available = pkg_resources.parse_version(available)
+                            if v_installed < v_available:
+                                to_install.append(package)
 
-                for package in sorted(to_install.keys()):
+                for package in sorted(to_install):
                     print(f"   Installing {package} " f"{packages[package]['version']}")
                     self.pip.install(package)
 
@@ -517,8 +515,7 @@ class SEAMMInstaller(object):
 
                 try:
                     version = self.pip.show(package)["version"]
-                except Exception as e:
-                    print(e)
+                except Exception:
                     if package in packages:
                         available = packages[package]["version"]
                         description = packages[package]["description"]
