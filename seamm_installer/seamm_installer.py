@@ -44,7 +44,7 @@ class SEAMMInstaller(object):
 
     """
 
-    def __init__(self, seamm="seamm"):
+    def __init__(self, logger=logger, seamm="seamm"):
         """The installer/updater for SEAMM.
 
         Parameters
@@ -54,6 +54,7 @@ class SEAMMInstaller(object):
         """
         logger.debug("Creating SEAMM Installer {}".format(self))
 
+        self.logger = logger
         self.options = None
         self._seamm_environment = seamm
         self._conda = Conda()
@@ -446,7 +447,7 @@ class SEAMMInstaller(object):
         print("All done.")
 
     def run_plugin_installer(
-        package: str, *args: Iterable[str]
+        self, package: str, *args: Iterable[str]
     ) -> subprocess.CompletedProcess:
         """Run the plug-in installer with given arguments.
 
@@ -463,11 +464,14 @@ class SEAMMInstaller(object):
             The result structure from subprocess.run, or None if there is no
             installer.
         """
-        installer = shutil.which(f"{package}_installer")
+        self.logger.info(f"run_plugin_installer {package} {args}")
+        installer = shutil.which(f"{package}-installer")
         if installer is None:
+            self.logger.info("    no local installer, returning None")
             return None
         else:
-            result = subprocess.run([installer, *args])
+            result = subprocess.run([installer, *args], capture_output=True, text=True)
+            self.logger.info(f"    ran the local installer: {result}")
             return result
 
     def show(self, *modules, **kwargs):
@@ -590,7 +594,6 @@ class SEAMMInstaller(object):
                     result = self.run_plugin_installer(package, "show")
                     if result is not None:
                         if result.returncode == 0:
-                            print(type(result.stdout))
                             print(result.stdout)
                             for line in result.stdout.splitlines():
                                 description += f"\n{line}"
