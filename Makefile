@@ -100,3 +100,9 @@ install: uninstall ## install the package to the active Python's site-packages
 
 uninstall: clean ## uninstall the package
 	pip uninstall --yes $(MODULE)
+
+conda:  ## Create a local conda package
+	conda-build -c rdkit --no-anaconda-upload conda_recipes/
+
+conda-release:  ## Create and upload the conda package
+	conda-build -c rdkit conda_recipes/

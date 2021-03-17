@@ -1,0 +1,37 @@
+{% set data = load_setup_py_data() %}
+{% set name = "seamm-installer" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ data.get('version') }}"
+
+source:
+  # git_rev: {{ version }}
+  # git_url: https://github.com/molssi-seamm/seamm_installer.git
+  path: /Users/psaxe/Work/SEAMM/seamm_installer
+
+build:
+  noarch: python
+
+requirements:
+  build:
+    - python
+    - requests
+    - setuptools
+    - tabulate
+
+  run:
+    - python
+    - rdkit
+    - requests
+    - tabulate
+
+test:
+  imports:
+    # - seamm-installer
+
+about:
+  home: https://github.com/molssi-seamm/seamm_installer
+  license: BSD
+  license_family: BSD
+  summary: Installer for SEAMM
