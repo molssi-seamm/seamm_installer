@@ -2,7 +2,7 @@
 {% set name = "seamm-installer" %}
 
 package:
-  name: "{{ name|lower }}"
+  name: "{{ data.get('name')|lower }}"
   version: "{{ data.get('version') }}"
 
 source:
@@ -22,7 +22,6 @@ requirements:
 
   run:
     - python
-    - rdkit
     - requests
     - tabulate
 
@@ -31,7 +30,6 @@ test:
     # - seamm-installer
 
 about:
-  home: https://github.com/molssi-seamm/seamm_installer
-  license: BSD
-  license_family: BSD
-  summary: Installer for SEAMM
+  home: {{ data.get('url') }}
+  license:  {{ data.get('license') }}
+  summary:  {{ data.get('description') }}

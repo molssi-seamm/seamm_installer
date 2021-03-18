@@ -1,0 +1,12 @@
+name: test
+channels:
+  - conda-forge
+dependencies:
+  # Base depends
+  - anaconda-client
+  - conda-build
+  - python
+  - pip
+  - requests
+  - tabulate
+
