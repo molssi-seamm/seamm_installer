@@ -22,7 +22,7 @@ with open('requirements_install.txt') as fd:
     requirements = fd.read()
 
 setup(
-    name='seamm_installer',
+    name='seamm-installer',
     author="Paul Saxe",
     author_email='psaxe@molssi.org',
     description=__doc__.splitlines()[1],
