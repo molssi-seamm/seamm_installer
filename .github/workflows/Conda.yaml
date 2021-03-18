@@ -37,5 +37,5 @@ jobs:
         export CONDA_BLD_PATH=~/conda-bld
         conda-build --no-anaconda-upload conda_recipes/
         ls -l conda_recipes
-        ls -l ~/conda-bld
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u seamm ~/conda-bld/noarch/* 
+        ls -lR ~/conda-bld
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u seamm ~/conda-bld/noarch/seamm-installer*
