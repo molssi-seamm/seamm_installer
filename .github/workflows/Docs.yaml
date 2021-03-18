@@ -3,7 +3,14 @@
 
 name: Documentation
 
-on: push
+on:
+  push:
+    branches-ignore:
+      - 'main'
+  release:
+    types: [published]
+    branches:
+      - "main"
 
 jobs:
   docs:
