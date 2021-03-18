@@ -33,9 +33,9 @@ jobs:
       # conda setup requires this special shell
       shell: bash -l {0}
       run: |
-        mkdir conda-bld
-        export CONDA_BLD_PATH=conda-bld
+        mkdir ~/conda-bld
+        export CONDA_BLD_PATH=~/conda-bld
         conda-build --no-anaconda-upload conda_recipes/
         ls -l conda_recipes
-        ls -l conda-bld
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u seamm conda-bld/* 
+        ls -l ~/conda-bld
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u seamm ~/conda-bld/* 
