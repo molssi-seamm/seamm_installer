@@ -1,12 +1,16 @@
-name: test
+name: ci
 channels:
   - conda-forge
 dependencies:
   # Base depends
-  - anaconda-client
-  - conda-build
   - python
   - pip
   - requests
   - tabulate
 
+  # Testing
+  - black
+  - codecov
+  - flake8
+  - pytest
+  - pytest-cov

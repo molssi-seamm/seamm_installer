@@ -1,3 +1,6 @@
+# GitHub Actions for creating the documentation.
+#    Thus runs on Linux only.
+
 name: Documentation
 
 on: push
@@ -21,8 +24,8 @@ jobs:
     - uses: conda-incubator/setup-miniconda@v2
       with:
         python-version: 3.8
-        environment-file: devtools/conda-envs/test_env.yaml
-        activate-environment: test
+        environment-file: devtools/conda-envs/docs.yaml
+        activate-environment: docs
         auto-update-conda: false
         auto-activate-base: false
         show-channel-urls: true
@@ -37,4 +40,4 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       shell: bash -l {0}
       run: |
-        docs/buildDocs.sh
+        devtools/scripts/buildDocs.sh

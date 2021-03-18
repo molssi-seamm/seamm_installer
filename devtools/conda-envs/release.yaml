@@ -1,10 +1,16 @@
-name: test
+name: release
 channels:
   - conda-forge
 dependencies:
   # Base depends
   - python
   - pip
+  - requests
+  - tabulate
+
+  # Conda release
+  - anaconda-client
+  - conda-build
 
   # Testing
   - black
@@ -12,14 +18,13 @@ dependencies:
   - flake8
   - pytest
   - pytest-cov
+  
+  # Documentation
+  - pygments
 
-    # Pip-only installs
+  # Pip-only installs
   - pip:
-    - requests
-    - tabulate
-
     # Documentation
     - rinohtype
-    - pygments
     - sphinx-rtd-theme
     - pystemmer

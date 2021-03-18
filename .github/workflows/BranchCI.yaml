@@ -1,3 +1,6 @@
+# GitHub Actions for CI on a branch.
+#    This runs on only Linux, running lint checkers, testing and code coverage.
+
 name: BranchCI
 
 on:
@@ -21,9 +24,8 @@ jobs:
     - uses: conda-incubator/setup-miniconda@v2
       with:
         python-version: 3.8
-        environment-file: devtools/conda-envs/test_env.yaml
-
-        activate-environment: test
+        environment-file: devtools/conda-envs/ci.yaml
+        activate-environment: ci
         auto-update-conda: false
         auto-activate-base: false
         show-channel-urls: true

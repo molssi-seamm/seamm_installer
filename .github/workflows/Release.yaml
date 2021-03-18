@@ -1,3 +1,7 @@
+# GitHub Actions for CI on the main branch when a release is published.
+#    This runs lint checkers on Linux, testing and code coverage on all platforms,
+#    and then deploys to PyPi and Conda `seamm` channel, running on Linux.
+
 name: Release
 
 on:
@@ -22,8 +26,8 @@ jobs:
     - uses: conda-incubator/setup-miniconda@v2
       with:
         python-version: 3.8
-        environment-file: devtools/conda-envs/test_env.yaml
-        activate-environment: test
+        environment-file: devtools/conda-envs/release.yaml
+        activate-environment: release
         auto-update-conda: false
         auto-activate-base: false
         show-channel-urls: true
@@ -58,7 +62,7 @@ jobs:
     - uses: conda-incubator/setup-miniconda@v2
       with:
         python-version: ${{ matrix.python-version }}
-        environment-file: devtools/conda-envs/test_env.yaml
+        environment-file: devtools/conda-envs/conda-build.yaml
         activate-environment: test
         auto-update-conda: false
         auto-activate-base: false
@@ -115,9 +119,11 @@ jobs:
       uses: pypa/gh-action-pypi-publish@master
       with:
         password: ${{ secrets.pypi_password }}
-
     - name: Publish to conda, seamm channel
-      uses: maxibor/conda-package-publish-action@v1.1
-      with:
-        subDir: 'conda_recipes'
-        AnacondaToken: ${{ secrets.ANACONDA_TOKEN }}
+      run: |
+        mkdir ~/conda-bld
+        export CONDA_BLD_PATH=~/conda-bld
+        conda-build --no-anaconda-upload conda_recipes/
+        ls -l conda_recipes
+        ls -lR ~/conda-bld
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u seamm ~/conda-bld/noarch/seamm-installer*
