@@ -205,7 +205,9 @@ class SEAMMInstaller(object):
         available = None
         source = None
         if package in conda_packages:
-            available = pkg_resources.parse_version(conda_packages[package]["version"])
+            available = pkg_resources.parse_version(
+                conda_packages[package][-1]["version"]
+            )
             source = "conda"
         if package in pip_packages:
             version = pkg_resources.parse_version(pip_packages[package]["version"])
