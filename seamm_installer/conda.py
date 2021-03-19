@@ -25,6 +25,7 @@ class Conda(object):
         self._is_installed = False
         self._data = None
         self.logger = logger
+        self.channels = ["local", "seamm"]
 
         self._initialize()
 
@@ -164,13 +165,32 @@ class Conda(object):
         """
         return environment in self.environments
 
-    def list(self, environment=None):
+    def install(self, package, environment=None):
+        """Install a package in an environment..
+
+        Parameters
+        ----------
+        package: strip
+            The package to install.
+        environment : str
+            The name of the environment to list, defaults to the current.
+        """
+        command = "conda install "
+        if environment is not None:
+            command += f" --name '{environment}'"
+        command += f" {package}"
+
+        self.execute(command)
+
+    def list(self, environment=None, query=None):
         """The contents of an environment.
 
         Parameters
         ----------
         environment : str
             The name of the environment to list, defaults to the current.
+        query: str
+            Regexp for package names, default to all packages
 
         Returns
         -------
@@ -180,6 +200,8 @@ class Conda(object):
         command = "conda list --json"
         if environment is not None:
             command += f" --name '{environment}'"
+        if query is not None:
+            command += f" '{query}'"
 
         self.logger.debug(f"command = {command}")
 
@@ -233,6 +255,56 @@ class Conda(object):
             self._initialize()
             raise
         self._initialize()
+
+    def search(self, query=None, channels=None, override_channels=True):
+        """Run conda search, returning a dictionary of packages.
+
+        Parameters
+        ----------
+        query: str = None
+            The pattern to search, Defaults to None, meaning all packages.
+        channels: [str] = None
+            A list of channels to search. defaults to the list in self.channels.
+        override_channels: bool = True
+            Ignore channels configured in .condarc and the default channel.
+
+        Returns
+        -------
+        dict
+            A dictionary of packages, with versions for each.
+        """
+        command = "conda search --json"
+        if override_channels:
+            command += " --override-channels"
+        if channels is None:
+            for channel in self.channels:
+                command += f" -c {channel}"
+        else:
+            for channel in channels:
+                command += f" -c {channel}"
+        if query is not None:
+            command += " {query}"
+
+        result = self._execute(command)
+
+        return json.loads(result[1])
+
+    def uninstall(self, package, environment=None):
+        """Uninstall a package from an environment..
+
+        Parameters
+        ----------
+        package: str
+            The package to uninstall install.
+        environment : str
+            The name of the environment to list, defaults to the current.
+        """
+        command = "conda uninstall "
+        if environment is not None:
+            command += f" --name '{environment}'"
+        command += f" {package}"
+
+        self.execute(command)
 
     def update_environment(self, environment_file, name=None):
         """Update a Conda environment.

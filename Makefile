@@ -1,5 +1,5 @@
 MODULE := seamm_installer
-.PHONY: clean clean-test clean-pyc clean-build docs help
+.PHONY: clean clean-test clean-pyc clean-build docs help conda conda-release 
 .DEFAULT_GOAL := help
 define BROWSER_PYSCRIPT
 import os, webbrowser, sys
@@ -102,7 +102,7 @@ uninstall: clean ## uninstall the package
 	pip uninstall --yes $(MODULE)
 
 conda:  ## Create a local conda package
-	conda-build -c rdkit --no-anaconda-upload conda_recipes/
+	conda-build -c rdkit --no-anaconda-upload conda/
 
 conda-release:  ## Create and upload the conda package
-	conda-build -c rdkit conda_recipes/
+	conda-build -c rdkit conda/
