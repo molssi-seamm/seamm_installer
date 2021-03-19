@@ -116,6 +116,8 @@ class Conda(object):
         self._data = json.loads(result)
         tmp = "\n\t".join(self.environments)
         self.logger.info(f"environments:\n\t{tmp}")
+        print(f"environments:\n\t{tmp}")
+        print(result)
 
     def create_environment(self, environment_file, name=None, force=False):
         """Create a Conda environment.
@@ -283,7 +285,7 @@ class Conda(object):
             for channel in channels:
                 command += f" -c {channel}"
         if query is not None:
-            command += " {query}"
+            command += f" {query}"
 
         result = self._execute(command)
 
