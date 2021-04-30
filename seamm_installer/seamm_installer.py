@@ -57,8 +57,8 @@ class SEAMMInstaller(object):
         self.logger = logger
         self.options = None
         self._seamm_environment = seamm
-        self._conda = Conda()
-        self._pip = Pip()
+        self._conda = None
+        self._pip = None
 
     @property
     def version(self):
@@ -73,11 +73,15 @@ class SEAMMInstaller(object):
     @property
     def conda(self):
         """The Conda object."""
+        if self._conda is None:
+            self._conda = Conda()
         return self._conda
 
     @property
     def pip(self):
         """The Pip object."""
+        if self._pip is None:
+            self._pip = Pip()
         return self._pip
 
     @property
