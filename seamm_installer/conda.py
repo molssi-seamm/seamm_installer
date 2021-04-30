@@ -116,8 +116,6 @@ class Conda(object):
         self._data = json.loads(result)
         tmp = "\n\t".join(self.environments)
         self.logger.info(f"environments:\n\t{tmp}")
-        print(f"environments:\n\t{tmp}")
-        print(result)
 
     def create_environment(self, environment_file, name=None, force=False):
         """Create a Conda environment.
