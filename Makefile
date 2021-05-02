@@ -105,4 +105,4 @@ conda:  ## Create a local conda package
 	conda-build -c conda-forge --no-anaconda-upload conda/
 
 conda-release:  ## Create and upload the conda package
-	conda-build -c conda-forge conda/
+	conda-build -c conda-forge conda/ --label main
