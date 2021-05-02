@@ -4,7 +4,6 @@
 import argparse
 import logging
 from pathlib import Path
-import pkg_resources
 import shutil
 
 import seamm_installer
@@ -328,9 +327,9 @@ class InstallerBase(object):
                     tmp_path = self.conda.path(tmp) / "bin"
                     if self.have_executables(tmp_path):
                         if self.options.yes or self.ask_yes_no(
-                            "There are no valid executable in the {self.path_name}"
+                            f"There are no valid executables in the {self.path_name}"
                             " in the config file, but there are in the Conda "
-                            f"environment {tmp}.\n"
+                            f"environment {tmp} ({tmp_path}).\n"
                             "Use them?",
                             default="yes",
                         ):
@@ -410,8 +409,7 @@ class InstallerBase(object):
         """
         if not self.configuration.section_exists(self.section):
             # Get the text of the data
-            path = Path(pkg_resources.resource_filename(__name__, "data/"))
-            path = path / "configuration.txt"
+            path = self.resource_path / "configuration.txt"
             text = path.read_text()
 
             # Add it to the configuration file and write to disk.
