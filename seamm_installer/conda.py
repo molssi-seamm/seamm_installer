@@ -46,7 +46,11 @@ class Conda(object):
                     result.append("base")
                 else:
                     path = Path(env)
-                    result.append(path.name)
+                    if path.name == "miniconda":
+                        # Windows is different.
+                        result.append("base")
+                    else:
+                        result.append(path.name)
             return result
         else:
             return None
