@@ -57,8 +57,8 @@ class SEAMMInstaller(object):
         self.logger = logger
         self.options = None
         self._seamm_environment = seamm
-        self._conda = Conda()
-        self._pip = Pip()
+        self._conda = None
+        self._pip = None
 
     @property
     def version(self):
@@ -73,11 +73,15 @@ class SEAMMInstaller(object):
     @property
     def conda(self):
         """The Conda object."""
+        if self._conda is None:
+            self._conda = Conda()
         return self._conda
 
     @property
     def pip(self):
         """The Pip object."""
+        if self._pip is None:
+            self._pip = Pip()
         return self._pip
 
     @property
@@ -110,9 +114,9 @@ class SEAMMInstaller(object):
 
         # Activate the seamm environment, if it exists.
         if not self.conda.exists(self.seamm_environment):
-            print(
-                f"The '{self.seamm_environment}' Conda environment is not " "installed."
-            )
+            print(f"The '{self.seamm_environment}' Conda environment is not installed.")
+            text = "\n    ".join(self.conda.environments)
+            self.logger.info(f"Conda environments:\n    {text}")
             return
         self.conda.activate(self.seamm_environment)
 
@@ -174,55 +178,92 @@ class SEAMMInstaller(object):
 
         # Show the installer itself...need to be careful which installer!
         package = "seamm-installer"
-        tmp = self.pip.search(query=package, exact=True, progress=False)
+
+        # See if conda knows it is installed
         try:
-            version = self.pip.show(package)["version"]
+            installed = pkg_resources.parse_version(
+                self.conda.list(query=package)["version"]
+            )
         except Exception:
-            if package in tmp:
-                available = tmp[package]["version"]
+            installed = None
+            installed_source = None
+        else:
+            installed_source = "conda"
+
+        # Get a list of conda versions available
+        conda_packages = self.conda.search(query=package)
+
+        # See if pip knows it is installed
+        try:
+            version = pkg_resources.parse_version(self.pip.show(package)["version"])
+        except Exception:
+            pass
+        else:
+            if installed is None or installed < version:
+                installed = version
+                installed_source = "pip"
+
+        # Get a list of pip version available
+        pip_packages = self.pip.search(query=package, exact=True, progress=False)
+
+        available = None
+        source = None
+        if package in conda_packages:
+            available = pkg_resources.parse_version(
+                conda_packages[package][-1]["version"]
+            )
+            source = "conda"
+        if package in pip_packages:
+            version = pkg_resources.parse_version(pip_packages[package]["version"])
+            if available is None or version > available:
+                available = version
+                source = "pip"
+
+        if installed is None:
+            if available is None:
+                print(
+                    f"The SEAMM installer '{package}' is neither installed nor "
+                    "available! This seems imnpossible!"
+                )
+            else:
                 if yes:
-                    self.pip.install(package)
+                    if source == "pip":
+                        self.pip.install(package)
+                    else:
+                        self.conda.install(package)
                     print(
-                        f"The SEAMM installer '{package}' was not installed. "
-                        f"Installed version {available}."
+                        f"The SEAMM installer '{package}' was not installed so "
+                        f"installed version {available} using {source}."
                     )
                 else:
                     print(
                         f"The SEAMM installer '{package}' is not installed "
-                        f"but version {available} is available."
+                        f"but version {available} is available using {source}."
                     )
+        elif available > installed:
+            if yes:
+                if installed_source == "pip":
+                    self.pip.uninstall(package)
+                else:
+                    self.conda.uninstall(package)
+                if source == "pip":
+                    self.pip.install(package)
+                else:
+                    self.conda.install(package)
+                print(
+                    f"The SEAMM installer '{package}' version {version} was "
+                    f"updated to version {available} using {source}."
+                )
             else:
                 print(
-                    f"The SEAMM installer '{package}', version {version} "
-                    "is installed. No version is available online!"
+                    f"The SEAMM installer '{package}' version {version} is "
+                    f"installed but a newer version {available} is available "
+                    f"using {source}."
                 )
         else:
-            if package in tmp:
-                available = tmp[package]["version"]
-                v_installed = pkg_resources.parse_version(version)
-                v_available = pkg_resources.parse_version(available)
-                if v_installed < v_available:
-                    if yes:
-                        self.pip.update(package)
-                        print(
-                            f"The SEAMM installer '{package}', version {version} "
-                            f"was updated to version {available}."
-                        )
-                    else:
-                        print(
-                            f"The SEAMM installer '{package}', version {version} "
-                            f"is installed, but version {available} is available."
-                        )
-                else:
-                    print(
-                        f"The SEAMM installer '{package}', version {version} "
-                        "is up-to-date."
-                    )
-            else:
-                print(
-                    f"The SEAMM installer '{package}' is not installed, nor "
-                    "is a version available online!"
-                )
+            print(
+                f"The SEAMM installer '{package}', version {version} " "is up-to-date."
+            )
 
     def find_packages(self, progress: bool = False) -> Mapping[str, str]:
         """Find the Python packages in SEAMM.
@@ -492,9 +533,9 @@ class SEAMMInstaller(object):
 
         # Activate the seamm environment, if it exists.
         if not self.conda.exists(self.seamm_environment):
-            print(
-                f"The '{self.seamm_environment}' Conda environment is not " "installed."
-            )
+            print(f"The '{self.seamm_environment}' Conda environment is not installed.")
+            text = "\n    ".join(self.conda.environments)
+            self.logger.info(f"Conda environments:\n    {text}")
             return
         self.conda.activate(self.seamm_environment)
 
@@ -751,9 +792,9 @@ class SEAMMInstaller(object):
 
         # Activate the seamm environment, if it exists.
         if not self.conda.exists(self.seamm_environment):
-            print(
-                f"The '{self.seamm_environment}' Conda environment is not " "installed."
-            )
+            print(f"The '{self.seamm_environment}' Conda environment is not installed.")
+            text = "\n    ".join(self.conda.environments)
+            self.logger.info(f"Conda environments:\n    {text}")
             return
         self.conda.activate(self.seamm_environment)
 

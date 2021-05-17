@@ -3,6 +3,8 @@ include CONTRIBUTING.rst
 include HISTORY.rst
 include LICENSE
 include README.rst
+include requirements*
+include versioneer.py
 
 recursive-include seamm_installer/data *
 recursive-include tests *
