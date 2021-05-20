@@ -7,6 +7,7 @@ import json
 import logging
 from pathlib import Path
 import pkg_resources
+import pprint
 import shlex
 import shutil
 import subprocess
@@ -44,7 +45,7 @@ class SEAMMInstaller(object):
 
     """
 
-    def __init__(self, logger=logger, seamm="seamm"):
+    def __init__(self, logger=logger, environment=""):
         """The installer/updater for SEAMM.
 
         Parameters
@@ -56,9 +57,12 @@ class SEAMMInstaller(object):
 
         self.logger = logger
         self.options = None
-        self._seamm_environment = seamm
         self._conda = None
         self._pip = None
+
+        # Set the environment at the end so can use conda
+        self.seamm_environment = environment
+        self.logger.info(f"The conda environment is {self.seamm_environment}")
 
     @property
     def version(self):
@@ -91,7 +95,10 @@ class SEAMMInstaller(object):
 
     @seamm_environment.setter
     def seamm_environment(self, value):
-        self._seamm_environment = value
+        if value is None or value == "":
+            self._seamm_environment = self.conda.active_environment
+        else:
+            self._seamm_environment = value
 
     def check(self, *modules, yes=False):
         """Check the requested modules.
@@ -176,26 +183,31 @@ class SEAMMInstaller(object):
             Whether to install or update without asking.
         """
 
+        self.logger.info("Checking if the installer is up-to-date.")
+
         # Show the installer itself...need to be careful which installer!
         package = "seamm-installer"
 
         # See if conda knows it is installed
         try:
-            installed = pkg_resources.parse_version(
-                self.conda.list(query=package)["version"]
-            )
+            data = self.conda.list(query=package)
+            self.logger.debug(f"Conda:\n---------\n{pprint.pformat(data)}\n---------\n")
+            installed = pkg_resources.parse_version(data["version"])
         except Exception:
             installed = None
             installed_source = None
         else:
             installed_source = "conda"
+            self.logger.debug(f"   version {installed} installed by conda")
 
         # Get a list of conda versions available
         conda_packages = self.conda.search(query=package)
 
         # See if pip knows it is installed
         try:
-            version = pkg_resources.parse_version(self.pip.show(package)["version"])
+            data = self.pip.show(package)
+            self.logger.debug(f"Pip:\n---------\n{pprint.pformat(data)}\n---------\n")
+            version = pkg_resources.parse_version(data["version"])
         except Exception:
             pass
         else:
@@ -251,18 +263,18 @@ class SEAMMInstaller(object):
                 else:
                     self.conda.install(package)
                 print(
-                    f"The SEAMM installer '{package}' version {version} was "
+                    f"The SEAMM installer '{package}' version {installed} was "
                     f"updated to version {available} using {source}."
                 )
             else:
                 print(
-                    f"The SEAMM installer '{package}' version {version} is "
+                    f"The SEAMM installer '{package}' version {installed} is "
                     f"installed but a newer version {available} is available "
                     f"using {source}."
                 )
         else:
             print(
-                f"The SEAMM installer '{package}', version {version} " "is up-to-date."
+                f"The SEAMM installer '{package}', version {installed} is up-to-date."
             )
 
     def find_packages(self, progress: bool = False) -> Mapping[str, str]:
@@ -285,7 +297,7 @@ class SEAMMInstaller(object):
         # Need to add molsystem and reference-handler by hand
         for package in ("molsystem", "reference-handler"):
             tmp = self.pip.search(query=package, exact=True, progress=False)
-            logger.debug(
+            self.logger.debug(
                 f"Query for package {package}\n"
                 f"{json.dumps(tmp, indent=4, sort_keys=True)}\n"
             )
@@ -318,7 +330,7 @@ class SEAMMInstaller(object):
             )
             # Get the path to seamm.yml
             path = Path(pkg_resources.resource_filename(__name__, "data/"))
-            logger.debug(f"data directory: {path}")
+            self.logger.debug(f"data directory: {path}")
             self.conda.create_environment(
                 path / "seamm.yml", name=self.seamm_environment
             )
@@ -335,7 +347,8 @@ class SEAMMInstaller(object):
             packages = self.find_packages(progress=False)
             print("")
         else:
-            self.conda.activate(self.seamm_environment)
+            if self.conda.active_environment != self.seamm_environment:
+                self.conda.activate(self.seamm_environment)
             packages = self.find_packages(progress=False)
             print("")
             if "all" in modules or "core" in modules:
@@ -462,7 +475,7 @@ class SEAMMInstaller(object):
 
     def run(self):
         """Run the installer/updater"""
-        logger.debug("Entering run method of the SEAMM installer")
+        self.logger.debug("Entering run method of the SEAMM installer")
 
         # Process the conda environment
         self._handle_conda()
@@ -474,7 +487,7 @@ class SEAMMInstaller(object):
         # Need to add molsystem and reference-handler by hand
         for package in ("molsystem", "reference-handler"):
             tmp = self.pip.search(query=package, exact=True)
-            logger.debug(
+            self.logger.debug(
                 f"Query for package {package}\n"
                 f"{json.dumps(tmp, indent=4, sort_keys=True)}\n"
             )
@@ -523,8 +536,8 @@ class SEAMMInstaller(object):
         modules : [str]
             The modules to show, or 'all', 'core' or 'plug-ins'.
         """
-        logger.debug("Entering run method of the SEAMM installer")
-        logger.debug(f"    modules = {modules}")
+        self.logger.debug("Entering run method of the SEAMM installer")
+        self.logger.debug(f"    modules = {modules}")
 
         # See if Conda is installed
         if not self.conda.is_installed:
@@ -537,6 +550,7 @@ class SEAMMInstaller(object):
             text = "\n    ".join(self.conda.environments)
             self.logger.info(f"Conda environments:\n    {text}")
             return
+        self.logger.info(f"Activating {self.seamm_environment} environment")
         self.conda.activate(self.seamm_environment)
 
         packages = self.find_packages(progress=False)
@@ -894,7 +908,7 @@ class SEAMMInstaller(object):
         poll_interval : int
             Time interval in seconds for checking for output.
         """
-        logger.info(f"running '{command}'")
+        self.logger.info(f"running '{command}'")
         args = shlex.split(command)
         process = subprocess.Popen(
             args,
@@ -907,16 +921,16 @@ class SEAMMInstaller(object):
         stdout = ""
         stderr = ""
         while True:
-            logger.debug("    checking if finished")
+            self.logger.debug("    checking if finished")
             result = process.poll()
             if result is not None:
-                logger.info(f"    finished! result = {result}")
+                self.logger.info(f"    finished! result = {result}")
                 break
             try:
-                logger.debug("    calling communicate")
+                self.logger.debug("    calling communicate")
                 output, errors = process.communicate(timeout=poll_interval)
             except subprocess.TimeoutExpired:
-                logger.debug("    timed out")
+                self.logger.debug("    timed out")
                 print(".", end="")
                 n += 1
                 if n >= 50:
@@ -926,9 +940,9 @@ class SEAMMInstaller(object):
             else:
                 if output != "":
                     stdout += output
-                    logger.debug(output)
+                    self.logger.debug(output)
                 if errors != "":
                     stderr += errors
-                    logger.debug(f"stderr: '{errors}'")
+                    self.logger.debug(f"stderr: '{errors}'")
 
         return result, stdout, stderr
