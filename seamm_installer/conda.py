@@ -20,12 +20,13 @@ class Conda(object):
     """
 
     def __init__(self, logger=logger):
-        logger.debug("Creating Conda {str(type(self))}")
+        logger.debug(f"Creating Conda {str(type(self))}")
 
         self._is_installed = False
         self._data = None
         self.logger = logger
-        self.channels = ["local", "seamm"]
+        self.channels = ["local", "conda-forge"]
+        self.root_path = None
 
         self._initialize()
 
@@ -37,20 +38,34 @@ class Conda(object):
             return "Conda does not appear to be installed!"
 
     @property
+    def active_environment(self):
+        """The currently active Conda environment."""
+        if self.is_installed:
+            return self._data["active_prefix_name"]
+        else:
+            return None
+
+    @property
     def environments(self):
         """The available conda environments."""
+        self.logger.debug("Getting list of environment")
+        self.logger.debug(f"   root path = {self.root_path}")
         if self.is_installed:
             result = []
             for env in self._data["envs"]:
-                if env == self.root_prefix:
+                path = Path(env)
+                self.logger.debug(f"   environment {env}")
+                if path == self.root_path:
                     result.append("base")
+                    self.logger.debug("    --> base")
                 else:
-                    path = Path(env)
                     if path.name == "miniconda":
                         # Windows is different.
                         result.append("base")
+                        self.logger.debug("    --> base")
                     else:
                         result.append(path.name)
+                        self.logger.debug(f"    --> {path.name}")
             return result
         else:
             return None
@@ -104,9 +119,10 @@ class Conda(object):
     def _initialize(self):
         """Get the information about the current Conda installation."""
         command = "conda info --json"
+        args = shlex.split(command)
         try:
             result = subprocess.check_output(
-                command, shell=True, text=True, stderr=subprocess.STDOUT
+                args, shell=False, text=True, stderr=subprocess.STDOUT
             )
         except subprocess.CalledProcessError as e:
             self.logger.debug(f"Calling conda, returncode = {e.returncode}")
@@ -117,7 +133,37 @@ class Conda(object):
             return
 
         self._is_installed = True
+        self.logger.debug(f"\nconda info --json\n\n{result}\n\n")
         self._data = json.loads(result)
+
+        # Find the root path for the environment
+        # Typically the base environment is e.g. ~/opt/miniconda3 and all other
+        # environments are in ~/opt/miniconda3/envs/ We want the path for the base
+        # environment.
+        self.logger.debug("Finding the conda root path")
+        root = None
+        for env in self._data["envs"]:
+            path = Path(env)
+            self.logger.debug(f"    environment path {path}")
+            if path.parent.name == "envs":
+                if root is None:
+                    root = path.parent.parent
+                    self.logger.debug(f"    root <-- {root}")
+                elif root != path.parent.parent:
+                    raise RuntimeError(
+                        f"Problem finding the root of the Conda installation: {env} is "
+                        f"not a subdirectory of {root}."
+                    )
+            else:
+                if root is None:
+                    root = path
+                    self.logger.debug(f"    root <-- {root}")
+                else:
+                    raise RuntimeError(
+                        f"Found two roots for the Conda installation: {env} and {root}."
+                    )
+        self.root_path = root
+
         tmp = "\n\t".join(self.environments)
         self.logger.info(f"environments:\n\t{tmp}")
 
@@ -143,7 +189,10 @@ class Conda(object):
         if force:
             command += " --force"
         if name is not None:
-            command += f" --name '{name}'"
+            # Using the name leads to odd paths, so be explicit.
+            # command += f" --name '{name}'"
+            path = self.root_path / "envs" / name
+            command += f" --prefix '{str(path)}'"
         self.logger.debug(f"command = {command}")
         try:
             self._execute(command)
@@ -232,10 +281,10 @@ class Conda(object):
             The path to the environment.
         """
         if environment == "base":
-            return Path(self.root_prefix)
+            return Path(self.root_path)
         else:
             for env in self._data["envs"]:
-                if env != self.root_prefix:
+                if env != self.root_path:
                     path = Path(env)
                     if environment == path.name:
                         return path
