@@ -592,7 +592,7 @@ class InstallerBase(object):
         if tmp is not None:
             tmp = Path(tmp).expanduser().resolve().parent
             if exe_path is not None and exe_path != tmp:
-                version = self.executable_version(tmp)
+                version = self.exe_version(tmp)
                 print(
                     f"Another executable (version {version}) "
                     "is in the PATH:\n"

@@ -3,6 +3,7 @@ import json
 import logging
 import os
 from pathlib import Path
+import pkg_resources
 import shlex
 import subprocess
 import sys
@@ -233,9 +234,9 @@ class Conda(object):
             command += f" --name '{environment}'"
         command += f" {package}"
 
-        self.execute(command)
+        self._execute(command)
 
-    def list(self, environment=None, query=None):
+    def list(self, environment=None, query=None, fullname=False):
         """The contents of an environment.
 
         Parameters
@@ -253,6 +254,8 @@ class Conda(object):
         command = "conda list --json"
         if environment is not None:
             command += f" --name '{environment}'"
+        if fullname:
+            command += " --full-name"
         if query is not None:
             command += f" '{query}'"
 
@@ -265,7 +268,12 @@ class Conda(object):
             self.logger.warning(f"Output:\n\n{e.output}\n\n")
             raise
 
-        return {x["name"]: x for x in json.loads(stdout)}
+        result = {}
+        for x in json.loads(stdout):
+            if "version" in x:
+                x["version"] = pkg_resources.parse_version(x["version"])
+            result[x["name"]] = x
+        return result
 
     def path(self, environment):
         """The path for an environment.
@@ -338,9 +346,15 @@ class Conda(object):
         if query is not None:
             command += f" {query}"
 
-        result = self._execute(command)
+        _, stdout, _ = self._execute(command)
+        result = json.loads(stdout)
 
-        return json.loads(result[1])
+        for package, data in result.items():
+            for tmp in data:
+                if "version" in tmp:
+                    tmp["version"] = pkg_resources.parse_version(tmp["version"])
+
+        return result
 
     def uninstall(self, package, environment=None):
         """Uninstall a package from an environment..
@@ -357,7 +371,7 @@ class Conda(object):
             command += f" --name '{environment}'"
         command += f" {package}"
 
-        self.execute(command)
+        self._execute(command)
 
     def update_environment(self, environment_file, name=None):
         """Update a Conda environment.
