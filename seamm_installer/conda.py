@@ -42,7 +42,7 @@ class Conda(object):
     def active_environment(self):
         """The currently active Conda environment."""
         if self.is_installed:
-            return self._data["active_prefix_name"]
+            return os.environ["CONDA_DEFAULT_ENV"]
         else:
             return None
 
@@ -262,7 +262,7 @@ class Conda(object):
         self.logger.debug(f"command = {command}")
 
         try:
-            result, stdout, stderr = self._execute(command)
+            result, stdout, stderr = self._execute(command, progress=False)
         except subprocess.CalledProcessError as e:
             self.logger.warning(f"Calling conda, returncode = {e.returncode}")
             self.logger.warning(f"Output:\n\n{e.output}\n\n")
@@ -317,7 +317,14 @@ class Conda(object):
             raise
         self._initialize()
 
-    def search(self, query=None, channels=None, override_channels=True):
+    def search(
+        self,
+        query=None,
+        channels=None,
+        override_channels=True,
+        progress=True,
+        newline=True,
+    ):
         """Run conda search, returning a dictionary of packages.
 
         Parameters
@@ -328,6 +335,10 @@ class Conda(object):
             A list of channels to search. defaults to the list in self.channels.
         override_channels: bool = True
             Ignore channels configured in .condarc and the default channel.
+        progress : bool = True
+            Whether to show progress dots.
+        newline : bool = True
+            Whether to print a newline at the end if showing progress
 
         Returns
         -------
@@ -346,13 +357,25 @@ class Conda(object):
         if query is not None:
             command += f" {query}"
 
-        _, stdout, _ = self._execute(command)
-        result = json.loads(stdout)
+        _, stdout, _ = self._execute(command, progress=progress, newline=newline)
+        try:
+            output = json.loads(stdout)
+        except Exception as e:
+            self.logger.warning(
+                f"expected output from {command}, got {output}", exc_info=e
+            )
+            return None
 
-        for package, data in result.items():
-            for tmp in data:
-                if "version" in tmp:
-                    tmp["version"] = pkg_resources.parse_version(tmp["version"])
+        if "error" in output:
+            return None
+
+        result = {}
+        for package, data in output.items():
+            result[package] = {
+                "channel": data[-1]["channel"],
+                "version": pkg_resources.parse_version(data[-1]["version"]),
+                "description": "not available",
+            }
 
         return result
 
@@ -390,7 +413,10 @@ class Conda(object):
 
         command = f"conda env update --file '{path}'"
         if name is not None:
-            command += f" --name '{name}'"
+            # Using the name leads to odd paths, so be explicit.
+            # command += f" --name '{name}'"
+            path = self.root_path / "envs" / name
+            command += f" --prefix '{str(path)}'"
         self.logger.debug(f"command = {command}")
         try:
             self._execute(command)
@@ -399,7 +425,7 @@ class Conda(object):
             self.logger.warning(f"Output:\n\n{e.output}\n\n")
             raise
 
-    def _execute(self, command, poll_interval=2):
+    def _execute(self, command, poll_interval=2, progress=True, newline=True):
         """Execute the command as a subprocess.
 
         Parameters
@@ -408,6 +434,10 @@ class Conda(object):
             The command, with any arguments, to execute.
         poll_interval : int
             Time interval in seconds for checking for output.
+        progress : bool = True
+            Whether to show progress dots.
+        newline : bool = True
+            Whether to print a newline at the end if showing progress
         """
         self.logger.info(f"running '{command}'")
         args = shlex.split(command)
@@ -432,12 +462,13 @@ class Conda(object):
                 output, errors = process.communicate(timeout=poll_interval)
             except subprocess.TimeoutExpired:
                 self.logger.debug("    timed out")
-                print(".", end="")
-                n += 1
-                if n >= 50:
-                    print("")
-                    n = 0
-                sys.stdout.flush()
+                if progress:
+                    print(".", end="")
+                    n += 1
+                    if n >= 50:
+                        print("")
+                        n = 0
+                    sys.stdout.flush()
             else:
                 if output != "":
                     stdout += output
@@ -445,5 +476,6 @@ class Conda(object):
                 if errors != "":
                     stderr += errors
                     self.logger.debug(f"stderr: '{errors}'")
-        print("")
+        if progress and newline and n > 0:
+            print("")
         return result, stdout, stderr
