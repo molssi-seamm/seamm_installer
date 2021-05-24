@@ -1,46 +1,25 @@
 name: seamm
 channels:
-  - rdkit
   - conda-forge
 dependencies:
     # Base depends
   - python>=3.7
-  - tk=8.6.7
+  - tk
   - pip
-  - rdkit
+
+  # SEAMM
+  - seamm-installer
+  - seamm
+  - seamm-util
+  - seamm-widgets
+  - seamm-ff-util
+  - molsystem
+  - reference-handler
+  
   - openkim-models
   - kim-query
-
-    # other dependencies that are in conda
-  - attrs
-  - colorama
-  - cycler
-  - docutils
-  - fasteners
-  - jinja2
-  - kiwisolver
-  - matplotlib
-  - openbabel
-  - numpy
-  - packaging
-  - pandas
-  - pbr
-  - pillow
-  - psutil
-  - py-cpuinfo
-  - pyparsing
-  - requests
-  - sqlalchemy
-  - statsmodels
 
   # Pip-only installs
   - pip:
         # SEAMM
-      - seamm-installer
-      - seamm
-      - seamm-jobserver
-      - seamm-util
-      - seamm-widgets
-      - seamm-ff-util
-      - molsystem
-      - reference-handler
+        - seamm-jobserver
