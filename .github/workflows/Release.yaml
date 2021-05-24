@@ -119,11 +119,3 @@ jobs:
       uses: pypa/gh-action-pypi-publish@master
       with:
         password: ${{ secrets.pypi_password }}
-    - name: Publish to conda, seamm channel
-      run: |
-        mkdir ~/conda-bld
-        export CONDA_BLD_PATH=~/conda-bld
-        conda-build --no-anaconda-upload conda_recipes/
-        ls -l conda_recipes
-        ls -lR ~/conda-bld
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u seamm ~/conda-bld/noarch/seamm-installer*
