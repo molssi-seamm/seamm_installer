@@ -136,13 +136,20 @@ def run():
     environment = kwargs.pop("environment")
 
     # get the modules
-    modules = kwargs.pop("modules")
+    modules = kwargs.pop("modules", ["all"])
 
     # And remove the method
-    method = kwargs.pop("method")
+    method = kwargs.pop("method", installer.show)
 
     # Check the installer itself.
-    installer.check_installer(yes=True)
+    if method == installer.install or method == installer.update:
+        answer = True
+    elif method == installer.check:
+        answer = kwargs["yes"]
+    else:
+        answer = False
+
+    installer.check_installer(yes=answer)
 
     # Run the requested subcommand
     method(*modules, **kwargs)
