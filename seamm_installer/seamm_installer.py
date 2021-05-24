@@ -3,16 +3,16 @@
 """Non-graphical part of the SEAMM Installer
 """
 
-import json
 import logging
 from pathlib import Path
 import pkg_resources
+import pprint
 import shlex
 import shutil
 import subprocess
 import sys
 import textwrap
-from typing import Iterable, Mapping
+from typing import Iterable, Mapping, Tuple
 
 from tabulate import tabulate
 
@@ -44,7 +44,7 @@ class SEAMMInstaller(object):
 
     """
 
-    def __init__(self, logger=logger, seamm="seamm"):
+    def __init__(self, logger=logger, environment=""):
         """The installer/updater for SEAMM.
 
         Parameters
@@ -56,9 +56,12 @@ class SEAMMInstaller(object):
 
         self.logger = logger
         self.options = None
-        self._seamm_environment = seamm
         self._conda = None
         self._pip = None
+
+        # Set the environment at the end so can use conda
+        self.seamm_environment = environment
+        print(f"The conda environment is {self.seamm_environment}")
 
     @property
     def version(self):
@@ -91,7 +94,10 @@ class SEAMMInstaller(object):
 
     @seamm_environment.setter
     def seamm_environment(self, value):
-        self._seamm_environment = value
+        if value is None or value == "":
+            self._seamm_environment = self.conda.active_environment
+        else:
+            self._seamm_environment = value
 
     def check(self, *modules, yes=False):
         """Check the requested modules.
@@ -118,10 +124,11 @@ class SEAMMInstaller(object):
             text = "\n    ".join(self.conda.environments)
             self.logger.info(f"Conda environments:\n    {text}")
             return
-        self.conda.activate(self.seamm_environment)
+        if self.conda.active_environment != self.seamm_environment:
+            self.conda.activate(self.seamm_environment)
 
-        packages = self.find_packages(progress=False)
-        print("")
+        packages = self.find_packages(progress=True)
+        # print("")
 
         cmd = ["check"]
         if yes:
@@ -176,32 +183,15 @@ class SEAMMInstaller(object):
             Whether to install or update without asking.
         """
 
+        self.logger.info("Checking if the installer is up-to-date.")
+
         # Show the installer itself...need to be careful which installer!
         package = "seamm-installer"
 
-        # See if conda knows it is installed
-        try:
-            installed = pkg_resources.parse_version(
-                self.conda.list(query=package)["version"]
-            )
-        except Exception:
-            installed = None
-            installed_source = None
-        else:
-            installed_source = "conda"
+        installed_version, channel = self.package_info(package)
 
         # Get a list of conda versions available
         conda_packages = self.conda.search(query=package)
-
-        # See if pip knows it is installed
-        try:
-            version = pkg_resources.parse_version(self.pip.show(package)["version"])
-        except Exception:
-            pass
-        else:
-            if installed is None or installed < version:
-                installed = version
-                installed_source = "pip"
 
         # Get a list of pip version available
         pip_packages = self.pip.search(query=package, exact=True, progress=False)
@@ -209,40 +199,42 @@ class SEAMMInstaller(object):
         available = None
         source = None
         if package in conda_packages:
-            available = pkg_resources.parse_version(
-                conda_packages[package][-1]["version"]
-            )
+            available = conda_packages[package]["version"]
             source = "conda"
         if package in pip_packages:
-            version = pkg_resources.parse_version(pip_packages[package]["version"])
+            version = pip_packages[package]["version"]
             if available is None or version > available:
                 available = version
                 source = "pip"
 
-        if installed is None:
+        if installed_version is None:
             if available is None:
                 print(
                     f"The SEAMM installer '{package}' is neither installed nor "
-                    "available! This seems imnpossible!"
+                    "available! This seems impossible!"
                 )
             else:
                 if yes:
-                    if source == "pip":
+                    print(
+                        f"The SEAMM installer '{package}' is not installed so "
+                        f"will install version {available} using {source}."
+                    )
+                    if channel == "pypi":
                         self.pip.install(package)
                     else:
                         self.conda.install(package)
-                    print(
-                        f"The SEAMM installer '{package}' was not installed so "
-                        f"installed version {available} using {source}."
-                    )
                 else:
                     print(
                         f"The SEAMM installer '{package}' is not installed "
                         f"but version {available} is available using {source}."
                     )
-        elif available > installed:
+        elif available > installed_version:
             if yes:
-                if installed_source == "pip":
+                print(
+                    f"The SEAMM installer '{package}' version {installed_version} will "
+                    f"be updated to version {available} using {source}."
+                )
+                if channel == "pypi":
                     self.pip.uninstall(package)
                 else:
                     self.conda.uninstall(package)
@@ -250,22 +242,19 @@ class SEAMMInstaller(object):
                     self.pip.install(package)
                 else:
                     self.conda.install(package)
-                print(
-                    f"The SEAMM installer '{package}' version {version} was "
-                    f"updated to version {available} using {source}."
-                )
             else:
                 print(
-                    f"The SEAMM installer '{package}' version {version} is "
+                    f"The SEAMM installer '{package}' version {installed_version} is "
                     f"installed but a newer version {available} is available "
                     f"using {source}."
                 )
         else:
             print(
-                f"The SEAMM installer '{package}', version {version} " "is up-to-date."
+                f"The SEAMM installer '{package}', version {installed_version} is "
+                "up-to-date."
             )
 
-    def find_packages(self, progress: bool = False) -> Mapping[str, str]:
+    def find_packages(self, progress: bool = True) -> Mapping[str, str]:
         """Find the Python packages in SEAMM.
 
         Parameters
@@ -275,8 +264,12 @@ class SEAMMInstaller(object):
         dict(str, str)
             A dictionary with information about the packages.
         """
+        print(
+            "Finding all the packages that make up SEAMM. This may take a minute or "
+            "two."
+        )
         # Use pip to find possible packages.
-        packages = self.pip.search(query="SEAMM", progress=False)
+        packages = self.pip.search(query="SEAMM", progress=progress, newline=False)
 
         # Remove this installer package
         if "seamm-installer" in packages:
@@ -284,13 +277,30 @@ class SEAMMInstaller(object):
 
         # Need to add molsystem and reference-handler by hand
         for package in ("molsystem", "reference-handler"):
-            tmp = self.pip.search(query=package, exact=True, progress=False)
-            logger.debug(
-                f"Query for package {package}\n"
-                f"{json.dumps(tmp, indent=4, sort_keys=True)}\n"
+            tmp = self.pip.search(
+                query=package, exact=True, progress=True, newline=False
             )
+            self.logger.debug(f"Query for package {package}\n{pprint.pformat(tmp)}\n")
             if package in tmp:
                 packages[package] = tmp[package]
+
+        # Check the versions on conda, and prefer those...
+        self.logger.info("Find packages: checking for conda versions")
+        for package, data in packages.items():
+            self.logger.info(f"    {package}")
+            conda_packages = self.conda.search(package, progress=True, newline=False)
+
+            if conda_packages is None:
+                continue
+
+            tmp = conda_packages[package]
+            if tmp["version"] > data["version"]:
+                data["version"] = tmp["version"]
+                data["channel"] = tmp["channel"]
+
+        if progress:
+            print("", flush=True)
+
         return packages
 
     def install(self, *modules, **kwargs):
@@ -318,7 +328,7 @@ class SEAMMInstaller(object):
             )
             # Get the path to seamm.yml
             path = Path(pkg_resources.resource_filename(__name__, "data/"))
-            logger.debug(f"data directory: {path}")
+            self.logger.debug(f"data directory: {path}")
             self.conda.create_environment(
                 path / "seamm.yml", name=self.seamm_environment
             )
@@ -332,33 +342,34 @@ class SEAMMInstaller(object):
                 else:
                     print(f"   Warning: {package} was not installed!")
             print("")
-            packages = self.find_packages(progress=False)
-            print("")
+            packages = self.find_packages(progress=True)
+            # print("")
         else:
-            self.conda.activate(self.seamm_environment)
-            packages = self.find_packages(progress=False)
-            print("")
+            if self.conda.active_environment != self.seamm_environment:
+                self.conda.activate(self.seamm_environment)
+            packages = self.find_packages(progress=True)
+            # print("")
             if "all" in modules or "core" in modules:
                 print("")
                 print("Installing the core packages of SEAMM:")
                 to_install = []
                 for package in core_packages:
-                    try:
-                        version = self.pip.show(package)["version"]
-                    except Exception:
-                        if package in packages:
-                            to_install.append(package)
-                    else:
-                        if package in packages:
-                            available = packages[package]["version"]
-                            v_installed = pkg_resources.parse_version(version)
-                            v_available = pkg_resources.parse_version(available)
-                            if v_installed < v_available:
-                                to_install.append(package)
+                    installed_version, channel = self.package_info(package)
 
-                for package in sorted(to_install):
+                    if installed_version is None:
+                        if package in packages:
+                            version = packages[package]["version"]
+                            channel = packages[package]["channel"]
+                            to_install.append((package, version, channel))
+
+                for package, version, channnel in sorted(
+                    to_install, key=lambda package: package[0]
+                ):
                     print(f"   Installing {package} " f"{packages[package]['version']}")
-                    self.pip.install(package)
+                    if channel == "pypi":
+                        self.pip.install(package)
+                    else:
+                        self.conda.install(package)
 
                     # See if the package has an installer
                     self.run_plugin_installer(package, "install")
@@ -374,15 +385,12 @@ class SEAMMInstaller(object):
                     continue
 
                 install = "no"
-                try:
-                    version = self.pip.show(package)["version"]
-                except Exception:
+                installed_version, channel = self.package_info(package)
+                if installed_version is None:
                     install = "full"
                 else:
                     available = packages[package]["version"]
-                    v_installed = pkg_resources.parse_version(version)
-                    v_available = pkg_resources.parse_version(available)
-                    if v_installed < v_available:
+                    if installed_version < available:
                         to_install.append(package)
                     else:
                         # See if the package has an installer
@@ -394,7 +402,10 @@ class SEAMMInstaller(object):
 
                 if install == "full":
                     print(f"   Installing {package} " f"{packages[package]['version']}")
-                    self.pip.install(package)
+                    if channel == "pypi":
+                        self.pip.install(package)
+                    else:
+                        self.conda.install(package)
                     # See if the package has an installer
                     self.run_plugin_installer(package, "install")
                 elif install == "package installer":
@@ -421,9 +432,8 @@ class SEAMMInstaller(object):
                     continue
 
                 install = "no"
-                try:
-                    version = self.pip.show(package)["version"]
-                except Exception:
+                installed_version, channel = self.package_info(package)
+                if installed_version is None:
                     install = "full"
                 else:
                     # If the package has an installer, run it.
@@ -437,36 +447,89 @@ class SEAMMInstaller(object):
                             ):
                                 install = "package installer"
                         else:
-                            print(
+                            self.logger.warning(
                                 "Encountered an error checking the "
                                 f"installation for {package}: "
                                 f"{result.returncode}"
                             )
-                            print(f"\nstdout:\n{result.stdout}")
-                            print(f"\nstderr:\n{result.stderr}")
+                            self.logger.warning(f"\nstdout:\n{result.stdout}")
+                            self.logger.warning(f"\nstderr:\n{result.stderr}")
                     available = packages[package]["version"]
-                    v_installed = pkg_resources.parse_version(version)
-                    v_available = pkg_resources.parse_version(available)
-                    if v_installed < v_available:
+                    if installed_version < available:
                         print(f"{package} is installed but should be updated.")
                     elif install == "no":
                         print(f"{package} is already installed.")
 
                 if install == "full":
-                    print(f"Installing {package}")
-                    self.pip.install(package)
+                    channel = packages[package]["channel"]
+                    if channel == "pypi":
+                        print(f"Installing {package} using pip")
+                        self.pip.install(package)
+                    else:
+                        print(f"Installing {package} using conda channel {channel}")
+                        self.conda.install(package)
+                    self.logger.info("    Running the specific installer if it exists.")
                     self.run_plugin_installer(package, "install")
                 elif install == "package installer":
                     print(f"Installing local part of {package}")
                     self.run_plugin_installer(package, "install")
 
+    def package_info(self, package: str, conda_only: bool = False) -> Tuple[str, str]:
+        """Return info on a package
+
+        Parameters
+        ----------
+        package:
+            The name of the package.
+        """
+
+        self.logger.info(f"Info on package '{package}'")
+
+        # See if conda knows it is installed
+        self.logger.debug("    Checking if installed by conda")
+        data = self.conda.list(query=package, fullname=True)
+        if package not in data:
+            version = None
+            channel = None
+            self.logger.debug("        No.")
+        else:
+            self.logger.debug(f"Conda:\n---------\n{pprint.pformat(data)}\n---------\n")
+            version = data[package]["version"]
+            channel = data[package]["channel"]
+            self.logger.info(
+                f"   version {version} installed by conda, channel {channel}"
+            )
+
+        if conda_only:
+            return version, channel
+
+        # See if pip knows it is installed
+        if channel is None:
+            self.logger.debug("    Checking if installed by pip")
+            try:
+                data = self.pip.show(package)
+            except Exception as e:
+                self.logger.debug("        No.", exc_info=e)
+                pass
+            else:
+                self.logger.debug(
+                    f"Pip:\n---------\n{pprint.pformat(data)}\n---------\n"
+                )
+                if "version" in data:
+                    version = data["version"]
+                    channel = "pypi"
+                    self.logger.info(f"   version {version} installed by pip from pypi")
+
+        return version, channel
+
     def run(self):
         """Run the installer/updater"""
-        logger.debug("Entering run method of the SEAMM installer")
+        self.logger.debug("Entering run method of the SEAMM installer")
 
         # Process the conda environment
         self._handle_conda()
-        self.conda.activate(self.seamm_environment)
+        if self.conda.active_environment != self.seamm_environment:
+            self.conda.activate(self.seamm_environment)
 
         # Use pip to find possible packages.
         packages = self.pip.search(query="SEAMM")
@@ -474,10 +537,7 @@ class SEAMMInstaller(object):
         # Need to add molsystem and reference-handler by hand
         for package in ("molsystem", "reference-handler"):
             tmp = self.pip.search(query=package, exact=True)
-            logger.debug(
-                f"Query for package {package}\n"
-                f"{json.dumps(tmp, indent=4, sort_keys=True)}\n"
-            )
+            self.logger.debug(f"Query for package {package}\n{pprint.pformat(tmp)}\n")
             if package in tmp:
                 packages[package] = tmp[package]
 
@@ -506,6 +566,9 @@ class SEAMMInstaller(object):
             installer.
         """
         self.logger.info(f"run_plugin_installer {package} {args}")
+        if package == "seamm":
+            return None
+
         installer = shutil.which(f"{package}-installer")
         if installer is None:
             self.logger.info("    no local installer, returning None")
@@ -523,8 +586,8 @@ class SEAMMInstaller(object):
         modules : [str]
             The modules to show, or 'all', 'core' or 'plug-ins'.
         """
-        logger.debug("Entering run method of the SEAMM installer")
-        logger.debug(f"    modules = {modules}")
+        self.logger.debug("Entering run method of the SEAMM installer")
+        self.logger.debug(f"    modules = {modules}")
 
         # See if Conda is installed
         if not self.conda.is_installed:
@@ -537,10 +600,12 @@ class SEAMMInstaller(object):
             text = "\n    ".join(self.conda.environments)
             self.logger.info(f"Conda environments:\n    {text}")
             return
-        self.conda.activate(self.seamm_environment)
+        self.logger.info(f"Activating {self.seamm_environment} environment")
+        if self.conda.active_environment != self.seamm_environment:
+            self.conda.activate(self.seamm_environment)
 
-        packages = self.find_packages(progress=False)
-        print("")
+        packages = self.find_packages(progress=True)
+        # print("")
 
         # Show the core SEAMM modules if requested
         if "all" in modules or "core" in modules:
@@ -573,9 +638,7 @@ class SEAMMInstaller(object):
                         available = packages[package]["version"]
                         description = packages[package]["description"]
                         data.append([line_no, package, version, available, description])
-                        v_installed = pkg_resources.parse_version(version)
-                        v_available = pkg_resources.parse_version(available)
-                        if v_installed < v_available:
+                        if version < available:
                             am_current = False
                     else:
                         data.append([line_no, package, version, "--", "not available"])
@@ -624,9 +687,7 @@ class SEAMMInstaller(object):
                     state[package] = "not installed"
                 else:
                     available = packages[package]["version"]
-                    v_installed = pkg_resources.parse_version(version)
-                    v_available = pkg_resources.parse_version(available)
-                    if v_installed < v_available:
+                    if version < available:
                         am_current = False
                         state[package] = "not up-to-date"
                     else:
@@ -635,7 +696,6 @@ class SEAMMInstaller(object):
                     result = self.run_plugin_installer(package, "show")
                     if result is not None:
                         if result.returncode == 0:
-                            print(result.stdout)
                             for line in result.stdout.splitlines():
                                 description += f"\n{line}"
                         else:
@@ -715,9 +775,7 @@ class SEAMMInstaller(object):
                 else:
                     if package in packages:
                         available = packages[package]["version"]
-                        v_installed = pkg_resources.parse_version(version)
-                        v_available = pkg_resources.parse_version(available)
-                        if v_installed < v_available:
+                        if version < available:
                             am_current = False
                             state[package] = "not up-to-date"
                         else:
@@ -756,12 +814,66 @@ class SEAMMInstaller(object):
             print("")
 
     def uninstall(self, *modules, **kwargs):
+        """Remove the requested modules.
+
+        Parameters
+        ----------
+        *modules: [str]
+            A list of modules to install. May be 'all', 'core', or 'plug-ins'
+            to request either all modules, or just the core or plug-ins be
+            installed.
+        **kwargs: dict(str, str)
+            Other optional keyword arguments.
+        """
+
+        if self.conda.active_environment != self.seamm_environment:
+            self.conda.activate(self.seamm_environment)
+
+        packages = None
         if "all" in modules or "core" in modules:
             print("")
             print("Core packages of SEAMM:")
+            for package in core_packages:
+                installed_version, channel = self.package_info(package)
+
+                if installed_version is None:
+                    continue
+
+                print(f"   Uninstalling {package} {installed_version}")
+
+                # See if the package has an installer
+                self.run_plugin_installer(package, "uninstall")
+
+                if channel == "pypi":
+                    self.pip.uninstall(package)
+                else:
+                    self.conda.uninstall(package)
+
         if "all" in modules or "plug-ins" in modules or "plugins" in modules:
             print("")
             print("Plug-ins for SEAMM:")
+            if packages is None:
+                packages = self.find_packages(progress=True)
+            for package in sorted(packages.keys()):
+                if package in core_packages:
+                    continue
+
+                if package in exclude_plug_ins:
+                    continue
+
+                installed_version, channel = self.package_info(package)
+                if installed_version is None:
+                    continue
+
+                print(f"   Uninstalling {package} {installed_version}")
+
+                # See if the package has an installer
+                self.run_plugin_installer(package, "uninstall")
+
+                if channel == "pypi":
+                    self.pip.uninstall(package)
+                else:
+                    self.conda.uninstall(package)
 
         # Any modules given explicitly
         explicit = []
@@ -772,6 +884,21 @@ class SEAMMInstaller(object):
         if len(explicit) > 0:
             print("")
             print("Uninstalling the specified modules in SEAMM:")
+            for package in explicit:
+                installed_version, channel = self.package_info(package)
+                if installed_version is None:
+                    print(f"   {package} is not installed")
+                    continue
+
+                print(f"   Uninstalling {package} {installed_version}")
+
+                # See if the package has an installer
+                self.run_plugin_installer(package, "uninstall")
+
+                if channel == "pypi":
+                    self.pip.uninstall(package)
+                else:
+                    self.conda.uninstall(package)
 
     def update(self, *modules, **kwargs):
         """Update the requested modules.
@@ -796,27 +923,39 @@ class SEAMMInstaller(object):
             text = "\n    ".join(self.conda.environments)
             self.logger.info(f"Conda environments:\n    {text}")
             return
-        self.conda.activate(self.seamm_environment)
+        if self.conda.active_environment != self.seamm_environment:
+            self.conda.activate(self.seamm_environment)
 
-        packages = self.find_packages(progress=False)
+        packages = self.find_packages(progress=True)
         print("")
 
         if "all" in modules or "core" in modules:
             print("")
             print("Updating the core packages of SEAMM:")
             for package in core_packages:
-                try:
-                    version = self.pip.show(package)["version"]
-                except Exception:
-                    pass
-            else:
+                installed_version, installed_channel = self.package_info(package)
+                if installed_version is None:
+                    continue
+
                 if package in packages:
                     available = packages[package]["version"]
-                    v_installed = pkg_resources.parse_version(version)
-                    v_available = pkg_resources.parse_version(available)
-                    if v_installed < v_available:
+                    channel = packages[package]["channel"]
+                    if installed_version < available:
                         print(f"   Updating {package}")
-                        self.pip.update(package)
+                        if channel == installed_channel:
+                            if channel == "pypi":
+                                self.pip.update(package)
+                            else:
+                                self.conda.update(package)
+                        else:
+                            if installed_channel == "pypi":
+                                self.pip.uninstall(package)
+                            else:
+                                self.conda.uninstall(package)
+                            if channel == "pypi":
+                                self.pip.install(package)
+                            else:
+                                self.conda.install(package)
 
                         # See if the package has an installer
                         self.run_plugin_installer(package, "update")
@@ -831,24 +970,35 @@ class SEAMMInstaller(object):
                 if package in exclude_plug_ins:
                     continue
 
-                try:
-                    version = self.pip.show(package)["version"]
-                except Exception:
-                    pass
-                else:
-                    available = packages[package]["version"]
-                    v_installed = pkg_resources.parse_version(version)
-                    v_available = pkg_resources.parse_version(available)
-                    if v_installed < v_available:
-                        print(
-                            f"   Updating {package} from {v_installed} to "
-                            f"{v_available}."
-                        )
-                        self.pip.update(package)
+                installed_version, installed_channel = self.package_info(package)
+                if installed_version is None:
+                    continue
 
-                        # See if the package has an installer
-                        self.run_plugin_installer(package, "update")
-                        print("    Done.")
+                available = packages[package]["version"]
+                channel = packages[package]["channel"]
+                if installed_version < available:
+                    print(
+                        f"   Updating {package} from {installed_version} to "
+                        f"{available}."
+                    )
+                    if channel == installed_channel:
+                        if channel == "pypi":
+                            self.pip.update(package)
+                        else:
+                            self.conda.update(package)
+                    else:
+                        if installed_channel == "pypi":
+                            self.pip.uninstall(package)
+                        else:
+                            self.conda.uninstall(package)
+                        if channel == "pypi":
+                            self.pip.install(package)
+                        else:
+                            self.conda.install(package)
+
+                    # See if the package has an installer
+                    self.run_plugin_installer(package, "update")
+                    print("    Done.")
 
         # Any modules given explicitly
         explicit = []
@@ -865,24 +1015,35 @@ class SEAMMInstaller(object):
                     print(f"Package '{package}' is not available for " "upgrading.")
                     continue
 
-                try:
-                    version = self.pip.show(package)["version"]
-                except Exception:
-                    pass
-                else:
-                    available = packages[package]["version"]
-                    v_installed = pkg_resources.parse_version(version)
-                    v_available = pkg_resources.parse_version(available)
-                    if v_installed < v_available:
-                        print(
-                            f"   Updating {package} from {v_installed} to "
-                            f"{v_available}."
-                        )
-                        self.pip.update(package)
+                installed_version, installed_channel = self.package_info(package)
+                if installed_version is None:
+                    continue
 
-                        # See if the package has an installer
-                        self.run_plugin_installer(package, "update")
-                        print("    Done.")
+                available = packages[package]["version"]
+                channel = packages[package]["channel"]
+                if installed_version < available:
+                    print(
+                        f"   Updating {package} from {installed_version} to "
+                        f"{available}."
+                    )
+                    if channel == installed_channel:
+                        if channel == "pypi":
+                            self.pip.update(package)
+                        else:
+                            self.conda.update(package)
+                    else:
+                        if installed_channel == "pypi":
+                            self.pip.uninstall(package)
+                        else:
+                            self.conda.uninstall(package)
+                        if channel == "pypi":
+                            self.pip.install(package)
+                        else:
+                            self.conda.install(package)
+
+                    # See if the package has an installer
+                    self.run_plugin_installer(package, "update")
+                    print("    Done.")
 
     def _execute(self, command, poll_interval=2):
         """Execute the command as a subprocess.
@@ -894,7 +1055,7 @@ class SEAMMInstaller(object):
         poll_interval : int
             Time interval in seconds for checking for output.
         """
-        logger.info(f"running '{command}'")
+        self.logger.info(f"running '{command}'")
         args = shlex.split(command)
         process = subprocess.Popen(
             args,
@@ -907,16 +1068,16 @@ class SEAMMInstaller(object):
         stdout = ""
         stderr = ""
         while True:
-            logger.debug("    checking if finished")
+            self.logger.debug("    checking if finished")
             result = process.poll()
             if result is not None:
-                logger.info(f"    finished! result = {result}")
+                self.logger.info(f"    finished! result = {result}")
                 break
             try:
-                logger.debug("    calling communicate")
+                self.logger.debug("    calling communicate")
                 output, errors = process.communicate(timeout=poll_interval)
             except subprocess.TimeoutExpired:
-                logger.debug("    timed out")
+                self.logger.debug("    timed out")
                 print(".", end="")
                 n += 1
                 if n >= 50:
@@ -926,9 +1087,11 @@ class SEAMMInstaller(object):
             else:
                 if output != "":
                     stdout += output
-                    logger.debug(output)
+                    self.logger.debug(output)
                 if errors != "":
                     stderr += errors
-                    logger.debug(f"stderr: '{errors}'")
+                    self.logger.debug(f"stderr: '{errors}'")
+        if n > 0:
+            print("")
 
         return result, stdout, stderr

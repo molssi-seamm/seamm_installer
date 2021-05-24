@@ -480,8 +480,11 @@ class InstallerBase(object):
         """Do what the user asks via the commandline."""
         self.options = self.parser.parse_args()
 
-        # Run the requested subcommand
-        self.options.method()
+        if "method" not in self.options:
+            self.parser.print_help()
+        else:
+            # Run the requested subcommand
+            self.options.method()
 
     def setup_parser(self):
         """Parse the command line into the options."""
@@ -592,7 +595,7 @@ class InstallerBase(object):
         if tmp is not None:
             tmp = Path(tmp).expanduser().resolve().parent
             if exe_path is not None and exe_path != tmp:
-                version = self.executable_version(tmp)
+                version = self.exe_version(tmp)
                 print(
                     f"Another executable (version {version}) "
                     "is in the PATH:\n"
@@ -604,21 +607,22 @@ class InstallerBase(object):
         # See if the exectuables are already registered in the configuration file
         data = self.configuration.get_values(self.section)
         if "installation" in data and data["installation"] == "conda":
-            environment = self.environment
             if "conda-environment" in data and data["conda-environment"] != "":
                 environment = data["conda-environment"]
-            print(
-                f"Uninstalling Conda environment '{environment}'. This "
-                "may take a minute or two."
-            )
-            self.conda.remove_environment(environment)
-            # Update the configuration file.
-            self.configuration.set_value(self.section, self.path_name, "")
-            self.configuration.set_value(self.section, "modules", "")
-            self.configuration.set_value(self.section, "installation", "not installed")
-            self.configuration.set_value(self.section, "conda-environment", "")
-            self.configuration.save()
-            print("Done!\n")
+                print(
+                    f"Uninstalling Conda environment '{environment}'. This "
+                    "may take a minute or two."
+                )
+                self.conda.remove_environment(environment)
+                # Update the configuration file.
+                self.configuration.set_value(self.section, self.path_name, "")
+                self.configuration.set_value(self.section, "modules", "")
+                self.configuration.set_value(
+                    self.section, "installation", "not installed"
+                )
+                self.configuration.set_value(self.section, "conda-environment", "")
+                self.configuration.save()
+                print("Done!\n")
 
     def update(self):
         """Update the installation, if possible."""

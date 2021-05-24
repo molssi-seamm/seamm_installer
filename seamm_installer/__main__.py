@@ -4,6 +4,7 @@
 """
 import argparse
 import logging
+import sys
 
 import seamm_installer
 
@@ -14,9 +15,11 @@ def run():
     """Run the installer.
 
     How the installer runs is controlled by command-line arguments.
+
+    We need the installer object to setup the parser; however, it needs
+    some of the information from the commandline so we parse those arguments
+    first, then setup the rest.
     """
-    # Create the installer
-    installer = seamm_installer.SEAMMInstaller()
 
     # Parse the commandline
     parser = argparse.ArgumentParser()
@@ -31,11 +34,28 @@ def run():
 
     # And continue
     parser.add_argument(
-        "--seamm",
-        default="seamm",
+        "--environment",
+        default="",
         type=str.lower,
-        help="The conda environment for seamm, defaults to '%(default)s'",
+        help="The conda environment to install to, defaults to the current environment",
     )
+
+    # Parse the first options
+    if "-h" not in sys.argv and "--help" not in sys.argv:
+        options, _ = parser.parse_known_args()
+        kwargs = vars(options)
+
+        # Set up the logging
+        level = kwargs.pop("log_level")
+        logging.basicConfig(level=level)
+
+        environment = kwargs.pop("environment")
+
+        # Create the installer
+        installer = seamm_installer.SEAMMInstaller(environment=environment)
+    else:
+        # Create the installer
+        installer = seamm_installer.SEAMMInstaller()
 
     subparsers = parser.add_subparsers()
 
@@ -111,21 +131,25 @@ def run():
     options = parser.parse_args()
     kwargs = vars(options)
 
-    # Set up the logging
+    # Remove the logging and environment options since they have been handled
     level = kwargs.pop("log_level")
-    logging.basicConfig(level=level)
-
-    environment = kwargs.pop("seamm")
-    installer.seamm_environment = environment
+    environment = kwargs.pop("environment")
 
     # get the modules
-    modules = kwargs.pop("modules")
+    modules = kwargs.pop("modules", ["all"])
 
     # And remove the method
-    method = kwargs.pop("method")
+    method = kwargs.pop("method", installer.show)
 
     # Check the installer itself.
-    installer.check_installer(yes=True)
+    if method == installer.install or method == installer.update:
+        answer = True
+    elif method == installer.check:
+        answer = kwargs["yes"]
+    else:
+        answer = False
+
+    installer.check_installer(yes=answer)
 
     # Run the requested subcommand
     method(*modules, **kwargs)

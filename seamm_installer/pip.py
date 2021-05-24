@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-import json
 import logging
+import pkg_resources
+import pprint
 import re
 import subprocess
 
@@ -81,10 +82,12 @@ class Pip(object):
         result = {}
         for line in output.splitlines():
             package, version = line.split()
-            result[package] = version
+            result[package] = pkg_resources.parse_version(version)
         return result
 
-    def search(self, query=None, framework=None, exact=False, progress=False):
+    def search(
+        self, query=None, framework=None, exact=False, progress=False, newline=True
+    ):
         """Search PyPi for packages.
 
         Parameters
@@ -93,10 +96,12 @@ class Pip(object):
             The text of the query, if any.
         framework : str
             The framework classifier, if any.
-        exact : bool
+        exact : bool = False
             Whether to only return the exact match, defaults to False.
-        progress : bool
+        progress : bool = False
             Whether to show progress dots.
+        newline : bool = True
+            Whether to print a newline at the end if showing progress
 
         Returns
         -------
@@ -120,7 +125,7 @@ class Pip(object):
         result = {}
         while True:
             response = requests.get(self._base_url, params=args)
-            logger.debug(f"response: {response.text}")
+            logger.log(5, f"response: {response.text}")
 
             snippets = SNIPPET_RE.split(response.text)
 
@@ -133,14 +138,15 @@ class Pip(object):
                 if len(name) > 0:
                     if not exact or name[0] == query:
                         if len(version) == 0:
-                            version = "unknown"
+                            version = None
                         else:
-                            version = version[0]
+                            version = pkg_resources.parse_version(version[0])
                         if len(description) == 0:
                             description = "no description given"
                         else:
                             description = description[0]
                         result[name[0]] = {
+                            "channel": "pypi",
                             "version": version,
                             "description": description,
                         }
@@ -151,10 +157,10 @@ class Pip(object):
             if progress:
                 count += 1
                 if count <= 50:
-                    print(".", end="")
+                    print(".", end="", flush=True)
                 else:
-                    count = 0
-                    print("\n.", end="")
+                    count = 1
+                    print("\n.", end="", flush=True)
             # See if there is a next page
             next_page = NEXT_RE.findall(snippet)
             if len(next_page) == 0:
@@ -162,8 +168,10 @@ class Pip(object):
             else:
                 args["page"] = next_page[0]
 
-        tmp = json.dumps(result, indent=4, sort_keys=True)
-        logger.debug(f"Package information:\n{tmp}")
+        if progress and newline and count > 0:
+            print("", flush=True)
+
+        logger.debug(f"Package information:\n{pprint.pformat(result)}")
 
         return result
 
@@ -195,9 +203,12 @@ class Pip(object):
             value = value.strip()
             if "require" in key:
                 value = [x.strip() for x in value.split(",")]
-            data[key] = value
+            if key == "version":
+                data[key] = pkg_resources.parse_version(value)
+            else:
+                data[key] = value
 
-        logger.debug(f"{command}\n{json.dumps(data, indent=4, sort_keys=True)}")
+        logger.debug(f"{command}\n{pprint.pformat(data)}")
 
         return data
 
