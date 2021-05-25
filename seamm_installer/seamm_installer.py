@@ -61,6 +61,7 @@ class SEAMMInstaller(object):
 
         # Set the environment at the end so can use conda
         self.seamm_environment = environment
+
         print(f"The conda environment is {self.seamm_environment}")
 
     @property
@@ -98,6 +99,16 @@ class SEAMMInstaller(object):
             self._seamm_environment = self.conda.active_environment
         else:
             self._seamm_environment = value
+
+        # Make the desired environment the active one if it exists
+        if self.conda.active_environment != self.seamm_environment:
+            if self.conda.exists(self._seamm_environment):
+                self.conda.activate(self._seamm_environment)
+            else:
+                print(
+                    f"The conda environment '{self._seamm_environment}' does not "
+                    "currently exist."
+                )
 
     def check(self, *modules, yes=False):
         """Check the requested modules.
@@ -140,7 +151,7 @@ class SEAMMInstaller(object):
             for package in core_packages:
                 # If the package has an installer, run it.
                 print(f"   Checking the installation for {package}")
-                self.run_plugin_installer(package, *cmd)
+                self.run_plugin_installer(package, *cmd, verbose=False)
 
         if "all" in modules or "plug-ins" in modules or "plugins" in modules:
             print("")
@@ -154,7 +165,7 @@ class SEAMMInstaller(object):
 
                 # If the package has an installer, run it.
                 print(f"   Checking the installation for {package}.")
-                self.run_plugin_installer(package, *cmd)
+                self.run_plugin_installer(package, *cmd, verbose=False)
 
         # Any modules given explicitly
         explicit = []
@@ -172,7 +183,7 @@ class SEAMMInstaller(object):
                 else:
                     # If the package has an installer, run it.
                     print(f"   Checking the installation for {package}.")
-                    self.run_plugin_installer(package, *cmd)
+                    self.run_plugin_installer(package, *cmd, verbose=False)
 
     def check_installer(self, yes: bool = False) -> None:
         """Check and optionally install or update the installer.
@@ -229,7 +240,7 @@ class SEAMMInstaller(object):
                         f"but version {available} is available using {source}."
                     )
         elif available > installed_version:
-            if yes:
+            if yes and self.conda.active_environment != self.seamm_environment:
                 print(
                     f"The SEAMM installer '{package}' version {installed_version} will "
                     f"be updated to version {available} using {source}."
@@ -246,8 +257,13 @@ class SEAMMInstaller(object):
                 print(
                     f"The SEAMM installer '{package}' version {installed_version} is "
                     f"installed but a newer version {available} is available "
-                    f"using {source}."
+                    f"using {source}.\n"
+                    "Update it with this command:\n"
                 )
+                if source == "pip":
+                    print("    pip update seamm-installer")
+                else:
+                    print("    conda update -c conda-forge seamm-installer")
         else:
             print(
                 f"The SEAMM installer '{package}', version {installed_version} is "
@@ -294,7 +310,7 @@ class SEAMMInstaller(object):
                 continue
 
             tmp = conda_packages[package]
-            if tmp["version"] > data["version"]:
+            if tmp["version"] >= data["version"]:
                 data["version"] = tmp["version"]
                 data["channel"] = tmp["channel"]
 
@@ -345,8 +361,6 @@ class SEAMMInstaller(object):
             packages = self.find_packages(progress=True)
             # print("")
         else:
-            if self.conda.active_environment != self.seamm_environment:
-                self.conda.activate(self.seamm_environment)
             packages = self.find_packages(progress=True)
             # print("")
             if "all" in modules or "core" in modules:
@@ -362,14 +376,19 @@ class SEAMMInstaller(object):
                             channel = packages[package]["channel"]
                             to_install.append((package, version, channel))
 
-                for package, version, channnel in sorted(
-                    to_install, key=lambda package: package[0]
-                ):
-                    print(f"   Installing {package} " f"{packages[package]['version']}")
+                for package, version, channnel in to_install:
                     if channel == "pypi":
+                        print(
+                            f"   Installing {package} {packages[package]['version']} "
+                            "using pip."
+                        )
                         self.pip.install(package)
                     else:
-                        self.conda.install(package)
+                        print(
+                            f"   Installing {package} {packages[package]['version']} "
+                            f"from conda channel {channel}."
+                        )
+                        self.conda.install(package, environment=self.seamm_environment)
 
                     # See if the package has an installer
                     self.run_plugin_installer(package, "install")
@@ -394,7 +413,9 @@ class SEAMMInstaller(object):
                         to_install.append(package)
                     else:
                         # See if the package has an installer
-                        result = self.run_plugin_installer(package, "check", "--yes")
+                        result = self.run_plugin_installer(
+                            package, "check", "--yes", verbose=False
+                        )
                         if result is not None:
                             if result.returncode == 0:
                                 if "need to install" in result.stdout:
@@ -446,7 +467,7 @@ class SEAMMInstaller(object):
                 else:
                     # If the package has an installer, run it.
                     print(f"   Checking the installation for {package}.")
-                    result = self.run_plugin_installer(package, "show")
+                    result = self.run_plugin_installer(package, "show", verbose=False)
                     if result is not None:
                         if result.returncode == 0:
                             if (
@@ -711,7 +732,7 @@ class SEAMMInstaller(object):
                     else:
                         state[package] = "up-to-date"
 
-                    result = self.run_plugin_installer(package, "show")
+                    result = self.run_plugin_installer(package, "show", verbose=False)
                     if result is not None:
                         if result.returncode == 0:
                             for line in result.stdout.splitlines():
@@ -800,7 +821,9 @@ class SEAMMInstaller(object):
                             state[package] = "up-to-date"
 
                         # See if the package has an installer
-                        result = self.run_plugin_installer(package, "show")
+                        result = self.run_plugin_installer(
+                            package, "show", verbose=False
+                        )
                         if result is not None:
                             if result.returncode == 0:
                                 for line in result.stdout.splitlines():
