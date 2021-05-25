@@ -219,7 +219,15 @@ class Conda(object):
         """
         return environment in self.environments
 
-    def install(self, package, environment=None):
+    def install(
+        self,
+        package,
+        environment=None,
+        channels=None,
+        override_channels=True,
+        progress=True,
+        newline=True,
+    ):
         """Install a package in an environment..
 
         Parameters
@@ -228,13 +236,33 @@ class Conda(object):
             The package to install.
         environment : str
             The name of the environment to list, defaults to the current.
+        channels: [str] = None
+            A list of channels to search. defaults to the list in self.channels.
+        override_channels: bool = True
+            Ignore channels configured in .condarc and the default channel.
+        progress : bool = True
+            Whether to show progress dots.
+        newline : bool = True
+            Whether to print a newline at the end if showing progress
         """
-        command = "conda install "
+        command = "conda install --yes "
         if environment is not None:
-            command += f" --name '{environment}'"
+            # Using the name leads to odd paths, so be explicit.
+            # command += f" --name '{environment}'"
+            path = self.root_path / "envs" / environment
+            command += f" --prefix '{str(path)}'"
+        if override_channels:
+            command += " --override-channels"
+        if channels is None:
+            for channel in self.channels:
+                command += f" -c {channel}"
+        else:
+            for channel in channels:
+                command += f" -c {channel}"
+
         command += f" {package}"
 
-        self._execute(command)
+        self._execute(command, progress=progress, newline=newline)
 
     def list(self, environment=None, query=None, fullname=False):
         """The contents of an environment.
@@ -362,7 +390,7 @@ class Conda(object):
             output = json.loads(stdout)
         except Exception as e:
             self.logger.warning(
-                f"expected output from {command}, got {output}", exc_info=e
+                f"expected output from {command}, got {stdout}", exc_info=e
             )
             return None
 
@@ -379,7 +407,60 @@ class Conda(object):
 
         return result
 
-    def uninstall(self, package, environment=None):
+    def update(
+        self,
+        package,
+        environment=None,
+        channels=None,
+        override_channels=True,
+        progress=True,
+        newline=True,
+    ):
+        """Update a package in an environment..
+
+        Parameters
+        ----------
+        package: strip
+            The package to update.
+        environment : str
+            The name of the environment to list, defaults to the current.
+        channels: [str] = None
+            A list of channels to search. defaults to the list in self.channels.
+        override_channels: bool = True
+            Ignore channels configured in .condarc and the default channel.
+        progress : bool = True
+            Whether to show progress dots.
+        newline : bool = True
+            Whether to print a newline at the end if showing progress
+        """
+        command = "conda update --yes "
+        if environment is not None:
+            # Using the name leads to odd paths, so be explicit.
+            # command += f" --name '{environment}'"
+            path = self.root_path / "envs" / environment
+            command += f" --prefix '{str(path)}'"
+        if override_channels:
+            command += " --override-channels"
+        if channels is None:
+            for channel in self.channels:
+                command += f" -c {channel}"
+        else:
+            for channel in channels:
+                command += f" -c {channel}"
+
+        command += f" {package}"
+
+        self._execute(command, progress=progress, newline=newline)
+
+    def uninstall(
+        self,
+        package,
+        environment=None,
+        channels=None,
+        override_channels=True,
+        progress=True,
+        newline=True,
+    ):
         """Uninstall a package from an environment..
 
         Parameters
@@ -388,10 +469,26 @@ class Conda(object):
             The package to uninstall install.
         environment : str
             The name of the environment to list, defaults to the current.
+        channels: [str] = None
+            A list of channels to search. defaults to the list in self.channels.
+        override_channels: bool = True
+            Ignore channels configured in .condarc and the default channel.
+        progress : bool = True
+            Whether to show progress dots.
+        newline : bool = True
+            Whether to print a newline at the end if showing progress
         """
-        command = "conda uninstall "
+        command = "conda uninstall --yes "
         if environment is not None:
             command += f" --name '{environment}'"
+        if override_channels:
+            command += " --override-channels"
+        if channels is None:
+            for channel in self.channels:
+                command += f" -c {channel}"
+        else:
+            for channel in channels:
+                command += f" -c {channel}"
         command += f" {package}"
 
         self._execute(command)
