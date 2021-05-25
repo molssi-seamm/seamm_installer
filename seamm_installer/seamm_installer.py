@@ -401,10 +401,18 @@ class SEAMMInstaller(object):
                                     install = "package installer"
 
                 if install == "full":
-                    print(f"   Installing {package} " f"{packages[package]['version']}")
+                    channel = packages[package]["channel"]
                     if channel == "pypi":
+                        print(
+                            f"   Installing {package} {packages[package]['version']} "
+                            "using pip"
+                        )
                         self.pip.install(package)
                     else:
+                        print(
+                            f"   Installing {package} {packages[package]['version']} "
+                            f"from conda channel {channel}"
+                        )
                         self.conda.install(package)
                     # See if the package has an installer
                     self.run_plugin_installer(package, "install")
@@ -463,12 +471,20 @@ class SEAMMInstaller(object):
                 if install == "full":
                     channel = packages[package]["channel"]
                     if channel == "pypi":
-                        print(f"Installing {package} using pip")
+                        print(
+                            f"   Installing {package} {packages[package]['version']} "
+                            "using pip"
+                        )
                         self.pip.install(package)
                     else:
-                        print(f"Installing {package} using conda channel {channel}")
+                        print(
+                            f"   Installing {package} {packages[package]['version']} "
+                            f"from conda channel {channel}"
+                        )
                         self.conda.install(package)
-                    self.logger.info("    Running the specific installer if it exists.")
+                    self.logger.info(
+                        "    Running the plug-in specific installer if it exists."
+                    )
                     self.run_plugin_installer(package, "install")
                 elif install == "package installer":
                     print(f"Installing local part of {package}")
@@ -548,7 +564,7 @@ class SEAMMInstaller(object):
         print("All done.")
 
     def run_plugin_installer(
-        self, package: str, *args: Iterable[str]
+        self, package: str, *args: Iterable[str], verbose: bool = True
     ) -> subprocess.CompletedProcess:
         """Run the plug-in installer with given arguments.
 
@@ -574,6 +590,8 @@ class SEAMMInstaller(object):
             self.logger.info("    no local installer, returning None")
             return None
         else:
+            if verbose:
+                print(f"   Running the plug-in specific installer for {package}.")
             result = subprocess.run([installer, *args], capture_output=True, text=True)
             self.logger.info(f"    ran the local installer: {result}")
             return result
