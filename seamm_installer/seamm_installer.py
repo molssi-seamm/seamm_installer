@@ -362,7 +362,6 @@ class SEAMMInstaller(object):
             # print("")
         else:
             packages = self.find_packages(progress=True)
-            # print("")
             if "all" in modules or "core" in modules:
                 print("")
                 print("Installing the core packages of SEAMM:")
@@ -376,7 +375,7 @@ class SEAMMInstaller(object):
                             channel = packages[package]["channel"]
                             to_install.append((package, version, channel))
 
-                for package, version, channnel in to_install:
+                for package, version, channel in to_install:
                     if channel == "pypi":
                         print(
                             f"   Installing {package} {packages[package]['version']} "
