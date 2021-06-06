@@ -4,6 +4,7 @@
 """
 
 import logging
+import os
 from pathlib import Path
 import pkg_resources
 import pprint
@@ -31,7 +32,12 @@ core_packages = (
     "molsystem",
     "reference-handler",
 )
-exclude_plug_ins = ("seamm-cookiecutter", "cassandra-step", "solvate-step")
+exclude_plug_ins = (
+    "seamm-dashboard",
+    "seamm-cookiecutter",
+    "cassandra-step",
+    "solvate-step",
+)
 no_installer = ("seamm", "seamm-installer")
 
 
@@ -44,7 +50,7 @@ class SEAMMInstaller(object):
 
     """
 
-    def __init__(self, logger=logger, environment=""):
+    def __init__(self, logger=logger, environment="", ini_file="~/SEAMM/seamm.ini"):
         """The installer/updater for SEAMM.
 
         Parameters
@@ -56,6 +62,7 @@ class SEAMMInstaller(object):
 
         self.logger = logger
         self.options = None
+        self._configuration = seamm_installer.Configuration()
         self._conda = None
         self._pip = None
 
@@ -63,6 +70,8 @@ class SEAMMInstaller(object):
         self.seamm_environment = environment
 
         print(f"The conda environment is {self.seamm_environment}")
+
+        self.check_configuration_file(ini_file)
 
     @property
     def version(self):
@@ -80,6 +89,11 @@ class SEAMMInstaller(object):
         if self._conda is None:
             self._conda = Conda()
         return self._conda
+
+    @property
+    def configuration(self):
+        """The Configuration object for working with the ini file."""
+        return self._configuration
 
     @property
     def pip(self):
@@ -184,6 +198,33 @@ class SEAMMInstaller(object):
                     # If the package has an installer, run it.
                     print(f"   Checking the installation for {package}.")
                     self.run_plugin_installer(package, *cmd, verbose=False)
+
+    def check_configuration_file(self, ini_file):
+        """Ensure that the configuration file exists.
+
+        If it does not, it will be created and a template written to it. The
+        template contains a prolog with a description of the file followed by
+        [DEFAULT] and [SEAMM] sections, which ensures that they are
+        present and at the top of the file.
+        """
+        path = Path(ini_file).expanduser().resolve()
+        if not path.exists():
+            data_dir = Path(pkg_resources.resource_filename(__name__, "data/"))
+            self.logger.debug(f"data directory: {data_dir}")
+            template = data_dir / "seamm.ini"
+            text = template.read_text()
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(text)
+
+        # And read it in
+        self.configuration.path = path
+
+        # Check the secret key for the dashboard
+        data = self.configuration.get_values("SEAMM")
+        if "secret-key" not in data or data["secret-key"] == "":
+            secret = os.urandom(32)
+            self.configuration.set_value("SEAMM", "secret-key", secret)
+            self.configuration.save()
 
     def check_installer(self, yes: bool = False) -> None:
         """Check and optionally install or update the installer.
