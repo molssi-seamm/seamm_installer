@@ -1,0 +1,61 @@
+seamm\_installer package
+========================
+
+Submodules
+----------
+
+seamm\_installer.conda module
+-----------------------------
+
+.. automodule:: seamm_installer.conda
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+seamm\_installer.configuration module
+-------------------------------------
+
+.. automodule:: seamm_installer.configuration
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+seamm\_installer.installer\_base module
+---------------------------------------
+
+.. automodule:: seamm_installer.installer_base
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+seamm\_installer.pip module
+---------------------------
+
+.. automodule:: seamm_installer.pip
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+seamm\_installer.seamm\_installer module
+----------------------------------------
+
+.. automodule:: seamm_installer.seamm_installer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+seamm\_installer.tk\_seamm\_installer module
+--------------------------------------------
+
+.. automodule:: seamm_installer.tk_seamm_installer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: seamm_installer
+   :members:
+   :undoc-members:
+   :show-inheritance:
