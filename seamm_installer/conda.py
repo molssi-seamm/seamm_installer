@@ -139,30 +139,26 @@ class Conda(object):
 
         # Find the root path for the environment
         # Typically the base environment is e.g. ~/opt/miniconda3 and all other
-        # environments are in ~/opt/miniconda3/envs/ We want the path for the base
-        # environment.
+        # environments are in ~/opt/miniconda3/envs/ (~/opt/anaconda3).
+        # We want the path for the base environment.
+        #
+        # In some installations there are more than one base environment! So
+        # pick the one that looks like 'anacondaX' or 'minicondaX'.
+        # As a last resort, just pick one.
         self.logger.debug("Finding the conda root path")
-        root = None
+        roots = set()
         for env in self._data["envs"]:
             path = Path(env)
             self.logger.debug(f"    environment path {path}")
             if path.parent.name == "envs":
-                if root is None:
-                    root = path.parent.parent
-                    self.logger.debug(f"    root <-- {root}")
-                elif root != path.parent.parent:
-                    raise RuntimeError(
-                        f"Problem finding the root of the Conda installation: {env} is "
-                        f"not a subdirectory of {root}."
-                    )
+                roots.add(path.parent.parent)
             else:
-                if root is None:
-                    root = path
-                    self.logger.debug(f"    root <-- {root}")
-                else:
-                    raise RuntimeError(
-                        f"Found two roots for the Conda installation: {env} and {root}."
-                    )
+                roots.add(path)
+        for root in roots:
+            name = root.name
+            if "miniconda" in name or "anaconda" in name:
+                break
+
         self.root_path = root
 
         tmp = "\n\t".join(self.environments)
