@@ -68,7 +68,7 @@ class InstallerBase(object):
         The section of the configuration file to use. Defaults to None.
     """
 
-    def __init__(self, ini_file="~/.seamm/seamm.ini", logger=logger):
+    def __init__(self, ini_file="~/SEAMM/seamm.ini", logger=logger):
         # Create the ini file if it does not exist.
         self._check_ini_file(ini_file)
 
@@ -499,7 +499,7 @@ class InstallerBase(object):
             help=("The level of informational output, defaults to " "'%(default)s'"),
         )
         parser.add_argument(
-            "--seamm",
+            "--environment",
             default="seamm",
             type=str.lower,
             help="The conda environment for seamm, defaults to '%(default)s'",
