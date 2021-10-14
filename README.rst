@@ -55,7 +55,7 @@ This package was created with Cookiecutter_ and the
 
 Developed by the Molecular Sciences Software Institute (MolSSI_),
 which receives funding from the National Science Foundation under
-award ACI-1547580
+award OAC-1547580 and CHE-2136142.
 
 .. _MolSSI: https://molssi.org
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
