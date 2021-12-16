@@ -41,7 +41,7 @@ class Pip(object):
         package : str
             The package of interest.
         """
-        command = f"pip install '{package}'"
+        command = f"pip install {package}"
         try:
             subprocess.check_output(
                 command, shell=True, text=True, stderr=subprocess.STDOUT
@@ -183,7 +183,7 @@ class Pip(object):
         package : str
             The package of interest.
         """
-        command = f"pip show '{package}'"
+        command = f"pip show {package}"
         try:
             result = subprocess.check_output(
                 command, shell=True, text=True, stderr=subprocess.STDOUT
@@ -220,7 +220,7 @@ class Pip(object):
         package : str
             The package of interest.
         """
-        command = f"pip uninstall --yes '{package}'"
+        command = f"pip uninstall --yes {package}"
         try:
             subprocess.check_output(
                 command, shell=True, text=True, stderr=subprocess.STDOUT
@@ -238,7 +238,7 @@ class Pip(object):
         package : str
             The package of interest.
         """
-        command = f"pip install --upgrade '{package}'"
+        command = f"pip install --upgrade {package}"
         try:
             subprocess.check_output(
                 command, shell=True, text=True, stderr=subprocess.STDOUT
