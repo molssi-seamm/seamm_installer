@@ -3,6 +3,8 @@
 """Non-graphical part of the SEAMM Installer
 """
 
+from datetime import datetime
+import json
 import logging
 import os
 from pathlib import Path
@@ -13,8 +15,9 @@ import shutil
 import subprocess
 import sys
 import textwrap
-from typing import Iterable, Mapping, Tuple
+from typing import Iterable, Tuple
 
+from platformdirs import user_data_dir
 from tabulate import tabulate
 
 from .conda import Conda
@@ -25,20 +28,75 @@ logger = logging.getLogger(__name__)
 
 core_packages = (
     "seamm",
-    "seamm-jobserver",
     "seamm-util",
     "seamm-widgets",
     "seamm-ff-util",
     "molsystem",
     "reference-handler",
+    "seamm-datastore",
+    "seamm-jobserver",
+    "seamm-installer",
 )
 exclude_plug_ins = (
+    "chemical-formula",
     "seamm-dashboard",
     "seamm-cookiecutter",
     "cassandra-step",
     "solvate-step",
 )
+development_packages = (
+    "black",
+    "codecov",
+    "flake8",
+    "pytest",
+    "pytest-cov",
+    "pygments",
+    "sphinx",
+    "twine",
+    "watchdog",
+)
+development_packages_pip = (
+    "build",
+    "rinohtype",
+    "sphinx-rtd-theme",
+    "pystemmer",
+)
 no_installer = ("seamm", "seamm-installer")
+package_groups = (
+    "core",
+    "plug-ins",
+    "plugins",
+    "all",
+    "seamm-installer",
+    "development",
+)
+
+
+class JSONEncoder(json.JSONEncoder):
+    """Class for handling the package versions in JSON."""
+
+    def default(self, obj):
+        if isinstance(obj, pkg_resources.extern.packaging.version.Version):
+            return {"__type__": "Version", "data": str(obj)}
+        else:
+            return json.JSONEncoder.default(self, obj)
+
+
+class JSONDecoder(json.JSONDecoder):
+    """Class for handling the package versions in JSON."""
+
+    def __init__(self):
+        super().__init__(object_hook=self.dict_to_object)
+
+    def dict_to_object(self, d):
+        if "__type__" in d:
+            type_ = d.pop("__type__")
+            if type_ == "Version":
+                return pkg_resources.parse_version(d["data"])
+            else:
+                # Oops... better put this back together.
+                d["__type__"] = type
+        return d
 
 
 class SEAMMInstaller(object):
@@ -124,7 +182,7 @@ class SEAMMInstaller(object):
                     "currently exist."
                 )
 
-    def check(self, *modules, yes=False):
+    def check(self, *modules, yes=False, update_cache=False):
         """Check the requested modules.
 
         Parameters
@@ -152,7 +210,7 @@ class SEAMMInstaller(object):
         if self.conda.active_environment != self.seamm_environment:
             self.conda.activate(self.seamm_environment)
 
-        packages = self.find_packages(progress=True)
+        packages = self.find_packages(progress=True, update_cache=update_cache)
         # print("")
 
         cmd = ["check"]
@@ -163,6 +221,8 @@ class SEAMMInstaller(object):
             print("")
             print("Checking the core packages of SEAMM:")
             for package in core_packages:
+                if package == "seamm-installer":
+                    continue
                 # If the package has an installer, run it.
                 print(f"   Checking the installation for {package}")
                 self.run_plugin_installer(package, *cmd, verbose=False)
@@ -184,7 +244,7 @@ class SEAMMInstaller(object):
         # Any modules given explicitly
         explicit = []
         for module in modules:
-            if module not in ("core", "plug-ins", "plugins", "all"):
+            if module not in package_groups:
                 explicit.append(module)
 
         if len(explicit) > 0:
@@ -311,16 +371,47 @@ class SEAMMInstaller(object):
                 "up-to-date."
             )
 
-    def find_packages(self, progress: bool = True) -> Mapping[str, str]:
+    def find_packages(self, progress: bool = True, update_cache=False, cache_valid=7):
         """Find the Python packages in SEAMM.
 
         Parameters
         ----------
+        progress : bool = True
+            Whether to print out dots to show progress.
+        update_cache : bool = False
+            Update the cache (package db) no matter what.
+        cache_valid : int = 7
+            How many days before updating the cache. Defaults to a week.
+
         Returns
         -------
         dict(str, str)
             A dictionary with information about the packages.
         """
+        user_data_path = Path(user_data_dir("seamm-installer", appauthor=False))
+        package_db_path = user_data_path / "downloads.json"
+        if package_db_path.exists():
+            try:
+                with package_db_path.open("r") as fd:
+                    package_db = json.load(fd, cls=JSONDecoder)
+            except Exception as e:
+                self.logger.warning(f"Exception reading the package cache: {e}")
+                age = cache_valid
+            else:
+                db_date = datetime.fromisoformat(package_db["date"])
+                age = datetime.now() - db_date
+                packages = package_db["packages"]
+        else:
+            user_data_path.mkdir(parents=True, exist_ok=True)
+            age = cache_valid
+
+        if not update_cache and age.days < cache_valid:
+            print(f"Using the package database which is {age.days} days old.")
+            print("    Add the '--update-cache' flag if you want to update the cache.")
+
+            return packages
+
+        # Update the package list and database!
         print(
             "Finding all the packages that make up SEAMM. This may take a minute or "
             "two."
@@ -328,18 +419,17 @@ class SEAMMInstaller(object):
         # Use pip to find possible packages.
         packages = self.pip.search(query="SEAMM", progress=progress, newline=False)
 
-        # Remove this installer package
-        if "seamm-installer" in packages:
-            del packages["seamm-installer"]
-
         # Need to add molsystem and reference-handler by hand
-        for package in ("molsystem", "reference-handler"):
-            tmp = self.pip.search(
-                query=package, exact=True, progress=True, newline=False
-            )
-            self.logger.debug(f"Query for package {package}\n{pprint.pformat(tmp)}\n")
-            if package in tmp:
-                packages[package] = tmp[package]
+        for package in ("molsystem", "reference-handler", "seaam-datastore"):
+            if package not in packages:
+                tmp = self.pip.search(
+                    query=package, exact=True, progress=True, newline=False
+                )
+                self.logger.debug(
+                    f"Query for package {package}\n{pprint.pformat(tmp)}\n"
+                )
+                if package in tmp:
+                    packages[package] = tmp[package]
 
         # Check the versions on conda, and prefer those...
         self.logger.info("Find packages: checking for conda versions")
@@ -358,9 +448,19 @@ class SEAMMInstaller(object):
         if progress:
             print("", flush=True)
 
+        # Save the package database for future use
+        package_db = {
+            "date": datetime.now().isoformat(),
+            "packages": packages,
+        }
+        # pprint.pprint(package_db)
+        with package_db_path.open("w") as fd:
+            json.dump(package_db, fd, cls=JSONEncoder)
+        print(f"Wrote the package database to {str(package_db_path)}.")
+
         return packages
 
-    def install(self, *modules, **kwargs):
+    def install(self, *modules, update_cache=False, **kwargs):
         """Install the requested modules.
 
         Parameters
@@ -394,20 +494,24 @@ class SEAMMInstaller(object):
             self.conda.activate(self.seamm_environment)
             packages = self.pip.list()
             for package in core_packages:
+                if package == "seamm-installer":
+                    continue
                 if package in packages:
                     print(f"   {package} {packages[package]}")
                 else:
                     print(f"   Warning: {package} was not installed!")
             print("")
-            packages = self.find_packages(progress=True)
+            packages = self.find_packages(progress=True, update_cache=update_cache)
             # print("")
         else:
-            packages = self.find_packages(progress=True)
+            packages = self.find_packages(progress=True, update_cache=update_cache)
             if "all" in modules or "core" in modules:
                 print("")
                 print("Installing the core packages of SEAMM:")
                 to_install = []
                 for package in core_packages:
+                    if package == "seamm-installer":
+                        continue
                     installed_version, channel = self.package_info(package)
 
                     if installed_version is None:
@@ -432,6 +536,22 @@ class SEAMMInstaller(object):
 
                     # See if the package has an installer
                     self.run_plugin_installer(package, "install")
+
+        if "development" in modules:
+            print("")
+            print("Installing the standard development tools:")
+            for package in development_packages:
+                installed_version, channel = self.package_info(package)
+                if installed_version is None:
+                    self.conda.install(package)
+                    installed_version, channel = self.package_info(package)
+                    print(f"   Installed {package} {installed_version} using conda.")
+            for package in development_packages_pip:
+                installed_version, channel = self.package_info(package)
+                if installed_version is None:
+                    self.pip.install(package)
+                    installed_version, channel = self.package_info(package)
+                    print(f"   Installed {package} {installed_version} using pip.")
 
         if "all" in modules or "plug-ins" in modules or "plugins" in modules:
             print("")
@@ -488,7 +608,7 @@ class SEAMMInstaller(object):
         # Any modules given explicitly
         explicit = []
         for module in modules:
-            if module not in ("core", "plug-ins", "plugins", "all"):
+            if module not in package_groups:
                 explicit.append(module)
 
         if len(explicit) > 0:
@@ -657,7 +777,7 @@ class SEAMMInstaller(object):
             self.logger.info(f"    ran the local installer: {result}")
             return result
 
-    def show(self, *modules, **kwargs):
+    def show(self, *modules, update_cache=False, **kwargs):
         """Show the current status of the installation.
 
         Parameters
@@ -683,7 +803,7 @@ class SEAMMInstaller(object):
         if self.conda.active_environment != self.seamm_environment:
             self.conda.activate(self.seamm_environment)
 
-        packages = self.find_packages(progress=True)
+        packages = self.find_packages(progress=True, update_cache=update_cache)
         # print("")
 
         # Show the core SEAMM modules if requested
@@ -695,6 +815,8 @@ class SEAMMInstaller(object):
             am_current = True
             count = 0
             for package in core_packages:
+                if package == "seamm-installer":
+                    continue
                 count += 1
                 if count > 50:
                     count = 0
@@ -816,7 +938,7 @@ class SEAMMInstaller(object):
         # Any modules given explicitly
         explicit = []
         for module in modules:
-            if module not in ("core", "plug-ins", "plugins", "all"):
+            if module not in package_groups:
                 explicit.append(module)
 
         if len(explicit) > 0:
@@ -894,7 +1016,36 @@ class SEAMMInstaller(object):
                 print("The plug-ins are up-to-date.")
             print("")
 
-    def uninstall(self, *modules, **kwargs):
+        # Development modules
+        if "development" in modules:
+            print("")
+            print("Showing the standard development tools:")
+            data = []
+            line_no = 1
+            am_current = True
+            count = 0
+            for package in (*development_packages, *development_packages_pip):
+                count += 1
+                if count > 50:
+                    count = 0
+                    print("\n.", end="", flush=True)
+                else:
+                    print(".", end="", flush=True)
+
+                try:
+                    version = self.pip.show(package)["version"]
+                except Exception:
+                    data.append([line_no, package, "--"])
+                else:
+                    data.append([line_no, package, version])
+                line_no += 1
+
+            headers = ["Number", "Package", "Installed"]
+            print("")
+            print(tabulate(data, headers, tablefmt="fancy_grid"))
+            print("")
+
+    def uninstall(self, *modules, update_cache=False, **kwargs):
         """Remove the requested modules.
 
         Parameters
@@ -915,6 +1066,8 @@ class SEAMMInstaller(object):
             print("")
             print("Core packages of SEAMM:")
             for package in core_packages:
+                if package == "seamm-installer":
+                    continue
                 installed_version, channel = self.package_info(package)
 
                 if installed_version is None:
@@ -934,7 +1087,7 @@ class SEAMMInstaller(object):
             print("")
             print("Plug-ins for SEAMM:")
             if packages is None:
-                packages = self.find_packages(progress=True)
+                packages = self.find_packages(progress=True, update_cache=update_cache)
             for package in sorted(packages.keys()):
                 if package in core_packages:
                     continue
@@ -959,7 +1112,7 @@ class SEAMMInstaller(object):
         # Any modules given explicitly
         explicit = []
         for module in modules:
-            if module not in ("core", "plug-ins", "plugins", "all"):
+            if module not in package_groups:
                 explicit.append(module)
 
         if len(explicit) > 0:
@@ -981,7 +1134,21 @@ class SEAMMInstaller(object):
                 else:
                     self.conda.uninstall(package)
 
-    def update(self, *modules, **kwargs):
+        if "development" in modules:
+            print("")
+            print("Uninstalling the standard development tools:")
+            for package in development_packages:
+                installed_version, channel = self.package_info(package)
+                if installed_version is not None:
+                    print(f"   Uninstalling {package} {installed_version} using conda.")
+                    self.conda.uninstall(package)
+            for package in development_packages_pip:
+                installed_version, channel = self.package_info(package)
+                if installed_version is not None:
+                    print(f"   Uninstalling {package} {installed_version} using pip.")
+                    self.pip.uninstall(package)
+
+    def update(self, *modules, update_cache=False, **kwargs):
         """Update the requested modules.
 
         Parameters
@@ -1007,13 +1174,15 @@ class SEAMMInstaller(object):
         if self.conda.active_environment != self.seamm_environment:
             self.conda.activate(self.seamm_environment)
 
-        packages = self.find_packages(progress=True)
+        packages = self.find_packages(progress=True, update_cache=update_cache)
         print("")
 
         if "all" in modules or "core" in modules:
             print("")
             print("Updating the core packages of SEAMM:")
             for package in core_packages:
+                if package == "seamm-installer":
+                    continue
                 installed_version, installed_channel = self.package_info(package)
                 if installed_version is None:
                     continue
@@ -1084,7 +1253,7 @@ class SEAMMInstaller(object):
         # Any modules given explicitly
         explicit = []
         for module in modules:
-            if module not in ("core", "plug-ins", "plugins", "all"):
+            if module not in package_groups:
                 explicit.append(module)
 
         if len(explicit) > 0:
@@ -1125,6 +1294,22 @@ class SEAMMInstaller(object):
                     # See if the package has an installer
                     self.run_plugin_installer(package, "update")
                     print("    Done.")
+
+        if "development" in modules:
+            print("")
+            print("Updating the standard development tools:")
+            for package in (*development_packages, *development_packages_pip):
+                installed_version, channel = self.package_info(package)
+                if installed_version is not None:
+                    if channel == "pypi":
+                        print(f"   Updating {package} {installed_version} using pip.")
+                        self.pip.update(package)
+                    else:
+                        print(f"   Updating {package} {installed_version} using conda.")
+                        self.conda.update(package)
+                    new_version, channel = self.package_info(package)
+                    if new_version != installed_version:
+                        print(f"      --> {new_version}")
 
     def _execute(self, command, poll_interval=2):
         """Execute the command as a subprocess.

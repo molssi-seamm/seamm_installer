@@ -18,7 +18,7 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-with open('requirements_install.txt') as fd:
+with open('requirements.txt') as fd:
     requirements = fd.read()
 
 setup(
@@ -27,6 +27,7 @@ setup(
     author_email='psaxe@molssi.org',
     description=__doc__.splitlines()[1],
     long_description=readme + '\n\n' + history,
+    long_description_content_type='text/x-rst',
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
     license="GNU Lesser General Public License v3+",

@@ -31,6 +31,9 @@ def run():
         choices=["NOTSET", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
         help=("The level of informational output, defaults to " "'%(default)s'"),
     )
+    parser.add_argument(
+        "--update-cache", action="store_true", help="Update the package database."
+    )
 
     # And continue
     parser.add_argument(
@@ -70,8 +73,8 @@ def run():
         nargs="*",
         default=["all"],
         help=(
-            "The modules to install. 'core', 'plug-ins', 'all', or a list of "
-            "modules separated by spaces. Default is '%(default)s'."
+            "The modules to install. 'core', 'plug-ins', 'all', 'development', or a "
+            "list of modules separated by spaces. Default is %(default)s."
         ),
     )
 
@@ -83,8 +86,8 @@ def run():
         nargs="*",
         default=["all"],
         help=(
-            "The modules to install. 'core', 'plug-ins', 'all', or a list of "
-            "modules separated by spaces. Default is '%(default)s'."
+            "The modules to install. 'core', 'plug-ins', 'all', 'development', or a "
+            "list of modules separated by spaces. Default is %(default)s."
         ),
     )
 
@@ -96,8 +99,8 @@ def run():
         nargs="*",
         default=["all"],
         help=(
-            "The modules to install. 'core', 'plug-ins', 'all', or a list of "
-            "modules separated by spaces. Default is '%(default)s'."
+            "The modules to install. 'core', 'plug-ins', 'all', 'development', or a "
+            "list of modules separated by spaces. Default is %(default)s."
         ),
     )
 
@@ -109,8 +112,8 @@ def run():
         nargs="*",
         default=["all"],
         help=(
-            "The modules to install. 'core', 'plug-ins', 'all', or a list of "
-            "modules separated by spaces. Default is '%(default)s'."
+            "The modules to install. 'core', 'plug-ins', 'all', 'development', or a "
+            "list of modules separated by spaces. Default is %(default)s."
         ),
     )
 
@@ -122,8 +125,8 @@ def run():
         nargs="*",
         default=["all"],
         help=(
-            "The modules to install. 'core', 'plug-ins', 'all', or a list of "
-            "modules separated by spaces. Default is '%(default)s'."
+            "The modules to install. 'core', 'plug-ins', 'all', 'development', or a "
+            "list of modules separated by spaces. Default is %(default)s."
         ),
     )
 

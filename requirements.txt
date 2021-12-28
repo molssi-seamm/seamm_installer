@@ -1,3 +1,4 @@
+platformdirs
 requests
 tabulate
 
