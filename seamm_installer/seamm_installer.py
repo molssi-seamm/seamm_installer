@@ -403,9 +403,9 @@ class SEAMMInstaller(object):
                 packages = package_db["packages"]
         else:
             user_data_path.mkdir(parents=True, exist_ok=True)
-            age = cache_valid
+            age = None
 
-        if not update_cache and age.days < cache_valid:
+        if not (update_cache or age is None) and age.days < cache_valid:
             print(f"Using the package database which is {age.days} days old.")
             print("    Add the '--update-cache' flag if you want to update the cache.")
 
