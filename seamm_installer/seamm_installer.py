@@ -569,9 +569,7 @@ class SEAMMInstaller(object):
                     install = "full"
                 else:
                     available = packages[package]["version"]
-                    if installed_version < available:
-                        to_install.append(package)
-                    else:
+                    if installed_version >= available:
                         # See if the package has an installer
                         result = self.run_plugin_installer(
                             package, "check", "--yes", verbose=False
