@@ -64,6 +64,12 @@ def run():
 
     subparsers = parser.add_subparsers()
 
+    module_description = (
+        "'core', 'plug-ins', 'all', 'development', 'apps', 'services', "
+        "or a list of modules separated by spaces. "
+        "Default is %(default)s."
+    )
+
     # check
     check = subparsers.add_parser("check")
     check.set_defaults(method=installer.check)
@@ -74,10 +80,7 @@ def run():
         "modules",
         nargs="*",
         default=["all"],
-        help=(
-            "The modules to install. 'core', 'plug-ins', 'all', 'development', or a "
-            "list of modules separated by spaces. Default is %(default)s."
-        ),
+        help="The modules to check: " + module_description,
     )
 
     # install
@@ -99,10 +102,7 @@ def run():
         "modules",
         nargs="*",
         default=["all"],
-        help=(
-            "The modules to install. 'core', 'plug-ins', 'all', 'development', or a "
-            "list of modules separated by spaces. Default is %(default)s."
-        ),
+        help="The modules to install: " + module_description,
     )
 
     # show
@@ -112,10 +112,7 @@ def run():
         "modules",
         nargs="*",
         default=["all"],
-        help=(
-            "The modules to install. 'core', 'plug-ins', 'all', 'development', or a "
-            "list of modules separated by spaces. Default is %(default)s."
-        ),
+        help="The modules to show: " + module_description,
     )
 
     # update
@@ -125,10 +122,7 @@ def run():
         "modules",
         nargs="*",
         default=["all"],
-        help=(
-            "The modules to install. 'core', 'plug-ins', 'all', 'development', or a "
-            "list of modules separated by spaces. Default is %(default)s."
-        ),
+        help="The modules to update: " + module_description,
     )
 
     # uninstall
@@ -138,10 +132,7 @@ def run():
         "modules",
         nargs="*",
         default=["all"],
-        help=(
-            "The modules to install. 'core', 'plug-ins', 'all', 'development', or a "
-            "list of modules separated by spaces. Default is %(default)s."
-        ),
+        help="The modules to uninstall: " + module_description,
     )
 
     # Parse the options
