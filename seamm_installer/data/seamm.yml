@@ -11,5 +11,5 @@ dependencies:
 
   # Pip-only installs
   - pip:
-        # SEAMM
-        - seamm-jobserver
+      # SEAMM
+      - seamm-jobserver
