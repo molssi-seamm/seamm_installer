@@ -6,7 +6,9 @@
 """
 
 import datetime
+import getpass
 import logging
+import os
 from pathlib import Path
 import shutil
 from string import Template
@@ -58,7 +60,7 @@ launchd_plist = """\
     <key>KeepAlive</key>
     <true/>
     <key>Program</key>
-      <string>${executable}</string>
+    <string>${executable}</string>
     <key>ProcessType</key>
     <string>Interactive</string>
     <key>StandardErrorPath</key>
@@ -139,6 +141,7 @@ def create_mac_app(
     plist_path = contents_path / "Info.plist"
     plist_path.write_text(plist)
 
+
 def update_mac_app(name, version):
     """Update the version for a Mac app.
 
@@ -161,14 +164,16 @@ def update_mac_app(name, version):
                     next(lines)
             app_path.write_text("\n".join(edited))
 
+
 def create_mac_service(
-    name, 
+    name,
     exe_path,
     user_agent=True,
     identifier=None,
     user_only=True,
     stderr_path=None,
     stdout_path=None,
+    exist_ok=False,
 ):
     """Create an application bundle for a Mac app.
 
@@ -189,17 +194,42 @@ def create_mac_service(
         The file to direct stderr. Defaults to "~/SEAMM/logs/<name>.out"
     stdout_path : pathlib.Path or str = None
         The file to direct stdout. Defaults to "~/SEAMM/logs/<name>.out"
+    exist_ok : bool = False
+        If True overwrite an existing file.
     """
     if identifier is None:
         identifier = "org.molssi.seamm." + name
 
     if user_agent:
+        uid = os.getuid()
         if user_only:
             launchd_path = Path("~/Library/LaunchAgents").expanduser()
+            plist_path = launchd_path / f"{identifier}.plist"
+            text = (
+                "To start the launch agent, either log out and back in, or run\n\n"
+                f"   sudo launchctl bootstrap gui/{uid} {plist_path}\n\n"
+                "You need administrator privileges to run this command."
+            )
         else:
             launchd_path = Path("/Library/LaunchAgents")
+            plist_path = launchd_path / f"{identifier}.plist"
+            text = (
+                "To start the launch agent, either log out and back in, or run\n\n"
+                f"   sudo launchctl bootstrap user/{uid} {plist_path}\n\n"
+                "You need administrator privileges to run this command."
+            )
     else:
         launchd_path = Path("/Library/LaunchDaemons")
+        plist_path = launchd_path / f"{identifier}.plist"
+        text = (
+            "To start the system-wide service, either restart the machine, or run\n\n"
+            f"   sudo launchctl bootstrap system {plist_path}\n\n"
+            "You need administrator privileges to run this command."
+        )
+
+    if plist_path.exists():
+        if not exist_ok:
+            raise FileExistsError()
 
     if stderr_path is None:
         stderr_path = Path(f"~/SEAMM/logs/{name}.out").expanduser()
@@ -213,5 +243,40 @@ def create_mac_service(
         stderr_path=str(stderr_path),
         stdout_path=str(stdout_path),
     )
-    plist_path = launchd_path / f"{identifier}.plist"
-    plist_path.write_text(plist)
+
+    # System-wide daemons need the username
+    if not user_agent:
+        username = getpass.getuser()
+        new_plist = []
+        for line in plist.splitlines():
+            if "ProcessType" in line:
+                new_plist.append("    <key>UserName</key>")
+                new_plist.append(f"    <string>{username}</string>")
+            new_plist.append(line)
+        plist = "\n".join(new_plist)
+
+    # Write the file ... we may not have permission, so catch that.
+    try:
+        plist_path.write_text(plist)
+    except PermissionError:
+        path = Path("~/Downloads").expanduser() / f"{identifier}.plist"
+        path.write_text(plist)
+        print(f"\nYou do not have permission to write to {launchd_path}.")
+        print("If you have administrator access, run the following commands:")
+        print("")
+        print(f"    sudo mv {path} {plist_path}")
+        print(
+            "    sudo chown root:wheel /Library/LaunchDaemons/org.molssi.seamm"
+            ".dashboard.plist"
+        )
+        print("")
+        print("To move the temporary copy of the file to the correct locations.")
+        print("Then start the services as follows:")
+        print("")
+    except Exception as e:
+        print("Caught error?")
+        print(e)
+        print()
+        raise
+
+    print(text)
