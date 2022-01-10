@@ -9,6 +9,7 @@ import logging
 import os
 from pathlib import Path
 import pkg_resources
+import platform
 import pprint
 import shlex
 import shutil
@@ -21,6 +22,7 @@ from platformdirs import user_data_dir
 from tabulate import tabulate
 
 from .conda import Conda
+from .mac import create_mac_app
 from .pip import Pip
 import seamm_installer
 
@@ -118,6 +120,7 @@ class SEAMMInstaller(object):
         """
         logger.debug("Creating SEAMM Installer {}".format(self))
 
+        self.data_path = Path(pkg_resources.resource_filename(__name__, "data/"))
         self.logger = logger
         self.options = None
         self._configuration = seamm_installer.Configuration()
@@ -269,9 +272,8 @@ class SEAMMInstaller(object):
         """
         path = Path(ini_file).expanduser().resolve()
         if not path.exists():
-            data_dir = Path(pkg_resources.resource_filename(__name__, "data/"))
-            self.logger.debug(f"data directory: {data_dir}")
-            template = data_dir / "seamm.ini"
+            self.logger.debug(f"data directory: {self.data_path}")
+            template = self.data_path / "seamm.ini"
             text = template.read_text()
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(text)
@@ -460,7 +462,9 @@ class SEAMMInstaller(object):
 
         return packages
 
-    def install(self, *modules, update_cache=False, **kwargs):
+    def install(
+        self, *modules, update_cache=False, no_app=False, user_only=False, daemon=False
+    ):
         """Install the requested modules.
 
         Parameters
@@ -469,8 +473,12 @@ class SEAMMInstaller(object):
             A list of modules to install. May be 'all', 'core', or 'plug-ins'
             to request either all modules, or just the core or plug-ins be
             installed.
-        **kwargs: dict(str, str)
-            Other optional keyword arguments.
+        update_cache : bool
+            Force an update of the package cache
+        no_app : bool = False
+            Do not install the app (if appropriate for the platform)
+        user_only : bool = False
+            Install the app for this user only. Otherwise, install for all users.
         """
         # See if Conda is installed
         if not self.conda.is_installed:
@@ -484,13 +492,12 @@ class SEAMMInstaller(object):
                 " This will take a minute or two."
             )
             # Get the path to seamm.yml
-            path = Path(pkg_resources.resource_filename(__name__, "data/"))
-            self.logger.debug(f"data directory: {path}")
+            self.logger.debug(f"data directory: {self.data_path}")
             self.conda.create_environment(
-                path / "seamm.yml", name=self.seamm_environment
+                self.data_path / "seamm.yml", name=self.seamm_environment
             )
             print("")
-            print(f"Installed the {self.seamm_environment} Conda environment " "with:")
+            print(f"Installed the {self.seamm_environment} Conda environment with:")
             self.conda.activate(self.seamm_environment)
             packages = self.pip.list()
             for package in core_packages:
@@ -502,7 +509,6 @@ class SEAMMInstaller(object):
                     print(f"   Warning: {package} was not installed!")
             print("")
             packages = self.find_packages(progress=True, update_cache=update_cache)
-            # print("")
         else:
             packages = self.find_packages(progress=True, update_cache=update_cache)
             if "all" in modules or "core" in modules:
@@ -668,6 +674,81 @@ class SEAMMInstaller(object):
                 elif install == "package installer":
                     print(f"Installing local part of {package}")
                     self.run_plugin_installer(package, "install")
+
+        # The apps on e.g. a Mac
+        if "apps" in modules or "all" in modules or "seamm-app" in modules:
+            # On Mac, install the app
+            if platform.system() == "Darwin":
+                version = self.package_info("seamm")[0]
+                icons_path = self.data_path / "SEAMM.icns"
+                name = self.seamm_environment.lower().replace(
+                    "seamm", "SEAMM"
+                )
+                bin_path = shutil.which("seamm")
+                create_mac_app(
+                    bin_path,
+                    name=name,
+                    version=version,
+                    user_only=user_only,
+                    icons=icons_path,
+                )
+                if user_only:
+                    print(f"\nInstalled app {name} for this user.")
+                else:
+                    print(f"\nInstalled app {name} for all users.")
+
+        # The services if appropriate
+        to_install = []
+        if "services" in modules or "all" in modules:
+            to_install.append("dashboard")
+            to_install.append("jobserver")
+        if "dashboard-service" in modules and "dashboard" not in to_install:
+            to_install.append("dashboard")
+        if "jobserver-service" in modules and "jobserver" not in to_install:
+            to_install.append("jobserver")
+
+        if platform.system() == "Darwin":
+            if "dashboard" in to_install:
+                bin_path = shutil.which("seamm-dashboard")
+                if bin_path is None:
+                    print(
+                        "\nDid not create the service because could not find the "
+                        "Dashboard."
+                    )
+                else:
+                    create_mac_service(
+                        "dashboard",
+                        bin_path,
+                        user_only=user_only,
+                        user_agent=not daemon,
+                    )
+                    if daemon:
+                        print("Created the Dashboard service as a system-wide daemon.")
+                    elif user_only:
+                        print("Created the Dashboard service for this user.")
+                    else:
+                        print("Created the Dashboard service for all users.")
+
+            if "jobserver" in to_install:
+                bin_path = shutil.which("jobserver")
+                if bin_path is None:
+                    print(
+                        "\nDid not create the service because could not find the "
+                        "Jobserver."
+                    )
+                else:
+                    create_mac_service(
+                        "jobserver",
+                        bin_path,
+                        user_only=user_only,
+                        user_agent=not daemon,
+                    )
+                    if daemon:
+                        print("Created the Jobserver service as a system-wide daemon.")
+                    elif user_only:
+                        print("Created the Jobserver service for this user.")
+                    else:
+                        print("Created the Jobserver service for all users.")
 
     def package_info(self, package: str, conda_only: bool = False) -> Tuple[str, str]:
         """Return info on a package
@@ -1146,17 +1227,21 @@ class SEAMMInstaller(object):
                     print(f"   Uninstalling {package} {installed_version} using pip.")
                     self.pip.uninstall(package)
 
-    def update(self, *modules, update_cache=False, **kwargs):
+    def update(self, *modules, update_cache=False, no_app=False, user_only=False):
         """Update the requested modules.
 
         Parameters
         ----------
         *modules: [str]
-            A list of modules to install. May be 'all', 'core', or 'plug-ins'
+            A list of modules to update. May be 'all', 'core', or 'plug-ins'
             to request either all modules, or just the core or plug-ins be
             installed.
-        **kwargs: dict(str, str)
-            Other optional keyword arguments.
+        update_cache : bool
+            Force an update of the package cache
+        no_app : bool = False
+            Do not install the app (if appropriate for the platform)
+        user_only : bool = False
+            Install the app for this user only. Otherwise, install for all users.
         """
         # See if Conda is installed
         if not self.conda.is_installed:
@@ -1308,6 +1393,16 @@ class SEAMMInstaller(object):
                     new_version, channel = self.package_info(package)
                     if new_version != installed_version:
                         print(f"      --> {new_version}")
+
+        if "apps" in modules or "all" in modules or "seamm-app" in modules:
+            # On Mac, install the app
+            version = self.package_info("seamm")[0]
+            if version is not None and platform.system() == "Darwin":
+                name = self.seamm_environment.lower().replace(
+                    "seamm", "SEAMM"
+                )
+                update_mac_app(name, version)
+                print(f"\nUpdated the app {name} to version {version}.")
 
     def _execute(self, command, poll_interval=2):
         """Execute the command as a subprocess.

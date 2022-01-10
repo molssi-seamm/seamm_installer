@@ -4,6 +4,7 @@
 """
 import argparse
 import logging
+import platform
 import sys
 
 import seamm_installer
@@ -20,6 +21,7 @@ def run():
     some of the information from the commandline so we parse those arguments
     first, then setup the rest.
     """
+    system = platform.system()
 
     # Parse the commandline
     parser = argparse.ArgumentParser()
@@ -81,6 +83,18 @@ def run():
     # install
     install = subparsers.add_parser("install")
     install.set_defaults(method=installer.install)
+    if system in ("Darwin",):
+        install.add_argument(
+            "--user-only",
+            action="store_true",
+            help="Install any apps or services for this user only.",
+        )
+        install.add_argument(
+            "--daemon",
+            action="store_true",
+            help="Install services as system-wide services.",
+        )
+
     install.add_argument(
         "modules",
         nargs="*",
