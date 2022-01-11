@@ -22,6 +22,7 @@ from platformdirs import user_data_dir
 from tabulate import tabulate
 
 from .conda import Conda
+from .linux import create_linux_service
 from .mac import create_mac_app, create_mac_service, update_mac_app
 from .pip import Pip
 import seamm_installer
@@ -125,6 +126,7 @@ class SEAMMInstaller(object):
         self.data_path = Path(pkg_resources.resource_filename(__name__, "data/"))
         self.logger = logger
         self.options = None
+        self.system = platform.system()
         self._configuration = seamm_installer.Configuration()
         self._conda = None
         self._pip = None
@@ -716,7 +718,7 @@ class SEAMMInstaller(object):
         # The apps on e.g. a Mac
         if "apps" in modules or "all" in modules or "seamm-app" in modules:
             # On Mac, install the app
-            if platform.system() == "Darwin":
+            if self.system == "Darwin":
                 version = self.package_info("seamm")[0]
                 icons_path = self.data_path / "SEAMM.icns"
                 name = self.seamm_environment.lower().replace("seamm", "SEAMM")
@@ -743,7 +745,7 @@ class SEAMMInstaller(object):
         if "jobserver-service" in modules and "jobserver" not in to_install:
             to_install.append("jobserver")
 
-        if platform.system() == "Darwin":
+        if self.system in ("Darwin", "Linux"):
             if "dashboard" in to_install:
                 bin_path = shutil.which("seamm-dashboard")
                 if bin_path is None:
@@ -752,12 +754,20 @@ class SEAMMInstaller(object):
                         "Dashboard."
                     )
                 else:
-                    create_mac_service(
-                        "dashboard",
-                        bin_path,
-                        user_only=user_only,
-                        user_agent=not daemon,
-                    )
+                    if self.system == "Darwin":
+                        create_mac_service(
+                            "dashboard",
+                            bin_path,
+                            user_only=user_only,
+                            user_agent=not daemon,
+                        )
+                    elif self.system == "Linux":
+                        create_linux_service(
+                            "seamm-dashboard",
+                            bin_path,
+                            user_only=user_only,
+                            user_agent=not daemon,
+                        )
                     if daemon:
                         print("Created the Dashboard service as a system-wide daemon.")
                     elif user_only:
@@ -773,12 +783,20 @@ class SEAMMInstaller(object):
                         "Jobserver."
                     )
                 else:
-                    create_mac_service(
-                        "jobserver",
-                        bin_path,
-                        user_only=user_only,
-                        user_agent=not daemon,
-                    )
+                    if self.system == "Darwin":
+                        create_mac_service(
+                            "jobserver",
+                            bin_path,
+                            user_only=user_only,
+                            user_agent=not daemon,
+                        )
+                    elif self.system == "Linux":
+                        create_linux_service(
+                            "seamm-jobserver",
+                            bin_path,
+                            user_only=user_only,
+                            user_agent=not daemon,
+                        )
                     if daemon:
                         print("Created the Jobserver service as a system-wide daemon.")
                     elif user_only:

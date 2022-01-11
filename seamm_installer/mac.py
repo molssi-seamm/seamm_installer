@@ -2,7 +2,7 @@
 """Mac OS specific routines handling unique operations.
 
 * Creating the 'app'
-* Installing Launch Agents to hadnle the Dashboard and JobServer
+* Installing Launch Agents to handle the Dashboard and JobServer
 """
 
 import datetime
@@ -175,7 +175,19 @@ def create_mac_service(
     stdout_path=None,
     exist_ok=False,
 ):
-    """Create an application bundle for a Mac app.
+    """Create a service on MacOS.
+
+    The Mac supports three types of services. This function uses `user_agent` and
+    `user_only` to control which is selected.
+
+        1. A user Launch Agent for a single user, which runs while that user is logged
+           in. (True, True)
+
+        2. A Launch Agent installed by the admin that is available for all users, and
+           runs when any user is logged in. (True, False)
+
+        3. A system-wide service that runs when the machine is booted. (False, not used)
+
 
     Parameters
     ----------
