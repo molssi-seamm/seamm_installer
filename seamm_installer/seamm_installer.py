@@ -741,7 +741,10 @@ class SEAMMInstaller(object):
                 create_linux_app(
                     bin_path,
                     name=name,
-                    comment="the Simulation Environment for Atomistic and Molecular Modeling",
+                    comment=(
+                        "the Simulation Environment for Atomistic and Molecular "
+                        "Modeling"
+                    ),
                     user_only=not all_users,
                     icons=icons_path,
                 )

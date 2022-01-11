@@ -92,7 +92,7 @@ def create_linux_app(
         if "x" in dimensions:
             directory = icons_path / dimensions / "apps"
             directory.mkdir(mode=0o755, parents=True, exist_ok=True)
-            shutil.copyfile(icon,  directory / f"{name}.png")
+            shutil.copyfile(icon, directory / f"{name}.png")
 
     # And the desktop file itself.
     desktop = Template(app_text).substitute(
@@ -231,7 +231,7 @@ def create_linux_service(
 
     # And start it...
     try:
-        result = subprocess.check_output(cmd, shell=True)
+        subprocess.check_output(cmd, shell=True)
     except subprocess.CalledProcessError as e:
         print(f"Caught exception {e}")
         print(text)
