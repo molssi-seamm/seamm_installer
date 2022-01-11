@@ -7,6 +7,7 @@
 import getpass
 import logging
 from pathlib import Path
+import shutil
 from string import Template
 import subprocess
 
@@ -20,8 +21,8 @@ Version=1.5
 Type=Application
 Name=${name}
 Comment=${comment}
-Exec={$exe}
-Icon={$icon}
+Exec=${exe}
+Icon=${icon}
 Terminal=false
 Categories=Education;Science;Chemistry;Physics
 """
@@ -59,6 +60,7 @@ WantedBy=multi-user.target
 def create_linux_app(
     exe_path,
     name="SEAMM",
+    comment="the Simulation Environment for Atomistic and Molecular Modeling",
     user_only=True,
     icons=None,
 ):
@@ -70,10 +72,12 @@ def create_linux_app(
         The path to the executable (required). Either a path-like object or string
     name : str
         The name of the app
+    comment : str = "the Simulation Environment for Atomistic and Molecular Modeling"
+        A comment for use in tooltips, etc.
     user_only : bool = True
         Whether to install for just the current user (default) or all users.
-    icons : pathlib.Path or string
-        Optional path to the icns file to use.
+    icons : pathlib.Path or str
+        Optional path to the icns files to use.
     """
     if user_only:
         applications_path = Path("~/.local/share/applications/").expanduser()
@@ -81,16 +85,21 @@ def create_linux_app(
         applications_path = Path("/usr/local/share/applications/")
 
     # And put the icons in place
-    resources_path = contents_path / "Resources"
-    resources_path.mkdir(mode=0o755, parents=False, exist_ok=True)
-    icons_path = resources_path / (name + ".icns")
+    icons_path = Path("~/.local/share/icons/hicolor/").expanduser()
     path = Path(icons).expanduser().resolve()
-    shutil.copyfile(path, icons_path)
+    for icon in path.iterdir():
+        dimensions = icon.stem
+        if "x" in dimensions:
+            directory = icons_path / dimensions / "apps"
+            directory.mkdir(mode=0o755, parents=True, exist_ok=True)
+            shutil.copyfile(icon,  directory / f"{name}.png")
 
     # And the desktop file itself.
     desktop = Template(app_text).substitute(
         name=name,
-        icns=icons_path.name,
+        comment=comment,
+        exe=exe_path,
+        icon=name,
     )
     desktop_path = applications_path / f"{name}.desktop"
     desktop_path.write_text(desktop)

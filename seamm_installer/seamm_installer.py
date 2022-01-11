@@ -22,7 +22,7 @@ from platformdirs import user_data_dir
 from tabulate import tabulate
 
 from .conda import Conda
-from .linux import create_linux_service
+from .linux import create_linux_app, create_linux_service
 from .mac import create_mac_app, create_mac_service, update_mac_app
 from .pip import Pip
 import seamm_installer
@@ -717,7 +717,7 @@ class SEAMMInstaller(object):
 
         # The apps on e.g. a Mac
         if "apps" in modules or "all" in modules or "seamm-app" in modules:
-            # On Mac, install the app
+            # On Mac and Linux, install the app
             if self.system == "Darwin":
                 version = self.package_info("seamm")[0]
                 icons_path = self.data_path / "SEAMM.icns"
@@ -727,6 +727,21 @@ class SEAMMInstaller(object):
                     bin_path,
                     name=name,
                     version=version,
+                    user_only=not all_users,
+                    icons=icons_path,
+                )
+                if all_users:
+                    print(f"\nInstalled app {name} for all users.")
+                else:
+                    print(f"\nInstalled app {name} for this user.")
+            elif self.system == "Linux":
+                icons_path = self.data_path / "linux_icons"
+                name = self.seamm_environment.lower().replace("seamm", "SEAMM")
+                bin_path = shutil.which("seamm")
+                create_linux_app(
+                    bin_path,
+                    name=name,
+                    comment="the Simulation Environment for Atomistic and Molecular Modeling",
                     user_only=not all_users,
                     icons=icons_path,
                 )
