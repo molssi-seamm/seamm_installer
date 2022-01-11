@@ -12,6 +12,20 @@ import subprocess
 
 logger = logging.getLogger(__name__)
 
+app_text = """\
+[Desktop Entry]
+# The version of the desktop entry specification to which this file complies
+Version=1.5
+
+Type=Application
+Name=${name}
+Comment=${comment}
+Exec={$exe}
+Icon={$icon}
+Terminal=false
+Categories=Education;Science;Chemistry;Physics
+"""
+
 user_text = """\
 [Unit]
 Description=${description}
@@ -40,6 +54,46 @@ RestartSec=5
 [Install]
 WantedBy=multi-user.target
 """
+
+
+def create_linux_app(
+    exe_path,
+    name="SEAMM",
+    user_only=True,
+    icons=None,
+):
+    """Create an application bundle for a Linux app.
+
+    Parameters
+    ----------
+    exe_path : pathlib.Path or str
+        The path to the executable (required). Either a path-like object or string
+    name : str
+        The name of the app
+    user_only : bool = True
+        Whether to install for just the current user (default) or all users.
+    icons : pathlib.Path or string
+        Optional path to the icns file to use.
+    """
+    if user_only:
+        applications_path = Path("~/.local/share/applications/").expanduser()
+    else:
+        applications_path = Path("/usr/local/share/applications/")
+
+    # And put the icons in place
+    resources_path = contents_path / "Resources"
+    resources_path.mkdir(mode=0o755, parents=False, exist_ok=True)
+    icons_path = resources_path / (name + ".icns")
+    path = Path(icons).expanduser().resolve()
+    shutil.copyfile(path, icons_path)
+
+    # And the desktop file itself.
+    desktop = Template(app_text).substitute(
+        name=name,
+        icns=icons_path.name,
+    )
+    desktop_path = applications_path / f"{name}.desktop"
+    desktop_path.write_text(desktop)
 
 
 def create_linux_service(
