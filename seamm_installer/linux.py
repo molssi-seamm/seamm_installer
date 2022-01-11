@@ -70,6 +70,8 @@ def create_linux_service(
         The name of the agent
     exe_path : pathlib.Path or str
         The path to the executable (required). Either a path-like object or string
+    description : str = None
+        The description of the service. Default is to generate from the name.
     user_agent : bool = True
         Whether to create a per-user agent (True) or system-wide daemon (False)
     user_only : bool = True
@@ -82,7 +84,7 @@ def create_linux_service(
         if user_only:
             systemd_path = Path("~/.config/systemd/user").expanduser()
             service_path = systemd_path / f"{name}.service"
-            cmd = f"systemctl --now enable {service_path}"
+            cmd = f"systemctl --user --now enable {service_path}"
             text = (
                 "To start the launch agent, either log out and back in, or run\n\n"
                 f"   sudo {cmd}\n\n"
@@ -108,7 +110,7 @@ def create_linux_service(
         )
 
     if description is None:
-        description = name.replace("seamm", "SEAMM").replace("_", " ")
+        description = name.replace("-", " ").title().replace("Seamm", "SEAMM")
 
     if service_path.exists():
         if not exist_ok:
@@ -142,6 +144,7 @@ def create_linux_service(
     # Write the file ... we may not have permission, so catch that.
     try:
         service_path.write_text(service)
+        print(f"Wrote the systemd file to {service_path}.")
     except PermissionError:
         downloads = Path("~/Downloads").expanduser()
         downloads.mkdir(exist_ok=True)
@@ -166,7 +169,6 @@ def create_linux_service(
     # And start it...
     try:
         result = subprocess.check_output(cmd, shell=True)
-        print(result)
     except subprocess.CalledProcessError as e:
         print(f"Caught exception {e}")
         print(text)

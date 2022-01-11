@@ -88,9 +88,9 @@ def run():
     install.set_defaults(method=installer.install)
     if system in ("Darwin",):
         install.add_argument(
-            "--user-only",
+            "--all-users",
             action="store_true",
-            help="Install any apps or services for this user only.",
+            help="Install any apps or services for all users.",
         )
         install.add_argument(
             "--daemon",
