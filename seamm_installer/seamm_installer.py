@@ -22,6 +22,7 @@ from platformdirs import user_data_dir
 from tabulate import tabulate
 
 from .conda import Conda
+from .linux import create_linux_app, create_linux_service
 from .mac import create_mac_app, create_mac_service, update_mac_app
 from .pip import Pip
 import seamm_installer
@@ -125,6 +126,7 @@ class SEAMMInstaller(object):
         self.data_path = Path(pkg_resources.resource_filename(__name__, "data/"))
         self.logger = logger
         self.options = None
+        self.system = platform.system()
         self._configuration = seamm_installer.Configuration()
         self._conda = None
         self._pip = None
@@ -493,7 +495,7 @@ class SEAMMInstaller(object):
         return packages
 
     def install(
-        self, *modules, update_cache=False, no_app=False, user_only=False, daemon=False
+        self, *modules, update_cache=False, no_app=False, all_users=False, daemon=False
     ):
         """Install the requested modules.
 
@@ -507,8 +509,8 @@ class SEAMMInstaller(object):
             Force an update of the package cache
         no_app : bool = False
             Do not install the app (if appropriate for the platform)
-        user_only : bool = False
-            Install the app for this user only. Otherwise, install for all users.
+        all_users : bool = False
+            Install the app for all users. Defaults to just this user.
         """
         # See if Conda is installed
         if not self.conda.is_installed:
@@ -715,8 +717,8 @@ class SEAMMInstaller(object):
 
         # The apps on e.g. a Mac
         if "apps" in modules or "all" in modules or "seamm-app" in modules:
-            # On Mac, install the app
-            if platform.system() == "Darwin":
+            # On Mac and Linux, install the app
+            if self.system == "Darwin":
                 version = self.package_info("seamm")[0]
                 icons_path = self.data_path / "SEAMM.icns"
                 name = self.seamm_environment.lower().replace("seamm", "SEAMM")
@@ -725,13 +727,31 @@ class SEAMMInstaller(object):
                     bin_path,
                     name=name,
                     version=version,
-                    user_only=user_only,
+                    user_only=not all_users,
                     icons=icons_path,
                 )
-                if user_only:
-                    print(f"\nInstalled app {name} for this user.")
-                else:
+                if all_users:
                     print(f"\nInstalled app {name} for all users.")
+                else:
+                    print(f"\nInstalled app {name} for this user.")
+            elif self.system == "Linux":
+                icons_path = self.data_path / "linux_icons"
+                name = self.seamm_environment.lower().replace("seamm", "SEAMM")
+                bin_path = shutil.which("seamm")
+                create_linux_app(
+                    bin_path,
+                    name=name,
+                    comment=(
+                        "the Simulation Environment for Atomistic and Molecular "
+                        "Modeling"
+                    ),
+                    user_only=not all_users,
+                    icons=icons_path,
+                )
+                if all_users:
+                    print(f"\nInstalled app {name} for all users.")
+                else:
+                    print(f"\nInstalled app {name} for this user.")
 
         # The services if appropriate
         to_install = []
@@ -743,48 +763,66 @@ class SEAMMInstaller(object):
         if "jobserver-service" in modules and "jobserver" not in to_install:
             to_install.append("jobserver")
 
-        if platform.system() == "Darwin":
+        if self.system in ("Darwin", "Linux"):
             if "dashboard" in to_install:
                 bin_path = shutil.which("seamm-dashboard")
                 if bin_path is None:
                     print(
                         "\nDid not create the service because could not find the "
-                        "Dashboard."
+                        "Dashboard. Perhaps it is in a different environment?"
                     )
                 else:
-                    create_mac_service(
-                        "dashboard",
-                        bin_path,
-                        user_only=user_only,
-                        user_agent=not daemon,
-                    )
+                    if self.system == "Darwin":
+                        create_mac_service(
+                            "dashboard",
+                            bin_path,
+                            user_only=not all_users,
+                            user_agent=not daemon,
+                        )
+                    elif self.system == "Linux":
+                        create_linux_service(
+                            "seamm-dashboard",
+                            bin_path,
+                            user_only=not all_users,
+                            user_agent=not daemon,
+                        )
                     if daemon:
                         print("Created the Dashboard service as a system-wide daemon.")
-                    elif user_only:
-                        print("Created the Dashboard service for this user.")
-                    else:
+                    elif all_users:
                         print("Created the Dashboard service for all users.")
+                    else:
+                        print("Created the Dashboard service for this user.")
 
+                print()
             if "jobserver" in to_install:
                 bin_path = shutil.which("jobserver")
                 if bin_path is None:
                     print(
                         "\nDid not create the service because could not find the "
-                        "Jobserver."
+                        "Jobserver. Perhaps it is in a different environment?"
                     )
                 else:
-                    create_mac_service(
-                        "jobserver",
-                        bin_path,
-                        user_only=user_only,
-                        user_agent=not daemon,
-                    )
+                    if self.system == "Darwin":
+                        create_mac_service(
+                            "jobserver",
+                            bin_path,
+                            user_only=not all_users,
+                            user_agent=not daemon,
+                        )
+                    elif self.system == "Linux":
+                        create_linux_service(
+                            "seamm-jobserver",
+                            bin_path,
+                            user_only=not all_users,
+                            user_agent=not daemon,
+                        )
                     if daemon:
                         print("Created the Jobserver service as a system-wide daemon.")
-                    elif user_only:
-                        print("Created the Jobserver service for this user.")
-                    else:
+                    elif all_users:
                         print("Created the Jobserver service for all users.")
+                    else:
+                        print("Created the Jobserver service for this user.")
+                print()
 
     def package_info(self, package: str, conda_only: bool = False) -> Tuple[str, str]:
         """Return info on a package
@@ -1257,7 +1295,7 @@ class SEAMMInstaller(object):
                     print(f"   Uninstalling {package} {installed_version} using pip.")
                     self.pip.uninstall(package)
 
-    def update(self, *modules, update_cache=False, no_app=False, user_only=False):
+    def update(self, *modules, update_cache=False):
         """Update the requested modules.
 
         Parameters
@@ -1268,10 +1306,6 @@ class SEAMMInstaller(object):
             installed.
         update_cache : bool
             Force an update of the package cache
-        no_app : bool = False
-            Do not install the app (if appropriate for the platform)
-        user_only : bool = False
-            Install the app for this user only. Otherwise, install for all users.
         """
         # See if Conda is installed
         if not self.conda.is_installed:
