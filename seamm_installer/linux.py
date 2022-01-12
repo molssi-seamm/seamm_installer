@@ -146,6 +146,7 @@ def create_linux_service(
     if user_agent:
         if user_only:
             systemd_path = Path("~/.config/systemd/user").expanduser()
+            systemd_path.mkdir(mode=0o755, parents=True, exist_ok=True)
             service_path = systemd_path / f"{name}.service"
             cmd = f"systemctl --user --now enable {service_path}"
             text = (
