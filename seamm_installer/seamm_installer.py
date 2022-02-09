@@ -815,6 +815,7 @@ class SEAMMInstaller(object):
                             bin_path,
                             user_only=not all_users,
                             user_agent=not daemon,
+                            exist_ok=True,
                         )
                     if daemon:
                         print("Created the Jobserver service as a system-wide daemon.")
