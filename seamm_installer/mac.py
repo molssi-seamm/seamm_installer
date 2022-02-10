@@ -156,7 +156,7 @@ def update_mac_app(name, version):
         app_path = Path(path).expanduser() / (name + ".app") / "Contents" / "Info.plist"
         if app_path.exists():
             edited = []
-            lines = iter(app_path.get_text().split_lines())
+            lines = iter(app_path.read_text().splitlines())
             for line in lines:
                 edited.append(line)
                 if "VersionString" in line:
