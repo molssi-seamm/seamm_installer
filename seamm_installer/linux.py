@@ -81,6 +81,7 @@ def create_linux_app(
     """
     if user_only:
         applications_path = Path("~/.local/share/applications/").expanduser()
+        applications_path.mkdir(mode=0o755, parents=True, exist_ok=True)
     else:
         applications_path = Path("/usr/local/share/applications/")
 
