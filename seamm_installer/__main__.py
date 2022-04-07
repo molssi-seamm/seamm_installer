@@ -7,20 +7,77 @@ import logging
 import platform
 import sys
 
+from . import cli
+from . import my
 import seamm_installer
+from . import util
 
-logger = logging.getLogger(__name__)
+my.logger = logging.getLogger(__name__)
 
 
 def run():
     """Run the installer.
 
-    How the installer runs is controlled by command-line arguments.
-
-    We need the installer object to setup the parser; however, it needs
-    some of the information from the commandline so we parse those arguments
-    first, then setup the rest.
+    The installer uses nested parsers to handle commands and options on the
+    command line. Each subparser has a default command which is how the code
+    calls the requested method.
     """
+    # Get the Conda environment
+    util.initialize()
+    my.environment = my.conda.active_environment
+
+    # Create the argument parser and set the debug level ASAP
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--log-level",
+        default="WARNING",
+        type=str.upper,
+        choices=["NOTSET", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        help=("The level of informational output, defaults to " "'%(default)s'"),
+    )
+    if "dev" in my.environment:
+        my.development = True
+        parser.add_argument(
+            "--no-development",
+            dest="development",
+            action="store_false",
+            help="Work with the production environment, not the development one.",
+        )
+    else:
+        my.development = False
+        parser.add_argument(
+            "--development",
+            action="store_true",
+            help="Work with the development environment, not the production one.",
+        )
+
+    # Parse the first options
+    if "-h" not in sys.argv and "--help" not in sys.argv:
+        options, _ = parser.parse_known_args()
+        kwargs = vars(options)
+
+        # Set up the logging
+        level = kwargs.pop("log_level", "WARNING")
+        logging.basicConfig(level=level)
+
+        my.development = kwargs.pop("development", False)
+
+    # Now setup the rest of the command-line interface.
+    parser.add_argument(
+        "--root",
+        type=str,
+        default="~/SEAMM_DEV" if my.development else "~/SEAMM",
+    )
+
+    cli.setup(parser)
+
+    # Parse the command-line arguments and call the requested function
+    my.options = parser.parse_args()
+    sys.exit(my.options.func())
+
+
+def old_run():
     system = platform.system()
 
     # Parse the commandline
@@ -161,3 +218,7 @@ def run():
 
     # Run the requested subcommand
     method(*modules, **kwargs)
+
+
+if __name__ == "__main__":
+    run()
