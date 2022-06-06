@@ -17,6 +17,6 @@ def setup(parser):
     subparser.set_defaults(func=refresh)
 
 
-def refresh(options):
+def refresh():
     find_packages(progress=True, update_cache=True)
     print("Refreshed the cache of SEAMM components and plug-ins.")
