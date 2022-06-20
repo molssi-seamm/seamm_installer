@@ -24,6 +24,7 @@ Comment=${comment}
 Exec=${exe}
 Icon=${icon}
 Terminal=false
+SingleMainWindow=true
 Categories=Education;Science;Chemistry;Physics
 """
 

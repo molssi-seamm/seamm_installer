@@ -10,69 +10,14 @@ import getpass
 import logging
 import os
 from pathlib import Path
+import plistlib
 import shutil
-from string import Template
+import subprocess
 
 logger = logging.getLogger(__name__)
 
-app_plist = """\
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-  <dict>
-    <key>CFBundleIdentifier</key>
-    <string>${identifier}</string>
 
-    <key>CFBundleName</key>
-    <string>${name}</string>
-
-    <key>CFBundleShortVersionString</key>
-    <string>${version}</string>
-
-    <key>CFBundleExecutable</key>
-    <string>${name}</string>
-
-    <key>CFBundleIconFile</key>
-    <string>${icns}</string>
-
-    <key>CFBundleDevelopmentRegion</key>
-    <string>en</string>
-
-    <key>CFBundlePackageType</key>
-    <string>APPL</string>
-
-    <key>LSApplicationCategoryType</key>
-    <string>public.app-category.education</string>
-
-    <key>NSHumanReadableCopyright</key>
-    <string>${copyright}</string>
-  </dict>
-</plist>
-"""  # noqa=E501
-
-launchd_plist = """\
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-  <dict>
-    <key>Label</key>
-    <string>${identifier}</string>
-    <key>KeepAlive</key>
-    <true/>
-    <key>Program</key>
-    <string>${executable}</string>
-    <key>ProcessType</key>
-    <string>Interactive</string>
-    <key>StandardErrorPath</key>
-    <string>${stderr_path}</string>
-    <key>StandardOutPath</key>
-    <string>${stdout_path}</string>
-  </dict>
-</plist>
-"""  # noqa=E501
-
-
-def create_mac_app(
+def create_app(
     exe_path,
     identifier=None,
     name="SEAMM",
@@ -130,19 +75,54 @@ def create_mac_app(
     path = Path(icons).expanduser().resolve()
     shutil.copyfile(path, icons_path)
 
-    # And the plist file itself.
-    plist = Template(app_plist).substitute(
-        identifier=identifier,
-        name=name,
-        version=version,
-        icns=icons_path.name,
-        copyright=copyright,
-    )
+    # write the PList file describing the app.
+    data = {
+        "CFBundleIdentifier": identifier,
+        "CFBundleName": name,
+        "CFBundleShortVersionString": version,
+        "CFBundleExecutable": name,
+        "CFBundleIconFile": icons_path.name,
+        "CFBundleDevelopmentRegion": "en",
+        "CFBundlePackageType": "APPL",
+        "LSApplicationCategoryType": "public.app-category.education",
+        "NSHumanReadableCopyright": copyright,
+    }
     plist_path = contents_path / "Info.plist"
-    plist_path.write_text(plist)
+    with plist_path.open(mode="wb") as fd:
+        plistlib.dump(data, fd)
 
 
-def update_mac_app(name, version):
+def delete_app(name, missing_ok=False):
+    """Delete the app given.
+
+    Parameters
+    ----------
+    name : str
+        The name of the app.
+    missing_ok : bool = False
+        Don't throw an error if the app does not exist.
+    """
+    apps = get_apps()
+    if name in apps:
+        shutil.rmtree(apps[name])
+    elif not missing_ok:
+        raise FileNotFoundError(f"App '{name}' does not exist.")
+
+
+def get_apps():
+    paths = (
+        Path("~/Applications").expanduser(),
+        Path("/Applications"),
+    )
+    apps = {}
+    for path in paths:
+        for file_path in path.glob("*.app"):
+            name = file_path.stem
+            apps[name] = file_path
+    return apps
+
+
+def update_app(name, version, missing_ok=False):
     """Update the version for a Mac app.
 
     Parameters
@@ -151,144 +131,284 @@ def update_mac_app(name, version):
         The name of the app
     version : str
         The version of the app.
+    missing_ok : bool = False
+        Don't throw an error if the app does not exist.
     """
-    for path in ("Applications", "~/Applications"):
-        app_path = Path(path).expanduser() / (name + ".app") / "Contents" / "Info.plist"
-        if app_path.exists():
-            edited = []
-            lines = iter(app_path.read_text().splitlines())
-            for line in lines:
-                edited.append(line)
-                if "VersionString" in line:
-                    edited.append(f"    <string>${version}</string>")
-                    next(lines)
-            app_path.write_text("\n".join(edited))
+    apps = get_apps()
+    if name in apps:
+        app_path = Path(apps[name])
+        contents_path = app_path / "Contents"
+        plist_path = contents_path / "Info.plist"
+        with plist_path.open(mode="rb") as fd:
+            data = plistlib.load(fd)
+        data["CFBundleShortVersionString"] = version
+        with plist_path.open(mode="wb") as fd:
+            plistlib.dump(data, fd)
+    elif not missing_ok:
+        raise FileNotFoundError(f"App '{name}' does not exist.")
 
 
-def create_mac_service(
-    name,
-    exe_path,
-    user_agent=True,
-    identifier=None,
-    user_only=True,
-    stderr_path=None,
-    stdout_path=None,
-    exist_ok=False,
-):
-    """Create a service on MacOS.
+class ServiceManager:
+    def __init__(self, prefix=""):
+        """A manager for handling services (agents) on MacOS.
 
-    The Mac supports three types of services. This function uses `user_agent` and
-    `user_only` to control which is selected.
+        Parameters
+        ----------
+        prefix : str
+            The prefix for all services, limiting searches, etc.
+        """
+        self.prefix = prefix
+        self._data = None  # Dictionary of existing services
+        self._uid = os.getuid()
+        self._paths = (
+            (Path("~/Library/LaunchAgents").expanduser(), f"gui/{self.uid}"),
+            (Path("/Library/LaunchAgents"), f"gui/{self.uid}"),
+            (Path("/Library/LaunchDaemons"), "system"),
+        )
 
-        1. A user Launch Agent for a single user, which runs while that user is logged
-           in. (True, True)
+    @property
+    def data(self):
+        if self._data is None:
+            self._data = {}
+            pattern = self.prefix + ".*"
+            for path, domain in self.paths:
+                for file_path in path.glob(pattern):
+                    name = file_path.stem
+                    target = f"{domain}/{name}"
+                    short_name = file_path.suffixes[-2][1:]
+                    self._data[short_name] = (domain, target, file_path)
+        return self._data
 
-        2. A Launch Agent installed by the admin that is available for all users, and
-           runs when any user is logged in. (True, False)
+    @property
+    def paths(self):
+        return self._paths
 
-        3. A system-wide service that runs when the machine is booted. (False, not used)
+    @property
+    def uid(self):
+        return self._uid
 
+    def create(
+        self,
+        name,
+        exe_path,
+        *args,
+        user_agent=True,
+        user_only=True,
+        stderr_path=None,
+        stdout_path=None,
+        exist_ok=False,
+    ):
+        """Create a service on MacOS.
 
-    Parameters
-    ----------
-    name : str
-        The name of the agent
-    exe_path : pathlib.Path or str
-        The path to the executable (required). Either a path-like object or string
-    user_agent : bool = True
-        Whether to create a per-user agent (True) or system-wide daemon (False)
-    identifier : str = None
-        The bundle identifier. If None, is set to 'org.molssi.seamm.<name>'.
-    user_only : bool = True
-        Whether to install for just the current user (True) or all users (False).
-        Only affects user agents, not daemons which are always system-wide.
-    stderr_path : pathlib.Path or str = None
-        The file to direct stderr. Defaults to "~/SEAMM/logs/<name>.out"
-    stdout_path : pathlib.Path or str = None
-        The file to direct stdout. Defaults to "~/SEAMM/logs/<name>.out"
-    exist_ok : bool = False
-        If True overwrite an existing file.
-    """
-    if identifier is None:
-        identifier = "org.molssi.seamm." + name
+        The Mac supports three types of services. This function uses `user_agent` and
+        `user_only` to control which is selected.
 
-    if user_agent:
-        uid = os.getuid()
-        if user_only:
-            launchd_path = Path("~/Library/LaunchAgents").expanduser()
-            plist_path = launchd_path / f"{identifier}.plist"
-            text = (
-                "To start the launch agent, either log out and back in, or run\n\n"
-                f"   sudo launchctl bootstrap gui/{uid} {plist_path}\n\n"
-                "You need administrator privileges to run this command."
-            )
+            1. A user Launch Agent for a single user, which runs while that user is
+               logged in. (True, True)
+
+            2. A Launch Agent installed by the admin that is available for all users,
+               and runs when any user is logged in. (True, False)
+
+            3. A system-wide service that runs when the machine is booted. (False, not
+               used)
+
+        Parameters
+        ----------
+        name : str
+            The name of the agent
+        exe_path : pathlib.Path or str
+            The path to the executable (required). Either a path-like object or string
+        args : []
+            List of arguments for the program.
+        user_agent : bool = True
+            Whether to create a per-user agent (True) or system-wide daemon (False)
+        user_only : bool = True
+            Whether to install for just the current user (True) or all users (False).
+            Only affects user agents, not daemons which are always system-wide.
+        stderr_path : pathlib.Path or str = None
+            The file to direct stderr. Defaults to "~/SEAMM/logs/<name>.out"
+        stdout_path : pathlib.Path or str = None
+            The file to direct stdout. Defaults to "~/SEAMM/logs/<name>.out"
+        exist_ok : bool = False
+            If True overwrite an existing file.
+        """
+        identifier = self.prefix + "." + name
+
+        if user_agent:
+            if user_only:
+                launchd_path = self.paths[0][0]
+                plist_path = launchd_path / f"{identifier}.plist"
+            else:
+                launchd_path = self.paths[1][0]
+                plist_path = launchd_path / f"{identifier}.plist"
         else:
-            launchd_path = Path("/Library/LaunchAgents")
+            launchd_path = self.paths[2][0]
             plist_path = launchd_path / f"{identifier}.plist"
-            text = (
-                "To start the launch agent, either log out and back in, or run\n\n"
-                f"   sudo launchctl bootstrap user/{uid} {plist_path}\n\n"
-                "You need administrator privileges to run this command."
+
+        if plist_path.exists():
+            if not exist_ok:
+                raise FileExistsError()
+
+        if stderr_path is None:
+            stderr_path = Path(f"~/SEAMM/logs/{name}.out").expanduser()
+        if stdout_path is None:
+            stdout_path = Path(f"~/SEAMM/logs/{name}.out").expanduser()
+
+        # And the plist file itself.
+        program_arguments = [str(exe_path)]
+        for arg in args:
+            program_arguments.append(str(arg))
+
+        plist = {
+            "Label": identifier,
+            "KeepAlive": True,
+            "ProgramArguments": program_arguments,
+            "ProcessType": "Interactive",
+            "StandardErrorPath": str(stderr_path),
+            "StandardOutPath": str(stdout_path),
+        }
+
+        # System-wide daemons need the username
+        if not user_agent:
+            username = getpass.getuser()
+            plist["UserName"] = username
+
+        # Reset the service data so it is re-read
+        self._data = None
+
+        # Write the file ... we may not have permission, so catch that.
+        try:
+            with plist_path.open(mode="wb") as fd:
+                plistlib.dump(plist, fd)
+        except PermissionError:
+            path = Path("~/Downloads").expanduser() / f"{identifier}.plist"
+            with path.open(mode="wb") as fd:
+                plistlib.dump(plist, fd)
+            print(f"\nYou do not have permission to write to {launchd_path}.")
+            print("If you have administrator access, run the following commands:")
+            print("")
+            print(f"    sudo mv {path} {plist_path}")
+            print(
+                "    sudo chown root:wheel /Library/LaunchDaemons/org.molssi.seamm"
+                ".dashboard.plist"
             )
-    else:
-        launchd_path = Path("/Library/LaunchDaemons")
-        plist_path = launchd_path / f"{identifier}.plist"
-        text = (
-            "To start the system-wide service, either restart the machine, or run\n\n"
-            f"   sudo launchctl bootstrap system {plist_path}\n\n"
-            "You need administrator privileges to run this command."
-        )
+            print("")
+            print("To move the temporary copy of the file to the correct locations.")
+            print("Then start the services as follows:")
+            print("")
+        except Exception as e:
+            print("Caught error?")
+            print(e)
+            print()
+            raise
 
-    if plist_path.exists():
-        if not exist_ok:
-            raise FileExistsError()
+    def delete(self, service, ignore_errors=False):
+        services = self.list()
+        if service in services:
+            domain, service_target, path = self.data[service]
+            # Check if it is running
+            if self.is_running(service):
+                self.stop(service)
+            # Now remove the files
+            path.unlink(missing_ok=True)
+            # Fix up service data
+            del self.data[service]
+        else:
+            # Check if the plist file exists, and remove if it does.
+            for path, _ in self.paths:
+                launchd_path = path / f"{self.prefix}.{service}.plist"
+                launchd_path.unlink(missing_ok=True)
 
-    if stderr_path is None:
-        stderr_path = Path(f"~/SEAMM/logs/{name}.out").expanduser()
-    if stdout_path is None:
-        stdout_path = Path(f"~/SEAMM/logs/{name}.out").expanduser()
+    def is_running(self, service):
+        result = False
+        services = self.list()
+        if service in services:
+            service_target = self.data[service][1]
+            cmd = f"launchctl print {service_target}"
 
-    # And the plist file itself.
-    plist = Template(launchd_plist).substitute(
-        identifier=identifier,
-        executable=str(exe_path),
-        stderr_path=str(stderr_path),
-        stdout_path=str(stdout_path),
-    )
+            result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
 
-    # System-wide daemons need the username
-    if not user_agent:
-        username = getpass.getuser()
-        new_plist = []
-        for line in plist.splitlines():
-            if "ProcessType" in line:
-                new_plist.append("    <key>UserName</key>")
-                new_plist.append(f"    <string>{username}</string>")
-            new_plist.append(line)
-        plist = "\n".join(new_plist)
+            if result.returncode == 0:
+                result = True
+            else:
+                result = False
+        else:
+            result = False
+        return result
 
-    # Write the file ... we may not have permission, so catch that.
-    try:
-        plist_path.write_text(plist)
-    except PermissionError:
-        path = Path("~/Downloads").expanduser() / f"{identifier}.plist"
-        path.write_text(plist)
-        print(f"\nYou do not have permission to write to {launchd_path}.")
-        print("If you have administrator access, run the following commands:")
-        print("")
-        print(f"    sudo mv {path} {plist_path}")
-        print(
-            "    sudo chown root:wheel /Library/LaunchDaemons/org.molssi.seamm"
-            ".dashboard.plist"
-        )
-        print("")
-        print("To move the temporary copy of the file to the correct locations.")
-        print("Then start the services as follows:")
-        print("")
-    except Exception as e:
-        print("Caught error?")
-        print(e)
-        print()
-        raise
+    def list(self):
+        return self.data.keys()
 
-    print(text)
+    def plist_path(self, service):
+        data = self.data
+        if service in data:
+            return data[service][2]
+        return ""
+
+    def restart(self, service):
+        self.stop(service)
+        self.start(service)
+
+    def start(self, service):
+        if not self.is_running(service):
+            services = self.list()
+            if service in services:
+                domain, service_target, path = self.data[service]
+
+                cmd = f"launchctl bootstrap {domain} {path}"
+                result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
+                if result.returncode != 0:
+                    raise RuntimeError(
+                        f"Starting the service '{service}' was not successful:\n"
+                        f"{result.stderr}"
+                    )
+            else:
+                raise RuntimeError(
+                    f"Service '{service}' cannot be started because it is not installed"
+                )
+
+    def status(self, service):
+        status = {"service": service}
+        services = self.list()
+        if service in services:
+            status["exists"] = True
+            service_target = self.data[service][1]
+            cmd = f"launchctl print {service_target}"
+
+            result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
+
+            status["running"] = result.returncode == 0
+
+            # Get the root directory and, for the dashboard, port
+            path = self.data[service][2]
+            logger.debug(f"Checking {path} for the root and port")
+            with path.open(mode="rb") as fd:
+                data = plistlib.load(fd)
+
+            root = None
+            port = None
+            if "ProgramArguments" in data:
+                lines = iter(data["ProgramArguments"])
+                for line in lines:
+                    if "--root" in line:
+                        root = next(lines)
+                    if "--port" in line:
+                        port = next(lines)
+            status["root"] = root
+            status["port"] = port
+        else:
+            status["exists"] = False
+        return status
+
+    def stop(self, service, ignore_errors=False):
+        services = self.list()
+        if service in services:
+            domain, service_target, path = self.data[service]
+            # Check if it is running
+            if self.is_running(service):
+                cmd = f"launchctl bootout {service_target}"
+                result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
+                if result.returncode == 0:
+                    pass
+                else:
+                    raise RuntimeError(f"Could not stop the service '{service}':")

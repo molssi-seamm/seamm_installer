@@ -4,10 +4,21 @@
 
 import importlib.metadata as implib
 from pathlib import Path
+import platform
 import subprocess
 
 from . import my
-from .services import is_running, start_service, stop_service
+
+
+system = platform.system()
+if system in ("Darwin",):
+    from .mac import ServiceManager
+
+    mgr = ServiceManager(prefix="org.molssi.seamm.")
+elif system in ("Linux",):
+    raise NotImplementedError("Linux not implemented yet.")
+else:
+    raise NotImplementedError(f"SEAMM does not support services on {system} yet.")
 
 
 def setup(parser):
@@ -93,17 +104,17 @@ def update():
             print(f"The database at '{db_path}' is already up-to-date.")
         else:
             service_name = "dev_dashboard" if my.development else "dashboard"
-            restart = is_running(service_name)
+            restart = mgr.is_running(service_name)
             if restart:
                 print(f"Stopping the service {service_name}")
-                stop_service(service_name)
+                mgr.stop_service(service_name)
 
             print("Updating the database.")
             update_db()
 
             if restart:
                 print(f"Restarting the service {service_name}")
-                start_service(service_name)
+                mgr.start_service(service_name)
 
             version = db_version()
             if version == latest:

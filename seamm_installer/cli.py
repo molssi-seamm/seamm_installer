@@ -2,6 +2,7 @@
 
 """Define the command-line interface for the SEAMM installer."""
 
+from . import apps
 from . import cache
 from . import datastore
 from . import install
@@ -30,7 +31,8 @@ def setup(parser):
     cache.setup(subparser)
     datastore.setup(subparser)
     install.setup(subparser)
-    services.setup(subparser)
     show.setup(subparser)
     uninstall.setup(subparser)
     update.setup(subparser)
+    apps.setup(subparser)
+    services.setup(subparser)

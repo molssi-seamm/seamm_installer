@@ -7,6 +7,7 @@ import pkg_resources
 import shlex
 import subprocess
 import sys
+import warnings
 
 logger = logging.getLogger(__name__)
 
@@ -316,10 +317,12 @@ class Conda(object):
             raise
 
         result = {}
-        for x in json.loads(stdout):
-            if "version" in x:
-                x["version"] = pkg_resources.parse_version(x["version"])
-            result[x["name"]] = x
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            for x in json.loads(stdout):
+                if "version" in x:
+                    x["version"] = pkg_resources.parse_version(x["version"])
+                    result[x["name"]] = x
         return result
 
     def path(self, environment):

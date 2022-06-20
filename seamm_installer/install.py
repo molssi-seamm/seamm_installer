@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 """Install requested components of SEAMM."""
+import platform
+
 from . import datastore
 from . import my
-from .services import restart_service
 from .util import (
     find_packages,
     get_metadata,
@@ -11,6 +12,17 @@ from .util import (
     run_plugin_installer,
     set_metadata,
 )
+
+
+system = platform.system()
+if system in ("Darwin",):
+    from .mac import ServiceManager
+
+    mgr = ServiceManager(prefix="org.molssi.seamm")
+elif system in ("Linux",):
+    raise NotImplementedError("Linux not implemented yet.")
+else:
+    raise NotImplementedError(f"SEAMM does not support services on {system} yet.")
 
 
 def setup(parser):
@@ -103,9 +115,11 @@ def install_packages(to_install, update=False, third_party=False):
             if package == "seamm-datastore":
                 datastore.update(my.options)
             elif package == "seamm-dashboard":
-                restart_service("dashboard")
+                service = f"dev_{package}" if my.development else package
+                mgr.restart(service)
             elif package == "seamm-jobserver":
-                restart_service("jobserver")
+                service = f"dev_{package}" if my.development else package
+                mgr.restart("service")
         elif update and installed_version < available:
             print(
                 f"Updating {ptype.lower()} {package} from version {installed_version} "
