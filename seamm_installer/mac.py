@@ -319,6 +319,9 @@ class ServiceManager:
                 launchd_path = path / f"{self.prefix}.{service}.plist"
                 launchd_path.unlink(missing_ok=True)
 
+    def is_installed(self, service):
+        return service in self.list()
+
     def is_running(self, service):
         result = False
         services = self.list()
