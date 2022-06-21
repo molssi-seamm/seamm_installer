@@ -1,8 +1,21 @@
 # -*- coding: utf-8 -*-
 
 """Update requested components of SEAMM."""
+import platform
+
 from . import my
 from .util import find_packages, get_metadata, package_info, run_plugin_installer
+
+
+system = platform.system()
+if system in ("Darwin",):
+    from .mac import ServiceManager
+
+    mgr = ServiceManager(prefix="org.molssi.seamm")
+elif system in ("Linux",):
+    raise NotImplementedError("Linux not implemented yet.")
+else:
+    raise NotImplementedError(f"SEAMM does not support services on {system} yet.")
 
 
 def setup(parser):
@@ -46,6 +59,10 @@ def update():
     ----------
     """
 
+    # Need to track packages that require services to be restarted.
+    service_packages = ("seamm-datastore", "seamm-dashboard", "seamm-jobserver")
+    initial_version = {p: package_info(p)[0] for p in service_packages}
+
     if my.options.all:
         # First update the conda environment
         environment = my.conda.active_environment
@@ -55,6 +72,29 @@ def update():
         update_packages("all")
     else:
         update_packages(my.options.modules)
+
+    final_version = {p: package_info(p)[0] for p in service_packages}
+    # And restart any services that need
+    if final_version["seamm-datastore"] > initial_version["seamm-datastore"]:
+        service_name = "dev_dashboard" if my.development else "dashboard"
+        if mgr.is_installed(service_name):
+            mgr.restart(service_name)
+            print(f"Restarted the {service_name} because the datastore was updated.")
+        service_name = "dev_jobserver" if my.development else "jobserver"
+        if mgr.is_installed(service_name):
+            mgr.restart(service_name)
+            print(f"Restarted the {service_name} because the datastore was updated.")
+    else:
+        if final_version["seamm-dashboard"] > initial_version["seamm-dashboard"]:
+            service_name = "dev_dashboard" if my.development else "dashboard"
+            if mgr.is_installed(service_name):
+                mgr.restart(service_name)
+                print(f"Restarted the {service_name} because it was updated.")
+        if final_version["seamm-jobserver"] > initial_version["seamm-jobserver"]:
+            service_name = "dev_jobserver" if my.development else "jobserver"
+            if mgr.is_installed(service_name):
+                mgr.restart(service_name)
+                print(f"Restarted the {service_name} because it was updated.")
 
 
 def update_packages(to_update):
