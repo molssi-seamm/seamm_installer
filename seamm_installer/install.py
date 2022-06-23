@@ -4,6 +4,7 @@
 import platform
 
 from . import datastore
+from .metadata import development_packages, development_packages_pip
 from . import my
 from .util import (
     find_packages,
@@ -46,6 +47,12 @@ def setup(parser):
         action="store_true",
         help="Install any missing packages from 3rd parties",
     )
+    if my.development:
+        subparser.add_argument(
+            "--development-environment",
+            action="store_true",
+            help="Install the development environment.",
+        )
     subparser.add_argument(
         "--update",
         action="store_true",
@@ -83,7 +90,10 @@ def install():
             "all", third_party=my.options.third_party, update=my.options.update
         )
     else:
-        install_packages(my.my.options.modules, update=my.options.update)
+        install_packages(my.options.modules, update=my.options.update)
+
+    if my.development and my.options.development_environment:
+        install_development_environment()
 
 
 def install_packages(to_install, update=False, third_party=False):
@@ -100,6 +110,8 @@ def install_packages(to_install, update=False, third_party=False):
             to_install = [p for p, d in packages.items() if "third" not in d["type"]]
 
     for package in to_install:
+        if package == "development":
+            continue
         available = packages[package]["version"]
         channel = packages[package]["channel"]
         installed_version, installed_channel = package_info(package)
@@ -142,3 +154,13 @@ def install_packages(to_install, update=False, third_party=False):
         # See if the package has an installer
         if not metadata["gui-only"]:
             run_plugin_installer(package, "install")
+
+
+def install_development_environment():
+    """Install packages needed for development."""
+    for package in development_packages:
+        print(f"Installing development package {package}")
+        my.conda.install(package)
+    for package in development_packages_pip:
+        print(f"Installing development package {package}")
+        my.pip.install(package)

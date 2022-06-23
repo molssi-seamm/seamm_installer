@@ -3,6 +3,7 @@
 """Update requested components of SEAMM."""
 import platform
 
+from .metadata import development_packages, development_packages_pip
 from . import my
 from .util import find_packages, get_metadata, package_info, run_plugin_installer
 
@@ -39,10 +40,16 @@ def setup(parser):
         action="store_true",
         help="Install any missing packages from the MolSSI",
     )
+    if my.development:
+        subparser.add_argument(
+            "--development-environment",
+            action="store_true",
+            help="Install the development environment.",
+        )
     subparser.add_argument(
-        "--install-3rd-party",
+        "--gui-only",
         action="store_true",
-        help="Install any missing packages from 3rd parties",
+        help="Install only packages necessary for the GUI",
     )
     subparser.add_argument(
         "modules",
@@ -72,6 +79,9 @@ def update():
         update_packages("all")
     else:
         update_packages(my.options.modules)
+
+    if my.development and my.options.development_environment:
+        update_development_environment()
 
     final_version = {p: package_info(p)[0] for p in service_packages}
     # And restart any services that need
@@ -132,5 +142,15 @@ def update_packages(to_update):
                 else:
                     my.conda.install(package)
         # See if the package has an installer
-        if not metadata["gui-only"]:
+        if not metadata["gui-only"] and not my.options.gui_only:
             run_plugin_installer(package, "update")
+
+
+def update_development_environment():
+    """Install packages needed for development."""
+    for package in development_packages:
+        print(f"Updating development package {package}")
+        my.conda.update(package)
+    for package in development_packages_pip:
+        print(f"Updating development package {package}")
+        my.pip.update(package)
