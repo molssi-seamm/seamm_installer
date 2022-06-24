@@ -201,8 +201,9 @@ class ServiceManager:
             pattern = self.prefix + ".*"
             for path, domain in self.paths:
                 for file_path in path.glob(pattern):
+                    service = file_path.stem
                     short_name = file_path.suffixes[-2][1:]
-                    self._data[short_name] = (domain, short_name, file_path)
+                    self._data[short_name] = (domain, service, file_path)
         return self._data
 
     @property
@@ -319,6 +320,7 @@ class ServiceManager:
         # Write the file ... we may not have permission, so catch that.
         try:
             service_path.write_text(service)
+        except PermissionError:
             downloads = Path("~/Downloads").expanduser()
             downloads.mkdir(exist_ok=True)
             path = downloads / f"{name}.service"
@@ -353,6 +355,13 @@ class ServiceManager:
                 systemd_path = path / f"{self.prefix}.{service}.service"
                 systemd_path.unlink(missing_ok=True)
 
+    def file_path(self, service):
+        "Return the path to the unit file for the service."
+        data = self.data
+        if service in data:
+            return data[service][2]
+        return ""
+
     def is_installed(self, service):
         return service in self.list()
 
@@ -379,17 +388,11 @@ class ServiceManager:
     def list(self):
         return self.data.keys()
 
-    def service_path(self, service):
-        data = self.data
-        if service in data:
-            return data[service][2]
-        return ""
+    def restart(self, service, ignore_errors=False):
+        self.stop(service, ignore_errors=ignore_errors)
+        self.start(service, ignore_errors=ignore_errors)
 
-    def restart(self, service):
-        self.stop(service)
-        self.start(service)
-
-    def start(self, service):
+    def start(self, service, ignore_errors=False):
         if not self.is_running(service):
             services = self.list()
             if service in services:
@@ -399,12 +402,12 @@ class ServiceManager:
                 else:
                     cmd = f"systemctl --now enable {path}"
                 result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
-                if result.returncode != 0:
+                if result.returncode != 0 and not ignore_errors:
                     raise RuntimeError(
                         f"Starting the service '{service}' was not successful:\n"
                         f"{result.stderr}"
                     )
-            else:
+            elif not ignore_errors:
                 raise RuntimeError(
                     f"Service '{service}' cannot be started because it is not installed"
                 )
@@ -447,7 +450,7 @@ class ServiceManager:
                 result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
                 if result.returncode == 0:
                     pass
-                else:
+                elif not ignore_errors:
                     raise RuntimeError(f"Could not stop the service '{service}':")
                 if "user" in domain:
                     cmd = f"systemctl --user stop {service_target}"
@@ -456,5 +459,5 @@ class ServiceManager:
                 result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
                 if result.returncode == 0:
                     pass
-                else:
+                elif not ignore_errors:
                     raise RuntimeError(f"Could not stop the service '{service}':")

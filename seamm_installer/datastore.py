@@ -16,7 +16,9 @@ if system in ("Darwin",):
 
     mgr = ServiceManager(prefix="org.molssi.seamm.")
 elif system in ("Linux",):
-    raise NotImplementedError("Linux not implemented yet.")
+    from .linux import ServiceManager
+
+    mgr = ServiceManager(prefix="org.molssi.seamm.")
 else:
     raise NotImplementedError(f"SEAMM does not support services on {system} yet.")
 

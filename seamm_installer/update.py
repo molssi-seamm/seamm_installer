@@ -14,7 +14,9 @@ if system in ("Darwin",):
 
     mgr = ServiceManager(prefix="org.molssi.seamm")
 elif system in ("Linux",):
-    raise NotImplementedError("Linux not implemented yet.")
+    from .linux import ServiceManager
+
+    mgr = ServiceManager(prefix="org.molssi.seamm")
 else:
     raise NotImplementedError(f"SEAMM does not support services on {system} yet.")
 
@@ -35,21 +37,16 @@ def setup(parser):
         action="store_true",
         help="Fully update the SEAMM installation",
     )
-    subparser.add_argument(
-        "--install-molssi",
-        action="store_true",
-        help="Install any missing packages from the MolSSI",
-    )
     if my.development:
         subparser.add_argument(
             "--development-environment",
             action="store_true",
-            help="Install the development environment.",
+            help="Update the development environment.",
         )
     subparser.add_argument(
         "--gui-only",
         action="store_true",
-        help="Install only packages necessary for the GUI",
+        help="Update only packages necessary for the GUI",
     )
     subparser.add_argument(
         "modules",
@@ -147,7 +144,7 @@ def update_packages(to_update):
 
 
 def update_development_environment():
-    """Install packages needed for development."""
+    """Update packages needed for development."""
     for package in development_packages:
         print(f"Updating development package {package}")
         my.conda.update(package)

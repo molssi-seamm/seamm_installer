@@ -27,6 +27,11 @@ def setup(parser):
         help="Uninstall all packages from 3rd parties",
     )
     subparser.add_argument(
+        "--gui-only",
+        action="store_true",
+        help="Uninstall only the GUI part of packages, leaving the background part.",
+    )
+    subparser.add_argument(
         "modules",
         nargs="*",
         default=None,
@@ -60,35 +65,26 @@ def uninstall_packages(to_uninstall):
     packages = find_packages(progress=True)
 
     if to_uninstall == "all":
-        if not metadata["gui-only"]:
-            for package in packages:
+        for package in package_info:
+            version, channel = package_info(package)
+            ptype = packages[package]["type"]
+            print(f"Uninstalling {ptype.lower()} {package}")
+            if channel == "pypi":
+                my.pip.uninstall(package)
+            else:
+                my.conda.uninstall(package)
+            # See if the package has an installer
+            if not metadata["gui-only"] and not my.options.gui_only:
                 run_plugin_installer(package, "uninstall")
-
     else:
         for package in to_uninstall:
-            available = packages[package]["version"]
-            channel = packages[package]["channel"]
-            installed_version, installed_channel = package_info(package)
+            version, channel = package_info(package)
             ptype = packages[package]["type"]
-            if installed_version < available:
-                print(
-                    f"Updating {ptype.lower()} {package} from version "
-                    f"{installed_version} to {available}"
-                )
-                if channel == installed_channel:
-                    if channel == "pypi":
-                        my.pip.uninstall(package)
-                    else:
-                        my.conda.uninstall(package)
-                else:
-                    if installed_channel == "pypi":
-                        my.pip.uninstall(package)
-                    else:
-                        my.conda.uninstall(package)
-                    if channel == "pypi":
-                        my.pip.install(package)
-                    else:
-                        my.conda.install(package)
+            print(f"Uninstalling {ptype.lower()} {package}")
+            if channel == "pypi":
+                my.pip.uninstall(package)
+            else:
+                my.conda.uninstall(package)
             # See if the package has an installer
-            if not metadata["gui-only"]:
+            if not metadata["gui-only"] and not my.options.gui_only:
                 run_plugin_installer(package, "uninstall")

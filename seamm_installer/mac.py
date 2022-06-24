@@ -319,6 +319,13 @@ class ServiceManager:
                 launchd_path = path / f"{self.prefix}.{service}.plist"
                 launchd_path.unlink(missing_ok=True)
 
+    def file_path(self, service):
+        "Return the path to the plist file for the service."
+        data = self.data
+        if service in data:
+            return data[service][2]
+        return ""
+
     def is_installed(self, service):
         return service in self.list()
 
@@ -342,17 +349,11 @@ class ServiceManager:
     def list(self):
         return self.data.keys()
 
-    def plist_path(self, service):
-        data = self.data
-        if service in data:
-            return data[service][2]
-        return ""
-
     def restart(self, service):
         self.stop(service)
         self.start(service)
 
-    def start(self, service):
+    def start(self, service, ignore_errors=False):
         if not self.is_running(service):
             services = self.list()
             if service in services:
@@ -360,12 +361,12 @@ class ServiceManager:
 
                 cmd = f"launchctl bootstrap {domain} {path}"
                 result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
-                if result.returncode != 0:
+                if result.returncode != 0 and not ignore_errors:
                     raise RuntimeError(
                         f"Starting the service '{service}' was not successful:\n"
                         f"{result.stderr}"
                     )
-            else:
+            elif not ignore_errors:
                 raise RuntimeError(
                     f"Service '{service}' cannot be started because it is not installed"
                 )
@@ -413,5 +414,5 @@ class ServiceManager:
                 result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
                 if result.returncode == 0:
                     pass
-                else:
+                elif not ignore_errors:
                     raise RuntimeError(f"Could not stop the service '{service}':")

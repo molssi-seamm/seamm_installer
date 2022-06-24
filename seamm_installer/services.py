@@ -17,7 +17,9 @@ if system in ("Darwin",):
 
     mgr = ServiceManager(prefix="org.molssi.seamm")
 elif system in ("Linux",):
-    raise NotImplementedError("Linux not implemented yet.")
+    from .linux import ServiceManager
+
+    mgr = ServiceManager(prefix="org.molssi.seamm")
 else:
     raise NotImplementedError(f"SEAMM does not support services on {system} yet.")
 
@@ -47,7 +49,7 @@ def setup(parser):
         "-p",
         "--port",
         type=int,
-        default=55066 if my.development else 55055,
+        default=55155 if my.development else 55055,
     )
     tmp_parser.add_argument(
         "services",
@@ -205,7 +207,7 @@ def show():
         for service in my.options.services:
             service_name = f"dev_{service}" if development else service
             if service_name in services:
-                path = mgr.plist_path(service_name)
+                path = mgr.file_path(service_name)
                 if path.is_relative_to(Path.home()):
                     path = path.relative_to(Path.home())
                     table.append((service_name, "~/" + str(path)))

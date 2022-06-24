@@ -21,7 +21,9 @@ if system in ("Darwin",):
 
     mgr = ServiceManager(prefix="org.molssi.seamm")
 elif system in ("Linux",):
-    raise NotImplementedError("Linux not implemented yet.")
+    from .linux import ServiceManager
+
+    mgr = ServiceManager(prefix="org.molssi.seamm")
 else:
     raise NotImplementedError(f"SEAMM does not support services on {system} yet.")
 
@@ -107,7 +109,9 @@ def install_packages(to_install, update=False, third_party=False):
         if third_party:
             to_install = [*packages.keys()]
         else:
-            to_install = [p for p, d in packages.items() if "third" not in d["type"]]
+            to_install = [
+                p for p, d in packages.items() if "3rd-party" not in d["type"]
+            ]
 
     for package in to_install:
         if package == "development":
@@ -127,11 +131,12 @@ def install_packages(to_install, update=False, third_party=False):
             if package == "seamm-datastore":
                 datastore.update(my.options)
             elif package == "seamm-dashboard":
+                # If installing, the service should not exist, but restrt if it does.
                 service = f"dev_{package}" if my.development else package
-                mgr.restart(service)
+                mgr.restart(service, ignore_errors=True)
             elif package == "seamm-jobserver":
                 service = f"dev_{package}" if my.development else package
-                mgr.restart("service")
+                mgr.restart(service, ignore_errors=True)
         elif update and installed_version < available:
             print(
                 f"Updating {ptype.lower()} {package} from version {installed_version} "

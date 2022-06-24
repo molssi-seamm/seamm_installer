@@ -7,8 +7,6 @@ import pkg_resources
 import platform
 import shutil
 
-# from string import Template
-
 from tabulate import tabulate
 
 from . import my
@@ -16,8 +14,12 @@ from . import my
 system = platform.system()
 if system in ("Darwin",):
     from .mac import create_app, delete_app, get_apps, update_app
+
+    icons = "SEAMM.icns"
 elif system in ("Linux",):
-    raise NotImplementedError("Linux not implemented yet.")
+    from .linux import create_app, delete_app, get_apps, update_app
+
+    icons = "linux_icons"
 else:
     raise NotImplementedError(f"SEAMM does not support apps on {system} yet.")
 
@@ -124,7 +126,7 @@ def create():
             delete_app(app_name)
 
         data_path = Path(pkg_resources.resource_filename("seamm_installer", "data/"))
-        icons_path = data_path / "SEAMM.icns"
+        icons_path = data_path / icons
         bin_path = shutil.which(app.lower())
         create_app(
             exe_path=bin_path,
