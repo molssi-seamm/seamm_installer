@@ -7,6 +7,7 @@ import pkg_resources
 import shlex
 import subprocess
 import sys
+import warnings
 
 logger = logging.getLogger(__name__)
 
@@ -200,6 +201,29 @@ class Conda(object):
             raise
         self._initialize()
 
+    def delete_environment(self, name):
+        """Delete a Conda environment.
+
+        Parameters
+        ----------
+        name : str
+            The name of the environment.
+        """
+        # Using the name leads to odd paths, so be explicit.
+        path = self.root_path / "envs" / name
+
+        command = f"conda env remove --yes  --prefix '{str(path)}'"
+
+        self.logger.debug(f"command = {command}")
+        try:
+            self._execute(command)
+        except subprocess.CalledProcessError as e:
+            self.logger.warning(f"Calling conda, returncode = {e.returncode}")
+            self.logger.warning(f"Output:\n\n{e.output}\n\n")
+            self._initialize()
+            raise
+        self._initialize()
+
     def exists(self, environment):
         """Whether an environment exists.
 
@@ -293,10 +317,12 @@ class Conda(object):
             raise
 
         result = {}
-        for x in json.loads(stdout):
-            if "version" in x:
-                x["version"] = pkg_resources.parse_version(x["version"])
-            result[x["name"]] = x
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            for x in json.loads(stdout):
+                if "version" in x:
+                    x["version"] = pkg_resources.parse_version(x["version"])
+                    result[x["name"]] = x
         return result
 
     def path(self, environment):
@@ -405,12 +431,13 @@ class Conda(object):
 
     def update(
         self,
-        package,
+        package=None,
         environment=None,
         channels=None,
         override_channels=True,
         progress=True,
         newline=True,
+        all=False,
     ):
         """Update a package in an environment..
 
@@ -428,6 +455,8 @@ class Conda(object):
             Whether to show progress dots.
         newline : bool = True
             Whether to print a newline at the end if showing progress
+        all : bool = False
+            Fully update the environment.
         """
         command = "conda update --yes "
         if environment is not None:
@@ -444,7 +473,12 @@ class Conda(object):
             for channel in channels:
                 command += f" -c {channel}"
 
-        command += f" {package}"
+        if all:
+            command += " --all"
+        else:
+            if package is None:
+                raise RuntimeError("Conda update requires either '--all' of a package")
+            command += f" {package}"
 
         self._execute(command, progress=progress, newline=newline)
 
