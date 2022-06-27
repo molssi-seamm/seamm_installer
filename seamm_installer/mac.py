@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 def create_app(
     exe_path,
+    *args,
     identifier=None,
     name="SEAMM",
     version="0.1.0",
@@ -65,7 +66,10 @@ def create_app(
     macos_path.mkdir(mode=0o755, parents=False, exist_ok=True)
     script_path = macos_path / name
     path = Path(exe_path).expanduser().resolve()
-    script_path.write_text(f"#!/bin/bash\n{path}\n")
+    cmd = str(path)
+    for arg in args:
+        cmd += f" {arg}"
+    script_path.write_text(f"#!/bin/bash\n{cmd}\n")
     script_path.chmod(0o755)
 
     # And put the icons in place

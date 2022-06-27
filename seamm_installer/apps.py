@@ -23,7 +23,8 @@ elif system in ("Linux",):
 else:
     raise NotImplementedError(f"SEAMM does not support apps on {system} yet.")
 
-known_apps = ["SEAMM", "Dashboard", "JobServer"]
+# known_apps = ["SEAMM", "Dashboard", "JobServer"]
+known_apps = ["SEAMM"]
 app_names = {
     "seamm": "SEAMM",
     "dashboard": "Dashboard",
@@ -59,6 +60,12 @@ def setup(parser):
         "--all-users",
         action="store_true",
         help="Install the apps for all users.",
+    )
+    tmp_parser.add_argument(
+        "-p",
+        "--port",
+        type=int,
+        default=55066 if my.development else 55055,
     )
     tmp_parser.add_argument(
         "apps",
@@ -127,14 +134,41 @@ def create():
 
         data_path = Path(pkg_resources.resource_filename("seamm_installer", "data/"))
         icons_path = data_path / icons
-        bin_path = shutil.which(app.lower())
-        create_app(
-            exe_path=bin_path,
-            name=app_name,
-            version=version,
-            user_only=not my.options.all_users,
-            icons=icons_path,
-        )
+        root = "~/SEAMM_DEV" if my.development else "~/SEAMM"
+
+        if app_lower == "dashboard":
+            bin_path = shutil.which("seamm-dashboard")
+            create_app(
+                bin_path,
+                "--root",
+                root,
+                "--port",
+                my.options.port,
+                name=app_name,
+                version=version,
+                user_only=not my.options.all_users,
+                icons=icons_path,
+            )
+        elif app_lower == "jobserver":
+            bin_path = shutil.which(app.lower())
+            create_app(
+                bin_path,
+                "--root",
+                root,
+                name=app_name,
+                version=version,
+                user_only=not my.options.all_users,
+                icons=icons_path,
+            )
+        else:
+            bin_path = shutil.which(app.lower())
+            create_app(
+                bin_path,
+                name=app_name,
+                version=version,
+                user_only=not my.options.all_users,
+                icons=icons_path,
+            )
         if my.options.all_users:
             print(f"\nInstalled app {app_name} for all users.")
         else:

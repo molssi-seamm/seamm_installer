@@ -67,6 +67,7 @@ def list_to_dict(lst):
 
 def create_app(
     exe_path,
+    *args,
     name="SEAMM",
     comment="the Simulation Environment for Atomistic and Molecular Modeling",
     user_only=False,
