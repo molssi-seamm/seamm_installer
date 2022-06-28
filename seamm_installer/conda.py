@@ -134,7 +134,7 @@ class Conda(object):
             self._data = None
             return
 
-        # Fixing error on condaforge.
+        # Fixing error on condaforge
         if result is None:
             self._is_installed = False
             self._data = None
