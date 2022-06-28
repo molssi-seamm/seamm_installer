@@ -134,6 +134,12 @@ class Conda(object):
             self._data = None
             return
 
+        # Fixing error on condaforge.
+        if result is None:
+            self._is_installed = False
+            self._data = None
+            return
+
         self._is_installed = True
         self.logger.debug(f"\nconda info --json\n\n{result}\n\n")
         self._data = json.loads(result)
