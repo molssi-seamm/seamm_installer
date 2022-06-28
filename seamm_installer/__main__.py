@@ -34,7 +34,7 @@ def run():
         choices=["NOTSET", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
         help=("The level of informational output, defaults to " "'%(default)s'"),
     )
-    if "dev" in my.environment:
+    if my.environment is not None and "dev" in my.environment:
         my.development = True
         parser.add_argument(
             "--no-development",
