@@ -142,7 +142,12 @@ class Conda(object):
 
         self._is_installed = True
         self.logger.debug(f"\nconda info --json\n\n{result}\n\n")
-        self._data = json.loads(result)
+        try:
+            self._data = json.loads(result)
+        except Exception:
+            self._is_installed = False
+            self._data = None
+            return
 
         # Find the root path for the environment
         # Typically the base environment is e.g. ~/opt/miniconda3 and all other
