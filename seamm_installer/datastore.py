@@ -37,20 +37,10 @@ def setup(parser):
     # Show
     tmp_parser = subparser.add_parser("show")
     tmp_parser.set_defaults(func=show)
-    tmp_parser.add_argument(
-        "--root",
-        type=str,
-        default="~/SEAMM_DEV" if my.development else "~/SEAMM",
-    )
 
     # Update
     tmp_parser = subparser.add_parser("update")
     tmp_parser.set_defaults(func=update)
-    tmp_parser.add_argument(
-        "--root",
-        type=str,
-        default="~/SEAMM_DEV" if my.development else "~/SEAMM",
-    )
 
 
 def latest_version():
@@ -72,7 +62,7 @@ def latest_version():
 
 def db_version():
     """Return the version of the database."""
-    db_path = Path(my.my.options.root) / "Jobs" / "seamm.db"
+    db_path = Path(my.options.root) / "Jobs" / "seamm.db"
     if not db_path.expanduser().exists():
         version = "not installed"
     else:

@@ -3,6 +3,7 @@
 """Update requested components of SEAMM."""
 import platform
 
+from .datastore import update as update_datastore
 from .metadata import development_packages, development_packages_pip
 from . import my
 from .util import find_packages, get_metadata, package_info, run_plugin_installer
@@ -82,22 +83,36 @@ def update():
 
     final_version = {p: package_info(p)[0] for p in service_packages}
     # And restart any services that need
-    if final_version["seamm-datastore"] > initial_version["seamm-datastore"]:
+    if (
+        initial_version["seamm-datastore"] is not None
+        and final_version["seamm-datastore"] is not None
+        and final_version["seamm-datastore"] > initial_version["seamm-datastore"]
+    ):
         service_name = "dev_dashboard" if my.development else "dashboard"
         if mgr.is_installed(service_name):
-            mgr.restart(service_name)
+            mgr.stop(service_name)
+            update_datastore()
+            mgr.start(service_name)
             print(f"Restarted the {service_name} because the datastore was updated.")
         service_name = "dev_jobserver" if my.development else "jobserver"
         if mgr.is_installed(service_name):
             mgr.restart(service_name)
             print(f"Restarted the {service_name} because the datastore was updated.")
     else:
-        if final_version["seamm-dashboard"] > initial_version["seamm-dashboard"]:
+        if (
+            initial_version["seamm-dashboard"] is not None
+            and final_version["seamm-dashboard"] is not None
+            and final_version["seamm-dashboard"] > initial_version["seamm-dashboard"]
+        ):
             service_name = "dev_dashboard" if my.development else "dashboard"
             if mgr.is_installed(service_name):
                 mgr.restart(service_name)
                 print(f"Restarted the {service_name} because it was updated.")
-        if final_version["seamm-jobserver"] > initial_version["seamm-jobserver"]:
+        if (
+            initial_version["seamm-jobserver"] is not None
+            and final_version["seamm-jobserver"] is not None
+            and final_version["seamm-jobserver"] > initial_version["seamm-jobserver"]
+        ):
             service_name = "dev_jobserver" if my.development else "jobserver"
             if mgr.is_installed(service_name):
                 mgr.restart(service_name)
