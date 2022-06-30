@@ -129,7 +129,7 @@ def install_packages(to_install, update=False, third_party=False):
                 my.conda.install(package)
 
             if package == "seamm-datastore":
-                datastore.update(my.options)
+                datastore.update()
             elif package == "seamm-dashboard":
                 # If installing, the service should not exist, but restrt if it does.
                 service = f"dev_{package}" if my.development else package
