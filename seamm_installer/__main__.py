@@ -50,6 +50,15 @@ def run():
             help="Work with the development environment, not the production one.",
         )
 
+    # Whether to not use the GUI
+    parser.add_argument(
+        "-n",
+        "--nw",
+        dest="no_gui",
+        action="store_true",
+        help="No GUI, just commandline.",
+    )
+
     # Parse the first options
     if "-h" not in sys.argv and "--help" not in sys.argv:
         options, _ = parser.parse_known_args()
@@ -60,6 +69,8 @@ def run():
         logging.basicConfig(level=level)
 
         my.development = kwargs.pop("development", False)
+    else:
+        kwargs = {"no_gui": True}
 
     # Now setup the rest of the command-line interface.
     parser.add_argument(
@@ -68,11 +79,20 @@ def run():
         default="~/SEAMM_DEV" if my.development else "~/SEAMM",
     )
 
-    cli.setup(parser)
+    if kwargs.pop("no_gui", False):
+        cli.setup(parser)
 
-    # Parse the command-line arguments and call the requested function
-    my.options = parser.parse_args()
-    sys.exit(my.options.func())
+        # Parse the command-line arguments and call the requested function
+        my.options = parser.parse_args()
+        sys.exit(my.options.func())
+
+    else:
+        from .gui import GUI
+
+        gui = GUI(logger=my.logger)
+
+        # enter the event loop
+        gui.event_loop()
 
 
 if __name__ == "__main__":

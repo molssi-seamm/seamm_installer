@@ -353,9 +353,9 @@ class ServiceManager:
     def list(self):
         return self.data.keys()
 
-    def restart(self, service):
-        self.stop(service)
-        self.start(service)
+    def restart(self, service, ignore_errors=False):
+        self.stop(service, ignore_errors=ignore_errors)
+        self.start(service, ignore_errors=ignore_errors)
 
     def start(self, service, ignore_errors=False):
         if not self.is_running(service):
