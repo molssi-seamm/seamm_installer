@@ -66,7 +66,7 @@ def create_app(
     macos_path.mkdir(mode=0o755, parents=False, exist_ok=True)
     script_path = macos_path / name
     path = Path(exe_path).expanduser().resolve()
-    cmd = str(path)
+    cmd = '"' + str(path) + '"'
     for arg in args:
         cmd += f" {arg}"
     script_path.write_text(f"#!/bin/bash\n{cmd}\n")

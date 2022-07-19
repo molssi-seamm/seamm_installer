@@ -2,7 +2,9 @@ import collections.abc
 import locale
 import logging
 from pathlib import Path
+import pkg_resources
 import platform
+import shutil
 import sys
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -19,6 +21,8 @@ from .util import (
     package_info,
     run_plugin_installer,
 )
+from .services import known_services
+
 
 #    set_metadata,
 
@@ -29,11 +33,13 @@ if system in ("Darwin",):
     from .mac import create_app, delete_app, get_apps, update_app  # noqa: F401
 
     mgr = ServiceManager(prefix="org.molssi.seamm")
+    icons = "SEAMM.icns"
 elif system in ("Linux",):
     from .linux import ServiceManager
     from .linux import create_app, delete_app, get_apps, update_app  # noqa: F401
 
     mgr = ServiceManager(prefix="org.molssi.seamm")
+    icons = "linux_icons"
 else:
     raise NotImplementedError(f"SEAMM does not support services on {system} yet.")
 
@@ -60,6 +66,9 @@ class GUI(collections.abc.MutableMapping):
 
         self.app_data = {}
         self._selected_apps = {}
+
+        self.service_data = {}
+        self._selected_services = {}
 
         self.metadata = get_metadata()
         self.gui_only = self.metadata.get("gui-only", False)
@@ -156,7 +165,7 @@ class GUI(collections.abc.MutableMapping):
         # Add the table for components
         page = ttk.Frame(nb)
         nb.add(page, text="Components", sticky=tk.NSEW)
-        self.tabs[page] = "Components"
+        self.tabs[str(page)] = "Components"
 
         self["table"] = sw.ScrolledLabelFrame(page, text="SEAMM components")
         self["table"].grid(column=0, row=0, sticky=tk.NSEW)
@@ -192,7 +201,7 @@ class GUI(collections.abc.MutableMapping):
         # Add the apps
         page = ttk.Frame(nb)
         nb.add(page, text="Apps", sticky=tk.NSEW)
-        self.tabs[page] = "Apps"
+        self.tabs[str(page)] = "Apps"
 
         self["apps"] = sw.ScrolledLabelFrame(page, text="SEAMM apps")
         self["apps"].grid(column=0, row=0, sticky=tk.NSEW)
@@ -210,15 +219,40 @@ class GUI(collections.abc.MutableMapping):
         )
 
         self["create apps"].grid(row=0, column=0, sticky=tk.EW)
-        self["remove apps"].grid(row=1, column=1, sticky=tk.EW)
+        self["remove apps"].grid(row=0, column=1, sticky=tk.EW)
 
         # Add the services
         page = ttk.Frame(nb)
         nb.add(page, text="Services", sticky=tk.NSEW)
-        self.tabs[page] = "Services"
+        self.tabs[str(page)] = "Services"
 
-        page.rowconfigure(0, weight=1)
+        self["services"] = sw.ScrolledLabelFrame(page, text="SEAMM services")
+        self["services"].grid(column=0, row=0, sticky=tk.NSEW)
         page.columnconfigure(0, weight=1)
+
+        # and buttons below...
+        frame = ttk.Frame(page)
+        frame.grid(column=0, row=1)
+
+        self["create services"] = ttk.Button(
+            frame, text="Create selected services", command=self._create_services
+        )
+        self["remove services"] = ttk.Button(
+            frame, text="Remove selected services", command=self._remove_services
+        )
+        self["start services"] = ttk.Button(
+            frame, text="Start selected services", command=self._start_services
+        )
+        self["stop services"] = ttk.Button(
+            frame, text="Stop selected services", command=self._stop_services
+        )
+
+        self["create services"].grid(row=0, column=0, sticky=tk.EW)
+        self["remove services"].grid(row=1, column=0, sticky=tk.EW)
+        self["start services"].grid(row=0, column=1, sticky=tk.EW)
+        self["stop services"].grid(row=1, column=1, sticky=tk.EW)
+
+        nb.select(2)
 
         # Work out and set the window size to nicely fit the screen
         ws = root.winfo_screenwidth()
@@ -266,7 +300,7 @@ class GUI(collections.abc.MutableMapping):
         style.configure("Green.TLabel", foreground=dk_green)
         style.configure("Red.TLabel", foreground=red)
 
-        root.after_idle(self.refresh)
+        # root.after_idle(self.refresh)
 
         return root
 
@@ -360,8 +394,6 @@ class GUI(collections.abc.MutableMapping):
                 self.root.update_idletasks()
 
         self.progress_dialog.withdraw()
-
-        self.reset_table()
 
     def reset_table(self):
         "Redraw the table in the GUI."
@@ -460,6 +492,26 @@ class GUI(collections.abc.MutableMapping):
     def _clear_selection(self):
         "Unselect all the packages."
         for var in self._selected.values():
+            var.set(0)
+
+    def _select_all_apps(self):
+        "Select all the apps."
+        for var in self._selected_apps.values():
+            var.set(1)
+
+    def _clear_apps_selection(self):
+        "Unselect all the apps."
+        for var in self._selected_apps.values():
+            var.set(0)
+
+    def _select_all_services(self):
+        "Select all the services."
+        for var in self._selected_services.values():
+            var.set(1)
+
+    def _clear_services_selection(self):
+        "Unselect all the services."
+        for var in self._selected_services.values():
             var.set(0)
 
     def _install(self):
@@ -710,27 +762,112 @@ class GUI(collections.abc.MutableMapping):
 
         self.progress_dialog.withdraw()
 
-    def _create_apps(self):
-        pass
+    def _create_apps(self, all_users=False):
+        installed_apps = apps.get_apps()
+        conda_exe = shutil.which("conda")
+        conda_path = '"' + str(my.conda.path(my.environment)) + '"'
+        for app_lower, var in self._selected_apps.items():
+            if var.get() == 1:
+                app = apps.app_names[app_lower]
+                app_name = f"{app}-dev" if my.development else app
+                packages = my.conda.list()
+                package = apps.app_package[app_lower]
+                if package in packages:
+                    version = str(packages[package]["version"])
+                else:
+                    print(
+                        f"The package '{package}' needed by the app {app_name} is not "
+                        "installed."
+                    )
+                    continue
+                if app_name in installed_apps:
+                    continue
+
+                data_path = Path(
+                    pkg_resources.resource_filename("seamm_installer", "data/")
+                )
+                icons_path = data_path / icons
+                root = "~/SEAMM_DEV" if my.development else "~/SEAMM"
+
+                if app_lower == "dashboard":
+                    bin_path = shutil.which("seamm-dashboard")
+                    create_app(
+                        bin_path,
+                        "--root",
+                        root,
+                        "--port",
+                        my.options.port,
+                        name=app_name,
+                        version=version,
+                        user_only=not all_users,
+                        icons=icons_path,
+                    )
+                elif app_lower == "jobserver":
+                    bin_path = shutil.which(app.lower())
+                    create_app(
+                        bin_path,
+                        "--root",
+                        root,
+                        name=app_name,
+                        version=version,
+                        user_only=not all_users,
+                        icons=icons_path,
+                    )
+                else:
+                    # bin_path = shutil.which(app.lower())
+                    create_app(
+                        conda_exe,
+                        "run",
+                        "-p",
+                        conda_path,
+                        app.lower(),
+                        name=app_name,
+                        version=version,
+                        user_only=not all_users,
+                        icons=icons_path,
+                    )
+                if all_users:
+                    print(f"\nInstalled app {app_name} for all users.")
+                else:
+                    print(f"\nInstalled app {app_name} for this user.")
+
+        self._clear_apps_selection()
+        self.refresh_apps()
+        self.layout_apps()
 
     def _remove_apps(self):
-        pass
+        installed_apps = apps.get_apps()
+        for app_lower, var in self._selected_apps.items():
+            if var.get() == 1:
+                app = apps.app_names[app_lower]
+                app_name = f"{app}-dev" if my.development else app
+                if app_name in installed_apps:
+                    delete_app(app_name, missing_ok=True)
+                    print(f"Deleted the app '{app_name}'.")
+                else:
+                    print(f"App '{app_name}' was not installed.")
+        self._clear_apps_selection()
+        self.refresh_apps()
+        self.layout_apps()
 
     def _tab_cb(self, event):
         w = self["notebook"].select()
-        print(f"{w=}")
-        print(f"{self.tabs=}")
-        print(f"{self['notebook'].tabs()=}")
         tab = self.tabs[w]
-        if tab == "Apps":
+        if tab == "Components":
+            self.refresh()
+            self.reset_table()
+        elif tab == "Apps":
             self.refresh_apps()
             self.layout_apps()
+        elif tab == "Services":
+            self.refresh_services()
+            self.layout_services()
 
     def refresh_apps(self):
         applications = get_apps()
 
         data = self.app_data = {}
-        for app in my.options.apps:
+        for app in apps.known_apps:
             app_lower = app.lower()
             app = apps.app_names[app_lower]
             app_name = f"{app}-dev" if my.development else app
@@ -738,11 +875,11 @@ class GUI(collections.abc.MutableMapping):
                 path = applications[app_name]
                 if path.is_relative_to(Path.home()):
                     path = path.relative_to(Path.home())
-                    data[app_name] = (app_name, "~/" + str(path))
+                    data[app_lower] = (app_name, "~/" + str(path))
                 else:
-                    data[app_name] = (app_name, str(path))
+                    data[app_lower] = (app_name, str(path))
             else:
-                data[app_name] = (app_name, "not found")
+                data[app_lower] = (app_name, "not found")
 
     def layout_apps(self):
         "Redraw the apps table in the GUI."
@@ -757,17 +894,18 @@ class GUI(collections.abc.MutableMapping):
         w = ttk.Label(frame, text="Application")
         w.grid(row=0, column=1)
         w = ttk.Label(frame, text="Location")
-        w.grid(row=1, column=2)
+        w.grid(row=0, column=2)
         row = 1
-        for app, location in self.app_data.values():
+        for app_lower, tmp in self.app_data.items():
+            app, location = tmp
             if location == "not found":
                 style = "Red.TLabel"
             else:
                 style = "TLabel"
 
-            if app not in self._selected_apps:
-                self._selected_apps[app] = tk.IntVar()
-            w = ttk.Checkbutton(frame, variable=self._selected_apps[app])
+            if app_lower not in self._selected_apps:
+                self._selected_apps[app_lower] = tk.IntVar()
+            w = ttk.Checkbutton(frame, variable=self._selected_apps[app_lower])
             w.grid(row=row, column=0, sticky=tk.N)
             w = ttk.Label(frame, text=app, style=style)
             w.grid(row=row, column=1, sticky=tk.W)
@@ -776,3 +914,178 @@ class GUI(collections.abc.MutableMapping):
             row += 1
 
         self.root.update_idletasks()
+
+    def refresh_services(self):
+        services = mgr.list()
+
+        print(f"{services=}")
+        data = self.service_data = {}
+        for service in known_services:
+            service_name = f"dev_{service}" if my.development else service
+
+            if service_name in services:
+                path = Path(mgr.file_path(service_name))
+                if path.is_relative_to(Path.home()):
+                    path = path.relative_to(Path.home())
+                    data[service] = {"path": "~/" + str(path)}
+                else:
+                    data[service] = {"path": str(path)}
+                status = mgr.status(service_name)
+                data[service]["status"] = (
+                    "running" if status["running"] else "not running"
+                )
+                data[service]["root"] = (
+                    "---" if status["root"] is None else status["root"]
+                )
+                data[service]["port"] = (
+                    "---" if status["port"] is None else status["port"]
+                )
+            else:
+                data[service] = {"status": "not found"}
+            data[service]["name"] = service_name
+
+    def layout_services(self):
+        "Redraw the services table in the GUI."
+
+        # Sort by the plug-in names
+        table = self["services"]
+        frame = table.interior()
+
+        for child in frame.grid_slaves():
+            child.destroy()
+
+        w = ttk.Label(frame, text="Service")
+        w.grid(row=0, column=1)
+        w = ttk.Label(frame, text="Status")
+        w.grid(row=0, column=2)
+        w = ttk.Label(frame, text="Root")
+        w.grid(row=0, column=3)
+        w = ttk.Label(frame, text="Port")
+        w.grid(row=0, column=4)
+        row = 1
+        for service, tmp in self.service_data.items():
+            status = tmp["status"]
+            if status == "not found":
+                style = "Red.TLabel"
+            elif status == "running":
+                style = "Green.TLabel"
+            else:
+                style = "TLabel"
+
+            if service not in self._selected_services:
+                self._selected_services[service] = tk.IntVar()
+            w = ttk.Checkbutton(frame, variable=self._selected_services[service])
+            w.grid(row=row, column=0, sticky=tk.N)
+            w = ttk.Label(frame, text=tmp["name"], style=style)
+            w.grid(row=row, column=1, sticky=tk.W)
+            w = ttk.Label(frame, text=status, style=style)
+            w.grid(row=row, column=2, sticky=tk.W)
+            if status != "not found":
+                w = ttk.Label(frame, text=tmp["root"], style=style)
+                w.grid(row=row, column=3, sticky=tk.W)
+                w = ttk.Label(frame, text=tmp["port"], style=style)
+                w.grid(row=row, column=4, sticky=tk.W)
+            row += 1
+
+        self.root.update_idletasks()
+
+    def _create_services(self):
+        port = 55155 if my.development else 55055
+        root = "~/SEAMM_DEV" if my.development else "~/SEAMM"
+        services = mgr.list()
+        for service, var in self._selected_services.items():
+            if var.get() == 1:
+                service_name = f"dev_{service}" if my.development else service
+                if service_name in services:
+                    if my.options.force:
+                        mgr.delete(service_name)
+                    else:
+                        continue
+                # Proceed to creating the service.
+                exe_path = shutil.which(f"seamm-{service}")
+                if exe_path is None:
+                    exe_path = shutil.which(service)
+                if exe_path is None:
+                    print(
+                        f"Could not find seamm-{service} or {service}. Is it installed?"
+                    )
+                    print()
+                    continue
+
+                stderr_path = Path(f"{root}/logs/{service}.out").expanduser()
+                stdout_path = Path(f"{root}/logs/{service}.out").expanduser()
+
+                if service == "dashboard":
+                    mgr.create(
+                        service_name,
+                        exe_path,
+                        "--port",
+                        port,
+                        "--root",
+                        root,
+                        stderr_path=str(stderr_path),
+                        stdout_path=str(stdout_path),
+                    )
+                else:
+                    mgr.create(
+                        service_name,
+                        exe_path,
+                        "--root",
+                        root,
+                        stderr_path=str(stderr_path),
+                        stdout_path=str(stdout_path),
+                    )
+                # And start it up
+                mgr.start(service_name)
+                print(f"Created and started the service {service_name}")
+        self._clear_services_selection()
+        self.refresh_services()
+        self.layout_services()
+
+    def _remove_services(self):
+        for service, var in self._selected_services.items():
+            if var.get() == 1:
+                service_name = f"dev_{service}" if my.development else service
+                mgr.delete(service_name)
+                print(f"The service {service_name} was deleted.")
+        self._clear_services_selection()
+        self.refresh_services()
+        self.layout_services()
+
+    def _start_services(self):
+        for service, var in self._selected_services.items():
+            if var.get() == 1:
+                service_name = f"dev_{service}" if my.development else service
+                if mgr.is_running(service_name):
+                    print(f"The service '{service_name}' was already running.")
+                else:
+                    try:
+                        mgr.start(service_name)
+                    except RuntimeError as e:
+                        print(e.text)
+                    except NotImplementedError as e:
+                        print(e.text)
+                    else:
+                        print(f"The service '{service_name}' has been started.")
+        self._clear_services_selection()
+        self.refresh_services()
+        self.layout_services()
+
+    def _stop_services(self):
+        for service, var in self._selected_services.items():
+            if var.get() == 1:
+                service_name = f"dev_{service}" if my.development else service
+                if mgr.is_running(service_name):
+                    try:
+                        mgr.stop(service_name)
+                    except RuntimeError as e:
+                        print(e.text)
+                    except NotImplementedError as e:
+                        print(e.text)
+                    else:
+                        print(f"The service '{service_name}' has been stopped.")
+                else:
+                    print(f"The service '{service_name}' was not running.")
+        self._clear_services_selection()
+        self.refresh_services()
+        self.layout_services()
