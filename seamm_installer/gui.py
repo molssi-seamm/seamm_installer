@@ -50,6 +50,24 @@ logger = logging.getLogger(__name__)
 dk_green = "#008C00"
 red = "#D20000"
 
+# Help text
+help_text = """\
+The SEAMM installer handles installing the components of SEAMM and its plug-ins;
+creating "apps", i.e. icons on your desktop or taskbar to make it easy for you to start
+SEAMM; and services (or daemons) for the Dashboard and JobServer so they are always
+running and ready to do your bidding.  The remaining tabs in the installer,
+"Components", "Apps", and "Services" are where you go to install, update, or remove each
+of these.
+
+N.B. When you click on the component tab the installer has to examine your current
+installation which takes a minute or so. The first time, and then every few days
+afterwards it also has to search the Internet for all available components and
+plug-ins. This takes longer, several minutes, but the data is then cached so it needn't
+be done again for a few days. Be patient! And don't click on the "Components" tab if you
+are only interest in the "Apps" or "Services"!
+
+
+"""
 
 class GUI(collections.abc.MutableMapping):
     def __init__(self, logger=logger):
@@ -714,13 +732,14 @@ class GUI(collections.abc.MutableMapping):
                 if installed_version is not None and installed_version < available:
                     print(
                         f"Updating {ptype.lower()} {package} from version "
-                        f"{installed_version} to {available}"
+                        f"{installed_version} to {available} using {channel} "
+                        f"(was installed using {installed_channel})"
                     )
                     if channel == installed_channel:
                         if channel == "pypi":
-                            my.pip.install(package)
+                            my.pip.update(package)
                         else:
-                            my.conda.install(package)
+                            my.conda.update(package)
                     else:
                         if installed_channel == "pypi":
                             my.pip.uninstall(package)
