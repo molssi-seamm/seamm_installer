@@ -53,43 +53,53 @@ red = "#D20000"
 
 # Help text
 help_text = """\
-The SEAMM installer handles installing the components of SEAMM and its plug-ins;
-creating "apps", i.e. icons on your desktop or taskbar to make it easy for you to start
-SEAMM; and services (or daemons) for the Dashboard and JobServer so they are always
-running and ready to do your bidding.  The remaining tabs in the installer,
-<b>Components</b>, "Apps", and "Services" are where you go to install, update, or remove
-each of these.
+The SEAMM installer handles three different aspects of installing SEAMM:
+<ol>
+  <li><b>Components</b> tab: Instal the SEAMM components and plug-ins,</li>
+  <li><b>Shortcuts</b> tab: Create application shortcuts so you can click on an icon
+    to start the application, and</li>
+  <li><b>Services</b> tab: Create services (or daemons) for the Dashboard and JobServer.
+  </li>
+</ol>
 <p>
-N.B. When you click on the component tab the installer has to examine your current
-installation which takes a minute or so. The first time, and then every few days
-afterwards it also has to search the Internet for all available components and
-plug-ins. This takes longer, several minutes, but the data is then cached so it needn't
-be done again for a few days. Be patient! And don't click on the "Components" tab if you
-are only interested in the "Apps" or "Services"!
-
-There are three steps to installing SEAMM. First is to install SEAMM itself and any
-plug-ins that you plan to use. The "Components" tab does this. After you have installed
-SEAMM you should run the Installer from time-to-time -- every few weeks or months -- to
-check if new versions of the components and plug-ins are available, and if there are any
-new, interesting plug-ins. In particular, if you find a bug, it is worth checking if
-there is an update. Perhaps the problem has already been fixed! If not, please report
-it.
-
-After installing SEAMM itself you can use the "Apps" tab to install icons for SEAMM and
-the Installer so that you can run them by just clicking on them. On the Mac they are in
-~/Applications, i.e the Applications folder in your home directory, not in the more
-general /Applications folder. You can drag them to the Dock or desktop if you wish. On
-Linux, they are in ~/.local/share/applications/ and can usually be placed in an
-applications menu, a dock or dash, or directly on the desktop. The details depend on the
-desktop environment that you are using, so check the documentation.
-
-Finally, if you are going to run on the machine, you should probably install the
-Dashboard and JobServer as services, using the "Services" tab. Services run even when
-you aren't logged in, so you will be able to access the Dashboard from other machines
-even if you log out of the current machine. Also jobs that you have submitted will
-continue to run after you log out. The "Services" tab also lets you stop and start the
-services if needed; however, they use minimal resources when idle so normally leave
-them running.
+  <b>Note:</b> Finding all the available plug-ins for SEAMM and examining the
+  installation might take a few minutes. Therefore, if you are only interested in
+  <b>Shortcuts</b> or <b>Services</b>, do not click on the <b>Components</b> tab.
+<p>
+  You can install SEAMM in two ways:
+  <ol>
+    <li>Full installation: install all SEAMM components and any desired plug-ins. This
+      allows you to run from the command-line or via the Dashboard.</li>
+    <li>Only the graphical user interface (GUI). You won't be able to run locally, but
+      can submit jobs to remote Dashboards or copy the flowchart to another machine and
+      run manually.</li>
+  </ol>
+  If you create a full installation, you can have the plug-ins install any
+  computational codes they need, e.g. LAMMPS, MOPAC, or DFTB+. If you already have the
+  codes installed you can use your version, asking the plug-ins not to install a second
+  copy.
+<p>
+  Detailed instructions:
+<ol>
+  <li>Select the SEAMM components and desired plug-ins on the <b>Components</b> tab, and
+    click the appropriate button to install just the plug-in or both it and any
+    computational codes.If you want only the GUI select the <i>GUI only</i>.</li>
+  <li>Next, go to the <b>Shortcuts</b> tab and select the shortcuts you want.
+    On the Mac the shortcuts will be in <b>~/Applications</b>, and can be dragged to the
+    Dock or Desktop. On Linux, they are
+    in <b>~/.local/share/applications</b>. Check the documentation for the Desktop you
+    use to add them to the launcher, dash, or similar.</li>
+  <li>For a full installation, go to the <b>Services</b> tab to create services for
+    the Dashboard and JobServer. This keeps them running when you log out, so that
+    jobs keep running and you can access the Dashboard remotely even if you are logged
+    out of the machine.
+    You can also stop and start the services from the <b>Services</b> tab. The Dashboard
+    and JobServer use minimal resources, so there is no problem leaving them running at
+    all times.
+<p>
+  We recommend that you run the installer every few weeks to get updates and new
+  plug-ins. If you find a bug, check if there are any updates. Maybe the problem has
+  already been fixed!  If not, please report it!
 """
 
 
@@ -105,6 +115,7 @@ class GUI(collections.abc.MutableMapping):
         self._selected = {}
         self.packages = None
         self.package_data = {}
+        self._gui_only = None  # Creation deferred to setup.
 
         self.app_data = {}
         self._selected_apps = {}
@@ -113,7 +124,7 @@ class GUI(collections.abc.MutableMapping):
         self._selected_services = {}
 
         self.metadata = get_metadata()
-        self.gui_only = self.metadata.get("gui-only", False)
+
         self.tabs = {}
         self.descriptions = []
         self.description_width = 0
@@ -144,6 +155,18 @@ class GUI(collections.abc.MutableMapping):
         """The len() command"""
         return len(self._widget)
 
+    @property
+    def gui_only(self):
+        "Whether to install only the GUI."
+        return self._gui_only.get() == 1
+
+    @gui_only.setter
+    def gui_only(self, value):
+        if value:
+            self._gui_only.set(1)
+        else:
+            self._gui_only.set(0)
+
     def event_loop(self):
         self.root.mainloop()
 
@@ -157,6 +180,10 @@ class GUI(collections.abc.MutableMapping):
             "SEAMM Installer (Development)" if my.development else "SEAMM Installer"
         )
         root.title(app_name)
+
+        # This can't be done until the root window is created....
+        self._gui_only = tk.IntVar(0)
+        self.gui_only = self.metadata.get("gui-only", False)
 
         # The menus
         menu = tk.Menu(root)
@@ -217,21 +244,6 @@ class GUI(collections.abc.MutableMapping):
         self["help"] = HTMLScrolledText(
             page, html=help_text, wrap=tk.WORD, width=50, background=bg
         )
-        # text = ""
-        # first = True
-        # for line in help_text.splitlines():
-        #     if line.strip() == "":
-        #         text += "\n\n"
-        #         first = True
-        #     elif line[0] == " " or line[0] == "\t":
-        #         text += "\n"
-        #     else:
-        #         if first:
-        #             first = False
-        #         else:
-        #             text += " "
-        #         text += line
-        # self["help"].insert("end", text)
         self["help"].configure(state=tk.DISABLED)
         self["help"].grid(column=0, row=0, sticky=tk.NSEW)
         page.rowconfigure(0, weight=1)
@@ -248,8 +260,15 @@ class GUI(collections.abc.MutableMapping):
         page.columnconfigure(0, weight=1)
 
         # and buttons below...
-        frame = ttk.Frame(page)
+        frame = self["component buttons"] = ttk.Frame(page)
         frame.grid(column=0, row=1)
+
+        self["refresh"] = ttk.Button(
+            frame, text="Refresh available packages", command=self._refresh_cache
+        )
+        self["gui only"] = ttk.Checkbutton(
+            frame, text="GUI only", command=self.reset_table, variable=self._gui_only
+        )
 
         self["select all"] = ttk.Button(
             frame, text="Select all", command=self._select_all
@@ -260,25 +279,30 @@ class GUI(collections.abc.MutableMapping):
         self["install"] = ttk.Button(
             frame, text="Install selected", command=self._install
         )
+        self["install gui-only"] = ttk.Button(
+            frame,
+            text="Install selected, only GUI",
+            command=lambda: self._install(gui_only=True),
+        )
         self["uninstall"] = ttk.Button(
             frame, text="Uninstall selected", command=self._uninstall
         )
+        self["uninstall gui-only"] = ttk.Button(
+            frame, text="Uninstall selected, only GUI", command=self._uninstall
+        )
         self["update"] = ttk.Button(frame, text="Update selected", command=self._update)
-
-        self["select all"].grid(row=0, column=0, sticky=tk.EW)
-        self["clear selection"].grid(row=1, column=0, sticky=tk.EW)
-
-        self["install"].grid(row=0, column=1, sticky=tk.EW)
-        self["uninstall"].grid(row=1, column=1, sticky=tk.EW)
-
-        self["update"].grid(row=0, column=2, sticky=tk.EW)
+        self["update gui-only"] = ttk.Button(
+            frame,
+            text="Update selected, only GUI",
+            command=lambda: self._update(gui_only=True),
+        )
 
         # Add the apps
         page = ttk.Frame(nb)
-        nb.add(page, text="Apps", sticky=tk.NSEW)
-        self.tabs[str(page)] = "Apps"
+        nb.add(page, text="Shortcuts", sticky=tk.NSEW)
+        self.tabs[str(page)] = "Shortcuts"
 
-        self["apps"] = sw.ScrolledLabelFrame(page, text="SEAMM apps")
+        self["apps"] = sw.ScrolledLabelFrame(page, text="SEAMM shortcuts")
         self["apps"].grid(column=0, row=0, sticky=tk.NSEW)
         page.columnconfigure(0, weight=1)
 
@@ -336,7 +360,7 @@ class GUI(collections.abc.MutableMapping):
         if w > 1000:
             w = 1000
         h = int(0.8 * hs)
-        x = int((ws - w) / (2 * ws))
+        x = int((ws - w) / 2)
         y = int(0.2 * hs / 2)
 
         root.geometry(f"{w}x{h}+{x}+{y}")
@@ -405,7 +429,9 @@ class GUI(collections.abc.MutableMapping):
         self.root.update_idletasks()
         self.progress_bar.start()
 
-        self.packages = find_packages(progress=True, update=self.root.update)
+        self.packages = find_packages(
+            progress=True, update=self.root.update, cache_valid=5
+        )
 
         self.progress_bar.stop()
 
@@ -416,37 +442,42 @@ class GUI(collections.abc.MutableMapping):
         )
         self.root.update_idletasks()
 
+        installed = my.conda.list()
+
         count = 0
         data = self.package_data = {}
         for package in self.packages:
             count += 1
 
+            available = self.packages[package]["version"]
             if package in self.packages and "description" in self.packages[package]:
                 description = self.packages[package]["description"].strip()
             else:
                 description = "description unavailable"
 
-            try:
-                version = my.pip.show(package)["version"]
-            except Exception:
-                available = self.packages[package]["version"]
+            if package not in installed:
                 data[package] = [package, "--", available, description, "not installed"]
             else:
-                available = self.packages[package]["version"]
-                if version < available:
-                    # See if the package has an installer
-                    result = run_plugin_installer(package, "show", verbose=False)
-                    if result is not None:
-                        if result.returncode == 0:
-                            for line in result.stdout.splitlines():
-                                description += f"\n{line}"
-                        else:
-                            description += (
-                                f"\nThe installer for {package} "
-                                f"returned code {result.returncode}"
-                            )
-                            for line in result.stderr.splitlines():
-                                description += f"\n    {line}"
+                version = installed[package]["version"]
+                # See if the package has an installer
+                self.progress_text.configure(
+                    text=f"Checking background codes for {package}."
+                )
+                self.root.update_idletasks()
+
+                result = run_plugin_installer(package, "show", verbose=False)
+                if result is not None:
+                    if result.returncode == 0:
+                        for line in result.stdout.splitlines():
+                            description += f"\n{line}"
+                    else:
+                        description += (
+                            f"\nThe installer for {package} "
+                            f"returned code {result.returncode}"
+                        )
+                        for line in result.stderr.splitlines():
+                            description += f"\n    {line}"
+
                 if version < available:
                     data[package] = [
                         package,
@@ -464,11 +495,11 @@ class GUI(collections.abc.MutableMapping):
                         "up to date",
                     ]
 
-                self.progress_bar.step()
-                self.progress_text.configure(
-                    text=f"Finding which packages are installed ({count} / {n})"
-                )
-                self.root.update_idletasks()
+            self.progress_bar.step()
+            self.progress_text.configure(
+                text=f"Finding which packages are installed ({count} / {n})"
+            )
+            self.root.update_idletasks()
 
         self.progress_dialog.withdraw()
 
@@ -507,6 +538,13 @@ class GUI(collections.abc.MutableMapping):
         for ptype in ("Core package", "MolSSI plug-in", "3rd-party plug-in"):
             group = []
             for m, v, a, d, status in self.package_data.values():
+                if self.gui_only and m in (
+                    "seamm-dashboard",
+                    "seamm-datastore",
+                    "seamm-jobserver",
+                ):
+                    break
+
                 if self.packages[m]["type"] == ptype:
                     group.append([m, v, a, d, status])
 
@@ -542,6 +580,35 @@ class GUI(collections.abc.MutableMapping):
                 row += 1
 
         frame.columnconfigure(5, weight=1)
+
+        # Handle the buttons
+        frame = self["component buttons"]
+        for child in frame.grid_slaves():
+            child.grid_forget()
+
+        self["refresh"].grid(row=0, column=0, sticky=tk.EW)
+        self["gui only"].grid(row=1, column=0, sticky=tk.EW)
+
+        self["select all"].grid(row=0, column=2, sticky=tk.EW)
+        self["clear selection"].grid(row=1, column=2, sticky=tk.EW)
+
+        if self.gui_only:
+            self["install gui-only"].grid(row=0, column=4, sticky=tk.EW)
+            self["uninstall gui-only"].grid(row=0, column=5, sticky=tk.EW)
+
+            self["update gui-only"].grid(row=0, column=7, sticky=tk.EW)
+        else:
+            self["install"].grid(row=0, column=4, sticky=tk.EW)
+            self["install gui-only"].grid(row=1, column=4, sticky=tk.EW)
+            self["uninstall"].grid(row=0, column=5, sticky=tk.EW)
+            self["uninstall gui-only"].grid(row=1, column=5, sticky=tk.EW)
+
+            self["update"].grid(row=0, column=7, sticky=tk.EW)
+            self["update gui-only"].grid(row=1, column=7, sticky=tk.EW)
+
+        frame.columnconfigure(1, minsize=30)
+        frame.columnconfigure(3, minsize=30)
+        frame.columnconfigure(6, minsize=30)
 
         self.root.update_idletasks()
 
@@ -591,7 +658,7 @@ class GUI(collections.abc.MutableMapping):
         for var in self._selected_services.values():
             var.set(0)
 
-    def _install(self):
+    def _install(self, gui_only=False):
         "Install selected packages."
         update = True
         changed = False
@@ -640,7 +707,7 @@ class GUI(collections.abc.MutableMapping):
                         service = f"dev_{package}" if my.development else package
                         mgr.restart(service, ignore_errors=True)
                     # See if the package has an installer
-                    if not self.gui_only:
+                    if not gui_only:
                         self.progress_text.configure(
                             text=f"Running installer for {package}"
                         )
@@ -686,7 +753,7 @@ class GUI(collections.abc.MutableMapping):
                         else:
                             my.conda.install(package)
                     # See if the package has an installer
-                    if not self.gui_only:
+                    if not gui_only:
                         self.progress_text.configure(
                             text=f"Running installer for {package}"
                         )
@@ -719,7 +786,7 @@ class GUI(collections.abc.MutableMapping):
 
         self.progress_dialog.withdraw()
 
-    def _uninstall(self):
+    def _uninstall(self, gui_only=False):
         "Uninstall selected packages."
         n = 0
         for package, var in self._selected.items():
@@ -743,7 +810,7 @@ class GUI(collections.abc.MutableMapping):
                 else:
                     my.conda.uninstall(package)
                 # See if the package has an installer
-                if not self.gui_only:
+                if not gui_only:
                     self.progress_text.configure(
                         text=f"Running uninstaller for {package}"
                     )
@@ -767,7 +834,7 @@ class GUI(collections.abc.MutableMapping):
 
         self.progress_dialog.withdraw()
 
-    def _update(self):
+    def _update(self, gui_only=False):
         "Update the selected packages."
         n = 0
         for package, var in self._selected.items():
@@ -809,7 +876,7 @@ class GUI(collections.abc.MutableMapping):
                         else:
                             my.conda.install(package)
                     # See if the package has an installer
-                    if not self.gui_only:
+                    if not gui_only:
                         self.progress_text.configure(
                             text=f"Running update for {package}"
                         )
@@ -854,8 +921,8 @@ class GUI(collections.abc.MutableMapping):
                     version = str(packages[package]["version"])
                 else:
                     print(
-                        f"The package '{package}' needed by the app {app_name} is not "
-                        "installed."
+                        f"The package '{package}' needed by the shortcut {app_name} is "
+                        "not installed."
                     )
                     continue
                 if app_name in installed_apps:
@@ -905,11 +972,30 @@ class GUI(collections.abc.MutableMapping):
                         icons=icons_path,
                     )
                 if all_users:
-                    print(f"\nInstalled app {app_name} for all users.")
+                    print(f"\nInstalled shortcut {app_name} for all users.")
                 else:
-                    print(f"\nInstalled app {app_name} for this user.")
+                    print(f"\nInstalled shortcut {app_name} for this user.")
 
         self._clear_apps_selection()
+        self.refresh_apps()
+        self.layout_apps()
+
+    def _refresh_cache(self):
+        """Refresh the cache of vailable codes and reset the GUI."""
+        self.progress_bar.configure(mode="indeterminate", value=0)
+        self.progress_text.configure(
+            text="Finding all packages. This may take a couple minutes."
+        )
+        self.progress_dialog.deiconify()
+        self.root.update_idletasks()
+        self.progress_bar.start()
+
+        self.packages = find_packages(
+            progress=True, update=self.root.update, update_cache=True
+        )
+
+        self.progress_bar.stop()
+
         self.refresh_apps()
         self.layout_apps()
 
@@ -921,9 +1007,9 @@ class GUI(collections.abc.MutableMapping):
                 app_name = f"{app}-dev" if my.development else app
                 if app_name in installed_apps:
                     delete_app(app_name, missing_ok=True)
-                    print(f"Deleted the app '{app_name}'.")
+                    print(f"Deleted the shortcut '{app_name}'.")
                 else:
-                    print(f"App '{app_name}' was not installed.")
+                    print(f"Shortcut '{app_name}' was not installed.")
         self._clear_apps_selection()
         self.refresh_apps()
         self.layout_apps()
@@ -934,7 +1020,7 @@ class GUI(collections.abc.MutableMapping):
         if tab == "Components":
             self.refresh()
             self.reset_table()
-        elif tab == "Apps":
+        elif tab == "Shortcuts":
             self.refresh_apps()
             self.layout_apps()
         elif tab == "Services":
@@ -969,7 +1055,7 @@ class GUI(collections.abc.MutableMapping):
         for child in frame.grid_slaves():
             child.destroy()
 
-        w = ttk.Label(frame, text="Application")
+        w = ttk.Label(frame, text="Shortcut")
         w.grid(row=0, column=1)
         w = ttk.Label(frame, text="Location")
         w.grid(row=0, column=2)
