@@ -11,6 +11,7 @@ import tkinter.ttk as ttk
 
 import Pmw
 import seamm_widgets as sw
+from tkhtmlview import HTMLScrolledText
 
 from . import apps
 from . import datastore
@@ -56,18 +57,41 @@ The SEAMM installer handles installing the components of SEAMM and its plug-ins;
 creating "apps", i.e. icons on your desktop or taskbar to make it easy for you to start
 SEAMM; and services (or daemons) for the Dashboard and JobServer so they are always
 running and ready to do your bidding.  The remaining tabs in the installer,
-"Components", "Apps", and "Services" are where you go to install, update, or remove each
-of these.
-
+<b>Components</b>, "Apps", and "Services" are where you go to install, update, or remove
+each of these.
+<p>
 N.B. When you click on the component tab the installer has to examine your current
 installation which takes a minute or so. The first time, and then every few days
 afterwards it also has to search the Internet for all available components and
 plug-ins. This takes longer, several minutes, but the data is then cached so it needn't
 be done again for a few days. Be patient! And don't click on the "Components" tab if you
-are only interest in the "Apps" or "Services"!
+are only interested in the "Apps" or "Services"!
 
+There are three steps to installing SEAMM. First is to install SEAMM itself and any
+plug-ins that you plan to use. The "Components" tab does this. After you have installed
+SEAMM you should run the Installer from time-to-time -- every few weeks or months -- to
+check if new versions of the components and plug-ins are available, and if there are any
+new, interesting plug-ins. In particular, if you find a bug, it is worth checking if
+there is an update. Perhaps the problem has already been fixed! If not, please report
+it.
 
+After installing SEAMM itself you can use the "Apps" tab to install icons for SEAMM and
+the Installer so that you can run them by just clicking on them. On the Mac they are in
+~/Applications, i.e the Applications folder in your home directory, not in the more
+general /Applications folder. You can drag them to the Dock or desktop if you wish. On
+Linux, they are in ~/.local/share/applications/ and can usually be placed in an
+applications menu, a dock or dash, or directly on the desktop. The details depend on the
+desktop environment that you are using, so check the documentation.
+
+Finally, if you are going to run on the machine, you should probably install the
+Dashboard and JobServer as services, using the "Services" tab. Services run even when
+you aren't logged in, so you will be able to access the Dashboard from other machines
+even if you log out of the current machine. Also jobs that you have submitted will
+continue to run after you log out. The "Services" tab also lets you stop and start the
+services if needed; however, they use minimal resources when idle so normally leave
+them running.
 """
+
 
 class GUI(collections.abc.MutableMapping):
     def __init__(self, logger=logger):
@@ -180,6 +204,39 @@ class GUI(collections.abc.MutableMapping):
 
         nb.bind("<<NotebookTabChanged>>", self._tab_cb)
 
+        # Add the help text
+        page = ttk.Frame(nb)
+        nb.add(page, text="Help", sticky=tk.NSEW)
+        self.tabs[str(page)] = "Help"
+
+        # Get the background color
+        style = ttk.Style()
+        bg = style.lookup("TLabel", "background")
+        del style
+
+        self["help"] = HTMLScrolledText(
+            page, html=help_text, wrap=tk.WORD, width=50, background=bg
+        )
+        # text = ""
+        # first = True
+        # for line in help_text.splitlines():
+        #     if line.strip() == "":
+        #         text += "\n\n"
+        #         first = True
+        #     elif line[0] == " " or line[0] == "\t":
+        #         text += "\n"
+        #     else:
+        #         if first:
+        #             first = False
+        #         else:
+        #             text += " "
+        #         text += line
+        # self["help"].insert("end", text)
+        self["help"].configure(state=tk.DISABLED)
+        self["help"].grid(column=0, row=0, sticky=tk.NSEW)
+        page.rowconfigure(0, weight=1)
+        page.columnconfigure(0, weight=1)
+
         # Add the table for components
         page = ttk.Frame(nb)
         nb.add(page, text="Components", sticky=tk.NSEW)
@@ -270,14 +327,16 @@ class GUI(collections.abc.MutableMapping):
         self["start services"].grid(row=0, column=1, sticky=tk.EW)
         self["stop services"].grid(row=1, column=1, sticky=tk.EW)
 
-        nb.select(2)
+        nb.select(0)
 
         # Work out and set the window size to nicely fit the screen
         ws = root.winfo_screenwidth()
         hs = root.winfo_screenheight()
         w = int(0.9 * ws)
+        if w > 1000:
+            w = 1000
         h = int(0.8 * hs)
-        x = int(0.1 * ws / 2)
+        x = int((ws - w) / (2 * ws))
         y = int(0.2 * hs / 2)
 
         root.geometry(f"{w}x{h}+{x}+{y}")
