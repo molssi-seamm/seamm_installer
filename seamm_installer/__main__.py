@@ -96,6 +96,9 @@ def run():
         from .gui import GUI
 
         gui = GUI(logger=my.logger)
+        
+        # enter the event loop
+        gui.event_loop()
 
 
 if __name__ == "__main__":
