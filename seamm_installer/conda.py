@@ -258,6 +258,7 @@ class Conda(object):
         override_channels=True,
         progress=True,
         newline=True,
+        update=None,
     ):
         """Install a package in an environment..
 
@@ -275,6 +276,8 @@ class Conda(object):
             Whether to show progress dots.
         newline : bool = True
             Whether to print a newline at the end if showing progress
+        update : None or method
+            Method to call to e.g. update a progress bar
         """
         command = "conda install --yes "
         if environment is not None:
@@ -293,9 +296,9 @@ class Conda(object):
 
         command += f" {package}"
 
-        self._execute(command, progress=progress, newline=newline)
+        self._execute(command, progress=progress, newline=newline, update=update)
 
-    def list(self, environment=None, query=None, fullname=False):
+    def list(self, environment=None, query=None, fullname=False, update=None):
         """The contents of an environment.
 
         Parameters
@@ -304,6 +307,8 @@ class Conda(object):
             The name of the environment to list, defaults to the current.
         query: str
             Regexp for package names, default to all packages
+        update : None or method
+            Method to call to e.g. update a progress bar
 
         Returns
         -------
@@ -321,7 +326,9 @@ class Conda(object):
         self.logger.debug(f"command = {command}")
 
         try:
-            result, stdout, stderr = self._execute(command, progress=False)
+            result, stdout, stderr = self._execute(
+                command, progress=False, update=update
+            )
         except subprocess.CalledProcessError as e:
             self.logger.warning(f"Calling conda, returncode = {e.returncode}")
             self.logger.warning(f"Output:\n\n{e.output}\n\n")
@@ -385,6 +392,7 @@ class Conda(object):
         override_channels=True,
         progress=True,
         newline=True,
+        update=None,
     ):
         """Run conda search, returning a dictionary of packages.
 
@@ -400,6 +408,8 @@ class Conda(object):
             Whether to show progress dots.
         newline : bool = True
             Whether to print a newline at the end if showing progress
+        update : None or method
+            Method to call to e.g. update a progress bar
 
         Returns
         -------
@@ -418,7 +428,9 @@ class Conda(object):
         if query is not None:
             command += f" {query}"
 
-        _, stdout, _ = self._execute(command, progress=progress, newline=newline)
+        _, stdout, _ = self._execute(
+            command, progress=progress, newline=newline, update=update
+        )
         try:
             output = json.loads(stdout)
         except Exception as e:
@@ -449,6 +461,7 @@ class Conda(object):
         progress=True,
         newline=True,
         all=False,
+        update=None,
     ):
         """Update a package in an environment..
 
@@ -468,6 +481,8 @@ class Conda(object):
             Whether to print a newline at the end if showing progress
         all : bool = False
             Fully update the environment.
+        update : None or method
+            Method to call to e.g. update a progress bar
         """
         command = "conda update --yes "
         if environment is not None:
@@ -491,7 +506,7 @@ class Conda(object):
                 raise RuntimeError("Conda update requires either '--all' of a package")
             command += f" {package}"
 
-        self._execute(command, progress=progress, newline=newline)
+        self._execute(command, progress=progress, newline=newline, update=update)
 
     def uninstall(
         self,
@@ -501,6 +516,7 @@ class Conda(object):
         override_channels=True,
         progress=True,
         newline=True,
+        update=None,
     ):
         """Uninstall a package from an environment..
 
@@ -518,6 +534,8 @@ class Conda(object):
             Whether to show progress dots.
         newline : bool = True
             Whether to print a newline at the end if showing progress
+        update : None or method
+            Method to call to e.g. update a progress bar
         """
         command = "conda uninstall --yes "
         if environment is not None:
@@ -563,7 +581,9 @@ class Conda(object):
             self.logger.warning(f"Output:\n\n{e.output}\n\n")
             raise
 
-    def _execute(self, command, poll_interval=2, progress=True, newline=True):
+    def _execute(
+        self, command, poll_interval=2, progress=True, newline=True, update=None
+    ):
         """Execute the command as a subprocess.
 
         Parameters
@@ -576,6 +596,8 @@ class Conda(object):
             Whether to show progress dots.
         newline : bool = True
             Whether to print a newline at the end if showing progress
+        update : None or method
+            Method to call to e.g. update a progress bar
         """
         self.logger.info(f"running '{command}'")
         args = shlex.split(command)
@@ -601,12 +623,15 @@ class Conda(object):
             except subprocess.TimeoutExpired:
                 self.logger.debug("    timed out")
                 if progress:
-                    print(".", end="")
-                    n += 1
-                    if n >= 50:
-                        print("")
-                        n = 0
-                    sys.stdout.flush()
+                    if update is None:
+                        print(".", end="")
+                        n += 1
+                        if n >= 50:
+                            print("")
+                            n = 0
+                        sys.stdout.flush()
+                    else:
+                        update()
             else:
                 if output != "":
                     stdout += output
@@ -615,5 +640,6 @@ class Conda(object):
                     stderr += errors
                     self.logger.debug(f"stderr: '{errors}'")
         if progress and newline and n > 0:
-            print("")
+            if update is None:
+                print("")
         return result, stdout, stderr

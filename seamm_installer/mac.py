@@ -66,7 +66,7 @@ def create_app(
     macos_path.mkdir(mode=0o755, parents=False, exist_ok=True)
     script_path = macos_path / name
     path = Path(exe_path).expanduser().resolve()
-    cmd = str(path)
+    cmd = '"' + str(path) + '"'
     for arg in args:
         cmd += f" {arg}"
     script_path.write_text(f"#!/bin/bash\n{cmd}\n")
@@ -353,9 +353,9 @@ class ServiceManager:
     def list(self):
         return self.data.keys()
 
-    def restart(self, service):
-        self.stop(service)
-        self.start(service)
+    def restart(self, service, ignore_errors=False):
+        self.stop(service, ignore_errors=ignore_errors)
+        self.start(service, ignore_errors=ignore_errors)
 
     def start(self, service, ignore_errors=False):
         if not self.is_running(service):

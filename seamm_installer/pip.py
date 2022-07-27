@@ -86,7 +86,13 @@ class Pip(object):
         return result
 
     def search(
-        self, query=None, framework=None, exact=False, progress=False, newline=True
+        self,
+        query=None,
+        framework=None,
+        exact=False,
+        progress=False,
+        newline=True,
+        update=None,
     ):
         """Search PyPi for packages.
 
@@ -102,13 +108,15 @@ class Pip(object):
             Whether to show progress dots.
         newline : bool = True
             Whether to print a newline at the end if showing progress
+        update : None or method
+            Method to call to e.g. update a progress bar
 
         Returns
         -------
         [str]
             A list of packages matching the query.
         """
-        # Can't have exact match if no query term
+        # Can not have exact match if no query term
         if query is None:
             exact = False
 
@@ -155,12 +163,15 @@ class Pip(object):
                             break
 
             if progress:
-                count += 1
-                if count <= 50:
-                    print(".", end="", flush=True)
+                if update is None:
+                    count += 1
+                    if count <= 50:
+                        print(".", end="", flush=True)
+                    else:
+                        count = 1
+                        print("\n.", end="", flush=True)
                 else:
-                    count = 1
-                    print("\n.", end="", flush=True)
+                    update()
             # See if there is a next page
             next_page = NEXT_RE.findall(snippet)
             if len(next_page) == 0:
@@ -169,7 +180,8 @@ class Pip(object):
                 args["page"] = next_page[0]
 
         if progress and newline and count > 0:
-            print("", flush=True)
+            if update is None:
+                print("", flush=True)
 
         logger.debug(f"Package information:\n{pprint.pformat(result)}")
 

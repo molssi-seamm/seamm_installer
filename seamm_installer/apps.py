@@ -24,16 +24,18 @@ else:
     raise NotImplementedError(f"SEAMM does not support apps on {system} yet.")
 
 # known_apps = ["SEAMM", "Dashboard", "JobServer"]
-known_apps = ["SEAMM"]
+known_apps = ["SEAMM", "installer"]
 app_names = {
     "seamm": "SEAMM",
     "dashboard": "Dashboard",
     "jobserver": "JobServer",
+    "installer": "SEAMM-Installer",
 }
 app_package = {
     "seamm": "seamm",
     "dashboard": "seamm-dashboard",
     "jobserver": "seamm-jobserver",
+    "installer": "seamm-installer",
 }
 
 
