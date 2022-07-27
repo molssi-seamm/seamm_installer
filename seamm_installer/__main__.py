@@ -84,8 +84,14 @@ def run():
 
         # Parse the command-line arguments and call the requested function
         my.options = parser.parse_args()
-        sys.exit(my.options.func())
-
+        try:
+            sys.exit(my.options.func())
+        except AttributeError:
+            print(f"Missing arguments to seamm-installer {' '.join(sys.argv[1:])}")
+            # Append help so help will be printed
+            sys.argv.append("--help")
+            # re-run
+            run()
     else:
         from .gui import GUI
 
