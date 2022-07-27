@@ -5,6 +5,7 @@ dependencies:
   # Base depends
   - python
   - pip
+  - pillow
   - platformdirs
   - requests
   - tabulate
@@ -25,6 +26,7 @@ dependencies:
 
   # Pip-only installs
   - pip:
+    - tkhtmlview
     # Documentation
     - rinohtype
     - sphinx-rtd-theme

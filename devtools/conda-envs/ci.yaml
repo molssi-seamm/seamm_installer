@@ -5,6 +5,7 @@ dependencies:
   # Base depends
   - python
   - pip
+  - pillow
   - platformdirs
   - requests
   - tabulate
@@ -15,3 +16,7 @@ dependencies:
   - flake8
   - pytest
   - pytest-cov
+
+  # Pip-only installs
+  - pip:
+    - tkhtmlview

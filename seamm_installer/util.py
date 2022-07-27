@@ -45,7 +45,7 @@ class JSONDecoder(json.JSONDecoder):
         return d
 
 
-def find_packages(progress=True, update_cache=False, cache_valid=1):
+def find_packages(progress=True, update=None, update_cache=False, cache_valid=1):
     """Find the Python packages in SEAMM.
 
     Parameters
@@ -91,7 +91,9 @@ def find_packages(progress=True, update_cache=False, cache_valid=1):
     # Update the package list and database!
     print("Finding all the packages that make up SEAMM. This may take several minutes.")
     # Use pip to find possible packages.
-    packages = my.pip.search(query="SEAMM", progress=progress, newline=False)
+    packages = my.pip.search(
+        query="SEAMM", progress=progress, newline=False, update=update
+    )
     for package in excluded_plug_ins:
         if package in packages:
             del packages[package]
@@ -99,7 +101,9 @@ def find_packages(progress=True, update_cache=False, cache_valid=1):
     # Need to add molsystem and reference-handler by hand
     for package in core_packages:
         if package not in packages:
-            tmp = my.pip.search(query=package, exact=True, progress=True, newline=False)
+            tmp = my.pip.search(
+                query=package, exact=True, progress=True, newline=False, update=update
+            )
             my.logger.debug(f"Query for package {package}\n{pprint.pformat(tmp)}\n")
             if package in tmp:
                 packages[package] = tmp[package]
@@ -116,7 +120,9 @@ def find_packages(progress=True, update_cache=False, cache_valid=1):
     my.logger.info("Find packages: checking for conda versions")
     for package, data in packages.items():
         my.logger.info(f"    {package}")
-        conda_packages = my.conda.search(package, progress=True, newline=False)
+        conda_packages = my.conda.search(
+            package, progress=True, newline=False, update=update
+        )
 
         if conda_packages is None:
             continue
@@ -127,7 +133,10 @@ def find_packages(progress=True, update_cache=False, cache_valid=1):
             data["channel"] = tmp["channel"]
 
     if progress:
-        print("", flush=True)
+        if update is None:
+            print("", flush=True)
+        else:
+            update()
 
     # Save the package database for future use
     package_db = {
