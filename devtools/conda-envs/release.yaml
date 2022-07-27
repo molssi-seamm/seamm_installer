@@ -5,6 +5,7 @@ dependencies:
   # Base depends
   - python
   - pip
+  - pillow
   - platformdirs
   - requests
   - tabulate
