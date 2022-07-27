@@ -357,8 +357,8 @@ class GUI(collections.abc.MutableMapping):
         ws = root.winfo_screenwidth()
         hs = root.winfo_screenheight()
         w = int(0.9 * ws)
-        if w > 1000:
-            w = 1000
+        if w > 1500:
+            w = 1500
         h = int(0.8 * hs)
         x = int((ws - w) / 2)
         y = int(0.2 * hs / 2)
@@ -382,7 +382,7 @@ class GUI(collections.abc.MutableMapping):
         w.grid(row=1, column=0)
 
         w = ttk.Button(d, text="Cancel", command=self.cancel)
-        w.grid(row=2, column=0)
+        # w.grid(row=2, column=0)
         w.rowconfigure(0, minsize=30)
 
         # Center
@@ -426,7 +426,7 @@ class GUI(collections.abc.MutableMapping):
             text="Finding all packages. This may take a couple minutes."
         )
         self.progress_dialog.deiconify()
-        self.root.update_idletasks()
+        self.root.update()
         self.progress_bar.start()
 
         self.packages = find_packages(
@@ -440,7 +440,7 @@ class GUI(collections.abc.MutableMapping):
         self.progress_text.configure(
             text=f"Finding which packages are installed (0 of {n})"
         )
-        self.root.update_idletasks()
+        self.root.update()
 
         installed = my.conda.list()
 
@@ -463,7 +463,7 @@ class GUI(collections.abc.MutableMapping):
                 self.progress_text.configure(
                     text=f"Checking background codes for {package}."
                 )
-                self.root.update_idletasks()
+                self.root.update()
 
                 result = run_plugin_installer(package, "show", verbose=False)
                 if result is not None:
@@ -499,7 +499,7 @@ class GUI(collections.abc.MutableMapping):
             self.progress_text.configure(
                 text=f"Finding which packages are installed ({count} / {n})"
             )
-            self.root.update_idletasks()
+            self.root.update()
 
         self.progress_dialog.withdraw()
 
@@ -543,7 +543,7 @@ class GUI(collections.abc.MutableMapping):
                     "seamm-datastore",
                     "seamm-jobserver",
                 ):
-                    break
+                    continue
 
                 if self.packages[m]["type"] == ptype:
                     group.append([m, v, a, d, status])
@@ -594,23 +594,24 @@ class GUI(collections.abc.MutableMapping):
 
         if self.gui_only:
             self["install gui-only"].grid(row=0, column=4, sticky=tk.EW)
-            self["uninstall gui-only"].grid(row=0, column=5, sticky=tk.EW)
+            self["uninstall gui-only"].grid(row=1, column=4, sticky=tk.EW)
 
-            self["update gui-only"].grid(row=0, column=7, sticky=tk.EW)
+            self["update gui-only"].grid(row=0, column=6, sticky=tk.EW)
         else:
             self["install"].grid(row=0, column=4, sticky=tk.EW)
-            self["install gui-only"].grid(row=1, column=4, sticky=tk.EW)
-            self["uninstall"].grid(row=0, column=5, sticky=tk.EW)
-            self["uninstall gui-only"].grid(row=1, column=5, sticky=tk.EW)
+            self["uninstall"].grid(row=1, column=4, sticky=tk.EW)
+            self["install gui-only"].grid(row=3, column=4, sticky=tk.EW)
+            self["uninstall gui-only"].grid(row=4, column=4, sticky=tk.EW)
 
-            self["update"].grid(row=0, column=7, sticky=tk.EW)
-            self["update gui-only"].grid(row=1, column=7, sticky=tk.EW)
+            self["update"].grid(row=0, column=6, sticky=tk.EW)
+            self["update gui-only"].grid(row=1, column=6, sticky=tk.EW)
 
-        frame.columnconfigure(1, minsize=30)
-        frame.columnconfigure(3, minsize=30)
-        frame.columnconfigure(6, minsize=30)
+        frame.columnconfigure(1, minsize=15)
+        frame.columnconfigure(3, minsize=15)
+        frame.columnconfigure(5, minsize=15)
+        frame.rowconfigure(2, minsize=15)
 
-        self.root.update_idletasks()
+        self.root.update()
 
         # Set the heights of the descriptions
         self.description_width = {}
@@ -711,7 +712,7 @@ class GUI(collections.abc.MutableMapping):
                         self.progress_text.configure(
                             text=f"Running installer for {package}"
                         )
-                        self.root.update_idletasks()
+                        self.root.update()
                         run_plugin_installer(package, "install")
 
                     # Get the actual version and patch up data
@@ -732,7 +733,7 @@ class GUI(collections.abc.MutableMapping):
                     self.progress_text.configure(
                         text=f"Installing/updating packages ({count} of {n})"
                     )
-                    self.root.update_idletasks()
+                    self.root.update()
                 elif update and installed_version < available:
                     print(
                         f"Updating {ptype.lower()} {package} from version "
@@ -757,7 +758,7 @@ class GUI(collections.abc.MutableMapping):
                         self.progress_text.configure(
                             text=f"Running installer for {package}"
                         )
-                        self.root.update_idletasks()
+                        self.root.update()
                         run_plugin_installer(package, "install")
 
                     # Get the actual version and patch up data
@@ -777,7 +778,7 @@ class GUI(collections.abc.MutableMapping):
                     self.progress_text.configure(
                         text=f"Installing/updating packages ({count} of {n})"
                     )
-                    self.root.update_idletasks()
+                    self.root.update()
 
         # Fix the package list
         if changed:
@@ -796,7 +797,7 @@ class GUI(collections.abc.MutableMapping):
         self.progress_bar.configure(mode="determinate", maximum=n, value=0)
         self.progress_text.configure(text=f"Uninstalling packages (0 of {n})")
         self.progress_dialog.deiconify()
-        self.root.update_idletasks()
+        self.root.update()
 
         changed = False
         count = 0
@@ -814,7 +815,7 @@ class GUI(collections.abc.MutableMapping):
                     self.progress_text.configure(
                         text=f"Running uninstaller for {package}"
                     )
-                    self.root.update_idletasks()
+                    self.root.update()
                     run_plugin_installer(package, "uninstall")
 
                 # Patch up data
@@ -827,7 +828,7 @@ class GUI(collections.abc.MutableMapping):
                 self.progress_text.configure(
                     text=f"Uninstalling packages ({count} of {n})"
                 )
-                self.root.update_idletasks()
+                self.root.update()
         if changed:
             self.reset_table()
         self._clear_selection()
@@ -844,7 +845,7 @@ class GUI(collections.abc.MutableMapping):
         self.progress_bar.configure(mode="determinate", maximum=n, value=0)
         self.progress_text.configure(text=f"Updating packages (0 of {n})")
         self.progress_dialog.deiconify()
-        self.root.update_idletasks()
+        self.root.update()
 
         changed = False
         count = 0
@@ -880,7 +881,7 @@ class GUI(collections.abc.MutableMapping):
                         self.progress_text.configure(
                             text=f"Running update for {package}"
                         )
-                        self.root.update_idletasks()
+                        self.root.update()
                         run_plugin_installer(package, "update")
 
                     # Get the actual version and patch up data
@@ -900,7 +901,7 @@ class GUI(collections.abc.MutableMapping):
                     self.progress_text.configure(
                         text=f"Updating packages ({count} of {n})"
                     )
-                    self.root.update_idletasks()
+                    self.root.update()
         if changed:
             self.reset_table()
         self._clear_selection()
@@ -987,7 +988,7 @@ class GUI(collections.abc.MutableMapping):
             text="Finding all packages. This may take a couple minutes."
         )
         self.progress_dialog.deiconify()
-        self.root.update_idletasks()
+        self.root.update()
         self.progress_bar.start()
 
         self.packages = find_packages(
@@ -996,8 +997,10 @@ class GUI(collections.abc.MutableMapping):
 
         self.progress_bar.stop()
 
-        self.refresh_apps()
-        self.layout_apps()
+        self.refresh()
+        self.reset_table()
+
+        self.progress_dialog.withdraw()
 
     def _remove_apps(self):
         installed_apps = apps.get_apps()
@@ -1077,12 +1080,11 @@ class GUI(collections.abc.MutableMapping):
             w.grid(row=row, column=2, sticky=tk.W)
             row += 1
 
-        self.root.update_idletasks()
+        self.root.update()
 
     def refresh_services(self):
         services = mgr.list()
 
-        print(f"{services=}")
         data = self.service_data = {}
         for service in known_services:
             service_name = f"dev_{service}" if my.development else service
@@ -1151,7 +1153,7 @@ class GUI(collections.abc.MutableMapping):
                 w.grid(row=row, column=4, sticky=tk.W)
             row += 1
 
-        self.root.update_idletasks()
+        self.root.update()
 
     def _create_services(self):
         port = 55155 if my.development else 55055
