@@ -96,7 +96,7 @@ def run():
         from .gui import GUI
 
         gui = GUI(logger=my.logger)
-        
+
         # enter the event loop
         gui.event_loop()
 
