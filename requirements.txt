@@ -1,6 +1,8 @@
 alembic
 platformdirs
+pmw
 requests
+seamm-widgets
 tabulate
 tkhtmlview
 

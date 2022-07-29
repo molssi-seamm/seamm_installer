@@ -11,7 +11,6 @@ import tkinter.ttk as ttk
 
 import Pmw
 import seamm_widgets as sw
-from tkhtmlview import HTMLScrolledText
 
 from . import apps
 from . import datastore
@@ -241,7 +240,7 @@ class GUI(collections.abc.MutableMapping):
         bg = style.lookup("TLabel", "background")
         del style
 
-        self["help"] = HTMLScrolledText(
+        self["help"] = sw.HTMLScrolledText(
             page, html=help_text, wrap=tk.WORD, width=50, background=bg
         )
         self["help"].configure(state=tk.DISABLED)
