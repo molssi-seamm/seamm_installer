@@ -4,5 +4,4 @@ pmw
 requests
 seamm-widgets
 tabulate
-tkhtmlview
 
