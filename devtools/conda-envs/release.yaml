@@ -5,9 +5,10 @@ dependencies:
   # Base depends
   - python
   - pip
-  - pillow
   - platformdirs
+  - pmw
   - requests
+  - seamm-widgets
   - tabulate
 
   # Conda release
