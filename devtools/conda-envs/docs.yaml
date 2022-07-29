@@ -15,7 +15,6 @@ dependencies:
 
   # Pip-only installs
   - pip:
-    - tkhtmlview
     # Documentation
     - rinohtype
     - sphinx-rtd-theme

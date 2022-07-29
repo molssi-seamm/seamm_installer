@@ -16,7 +16,3 @@ dependencies:
   - flake8
   - pytest
   - pytest-cov
-
-  # Pip-only installs
-  - pip:
-    - tkhtmlview
