@@ -22,7 +22,8 @@ from .util import (
     run_plugin_installer,
 )
 from .services import known_services
-
+from .install import install_development_environment
+from .update import update_development_environment
 
 #    set_metadata,
 
@@ -779,6 +780,15 @@ class GUI(collections.abc.MutableMapping):
                     )
                     self.root.update()
 
+        if my.development:
+            # Install the development packages
+            self.progress_bar.configure(mode="indeterminate", value=0)
+            self.progress_text.configure(text="Installing the development environment.")
+            self.root.update()
+            self.progress_bar.start()
+
+            install_development_environment()
+
         # Fix the package list
         if changed:
             self.reset_table()
@@ -901,6 +911,16 @@ class GUI(collections.abc.MutableMapping):
                         text=f"Updating packages ({count} of {n})"
                     )
                     self.root.update()
+
+        if my.development:
+            # Update the development packages
+            self.progress_bar.configure(mode="indeterminate", value=0)
+            self.progress_text.configure(text="Updating the development environment.")
+            self.root.update()
+            self.progress_bar.start()
+
+            update_development_environment()
+
         if changed:
             self.reset_table()
         self._clear_selection()

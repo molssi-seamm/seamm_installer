@@ -49,12 +49,6 @@ def setup(parser):
         action="store_true",
         help="Install any missing packages from 3rd parties",
     )
-    if my.development:
-        subparser.add_argument(
-            "--development-environment",
-            action="store_true",
-            help="Install the development environment.",
-        )
     subparser.add_argument(
         "--update",
         action="store_true",
@@ -94,7 +88,7 @@ def install():
     else:
         install_packages(my.options.modules, update=my.options.update)
 
-    if my.development and my.options.development_environment:
+    if my.development:
         install_development_environment()
 
 
