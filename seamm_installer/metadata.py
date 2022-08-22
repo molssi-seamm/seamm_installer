@@ -36,6 +36,7 @@ external_plug_ins = []
 
 excluded_plug_ins = (
     "chemical-formula",
+    "cms-plots",
     "seamm-dashboard",
     "seamm-cookiecutter",
     "cassandra-step",
@@ -55,6 +56,7 @@ development_packages = (
 development_packages_pip = (
     "build",
     "rinohtype",
+    "seamm-cookiecutter",
     "sphinx-rtd-theme",
     "pystemmer",
 )

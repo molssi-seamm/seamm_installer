@@ -38,12 +38,6 @@ def setup(parser):
         action="store_true",
         help="Fully update the SEAMM installation",
     )
-    if my.development:
-        subparser.add_argument(
-            "--development-environment",
-            action="store_true",
-            help="Update the development environment.",
-        )
     subparser.add_argument(
         "--gui-only",
         action="store_true",
@@ -78,7 +72,7 @@ def update():
     else:
         update_packages(my.options.modules)
 
-    if my.development and my.options.development_environment:
+    if my.development:
         update_development_environment()
 
     final_version = {p: package_info(p)[0] for p in service_packages}
