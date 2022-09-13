@@ -127,6 +127,9 @@ def update_packages(to_update):
         available = packages[package]["version"]
         channel = packages[package]["channel"]
         installed_version, installed_channel = package_info(package)
+        # Skip packages that aren't installed.
+        if installed_version is None:
+            continue
         ptype = packages[package]["type"]
         if installed_version < available:
             print(
