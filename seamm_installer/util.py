@@ -86,6 +86,12 @@ def find_packages(progress=True, update=None, update_cache=False, cache_valid=1)
             "added or updated recently."
         )
 
+        # If the installer has been updated, the list of excluded packages may have
+        # changed. So check.
+        for package in excluded_plug_ins:
+            if package in packages:
+                del packages[package]
+
         return packages
 
     # Update the package list and database!
