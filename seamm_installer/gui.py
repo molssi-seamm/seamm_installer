@@ -182,7 +182,7 @@ class GUI(collections.abc.MutableMapping):
         root.title(app_name)
 
         # This can't be done until the root window is created....
-        self._gui_only = tk.IntVar(0)
+        self._gui_only = tk.IntVar(value=0)
         self.gui_only = self.metadata.get("gui-only", False)
 
         # The menus
