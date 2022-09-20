@@ -395,6 +395,7 @@ class ServiceManager:
 
             root = None
             port = None
+            name = None
             if "ProgramArguments" in data:
                 lines = iter(data["ProgramArguments"])
                 for line in lines:
@@ -402,8 +403,11 @@ class ServiceManager:
                         root = next(lines)
                     if "--port" in line:
                         port = next(lines)
+                    if "--dashboard-name" in line:
+                        name = next(lines)
             status["root"] = root
             status["port"] = port
+            status["dashboard name"] = name
         else:
             status["exists"] = False
         return status
