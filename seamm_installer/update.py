@@ -157,9 +157,10 @@ def update_packages(to_update):
 
 def update_development_environment():
     """Update packages needed for development."""
-    for package in development_packages:
-        print(f"Updating development package {package}")
-        my.conda.update(package)
-    for package in development_packages_pip:
-        print(f"Updating development package {package}")
-        my.pip.update(package)
+    packages = [*development_packages]
+    print(f"Updating Conda development packages {' '.join(packages)}")
+    my.conda.update(packages)
+
+    packages = [*development_packages_pip]
+    print(f"Updating PyPI development packages {' '.join(packages)}")
+    my.pip.update(packages)

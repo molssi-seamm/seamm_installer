@@ -294,7 +294,11 @@ class Conda(object):
             for channel in channels:
                 command += f" -c {channel}"
 
-        command += f" {package}"
+        if isinstance(package, list):
+            packages = " ".join(package)
+            command += f" {packages}"
+        else:
+            command += f" {package}"
 
         self._execute(command, progress=progress, newline=newline, update=update)
 
@@ -504,7 +508,11 @@ class Conda(object):
         else:
             if package is None:
                 raise RuntimeError("Conda update requires either '--all' of a package")
-            command += f" {package}"
+            if isinstance(package, list):
+                packages = " ".join(package)
+                command += f" {packages}"
+            else:
+                command += f" {package}"
 
         self._execute(command, progress=progress, newline=newline, update=update)
 
