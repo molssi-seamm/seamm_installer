@@ -41,7 +41,11 @@ class Pip(object):
         package : str
             The package of interest.
         """
-        command = f"pip install {package}"
+        if isinstance(package, list):
+            packages = " ".join(package)
+            command = f"pip install {packages}"
+        else:
+            command = f"pip install {package}"
         try:
             subprocess.check_output(
                 command, shell=True, text=True, stderr=subprocess.STDOUT
@@ -250,7 +254,11 @@ class Pip(object):
         package : str
             The package of interest.
         """
-        command = f"pip install --upgrade {package}"
+        if isinstance(package, list):
+            packages = " ".join(package)
+            command = f"pip install --upgrade {packages}"
+        else:
+            command = f"pip install --upgrade {package}"
         try:
             subprocess.check_output(
                 command, shell=True, text=True, stderr=subprocess.STDOUT

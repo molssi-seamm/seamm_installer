@@ -51,6 +51,13 @@ def setup(parser):
         type=int,
         default=55155 if my.development else 55055,
     )
+    host = platform.node()
+    if host == "":
+        host = "unknown"
+    tmp_parser.add_argument(
+        "--dashboard-name",
+        default=f"{host} Development" if my.development else host,
+    )
     tmp_parser.add_argument(
         "services",
         nargs="*",
@@ -159,10 +166,12 @@ def create():
             mgr.create(
                 service_name,
                 exe_path,
-                "--port",
-                my.options.port,
                 "--root",
                 root,
+                "--port",
+                my.options.port,
+                "--dashboard-name",
+                my.options.dashboard_name,
                 stderr_path=str(stderr_path),
                 stdout_path=str(stdout_path),
             )
@@ -250,11 +259,20 @@ def status():
                     "running" if status["running"] else "not running",
                     "---" if status["root"] is None else status["root"],
                     "---" if status["port"] is None else status["port"],
+                    "---"
+                    if status["dashboard name"] is None
+                    else status["dashboard name"],
                 ]
             else:
                 row = [service, "not created"]
             table.append(row)
-    print(tabulate(table, ("Service", "Status", "Root", "Port"), tablefmt="fancy_grid"))
+    print(
+        tabulate(
+            table,
+            ("Service", "Status", "Root", "Port", "Name"),
+            tablefmt="fancy_grid",
+        )
+    )
 
 
 def stop():

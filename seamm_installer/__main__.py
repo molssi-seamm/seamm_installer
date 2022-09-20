@@ -6,6 +6,7 @@ import argparse
 import logging
 import sys
 
+import seamm_installer
 from . import cli
 from . import my
 from . import util
@@ -25,8 +26,15 @@ def run():
     my.environment = my.conda.active_environment
 
     # Create the argument parser and set the debug level ASAP
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        epilog="If no positional argument is given, the GUI will appear."
+    )
 
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"SEAMM Installer version {seamm_installer.__version__}",
+    )
     parser.add_argument(
         "--log-level",
         default="WARNING",
@@ -50,15 +58,6 @@ def run():
             help="Work with the development environment, not the production one.",
         )
 
-    # Whether to not use the GUI
-    parser.add_argument(
-        "-n",
-        "--nw",
-        dest="no_gui",
-        action="store_true",
-        help="No GUI, just commandline.",
-    )
-
     # Parse the first options
     if "-h" not in sys.argv and "--help" not in sys.argv:
         options, _ = parser.parse_known_args()
@@ -69,8 +68,6 @@ def run():
         logging.basicConfig(level=level)
 
         my.development = kwargs.pop("development", False)
-    else:
-        kwargs = {"no_gui": True}
 
     # Now setup the rest of the command-line interface.
     parser.add_argument(
@@ -79,11 +76,11 @@ def run():
         default="~/SEAMM_DEV" if my.development else "~/SEAMM",
     )
 
-    if kwargs.pop("no_gui", False):
-        cli.setup(parser)
+    cli.setup(parser)
 
-        # Parse the command-line arguments and call the requested function
-        my.options = parser.parse_args()
+    # Parse the command-line arguments and call the requested function or the GUI
+    my.options = parser.parse_args()
+    if "func" in my.options:
         try:
             sys.exit(my.options.func())
         except AttributeError:

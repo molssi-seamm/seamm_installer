@@ -157,9 +157,10 @@ def install_packages(to_install, update=False, third_party=False):
 
 def install_development_environment():
     """Install packages needed for development."""
-    for package in development_packages:
-        print(f"Installing development package {package}")
-        my.conda.install(package)
-    for package in development_packages_pip:
-        print(f"Installing development package {package}")
-        my.pip.install(package)
+    packages = [*development_packages]
+    print(f"Installing Conda development packages {' '.join(packages)}")
+    my.conda.install(packages)
+
+    packages = [*development_packages_pip]
+    print(f"Installing PyPI development packages {' '.join(packages)}")
+    my.pip.install(packages)
