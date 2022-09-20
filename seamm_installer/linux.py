@@ -9,6 +9,7 @@ import getpass
 import logging
 import os
 from pathlib import Path
+import shlex
 import shutil
 from string import Template
 import subprocess
@@ -428,12 +429,16 @@ class ServiceManager:
 
             root = None
             port = None
+            name = None
             if "Service" in config.sections() and "ExecStart" in config["Service"]:
-                keywords = list_to_dict(config["Service"]["ExecStart"].split()[1:])
+                keywords = list_to_dict(shlex.split(config["Service"]["ExecStart"])[1:])
                 root = keywords.get("--root")
                 port = keywords.get("--port")
+                if "--dashboard-name" in keywords:
+                    name = keywords.get("--dashboard-name")
             status["root"] = root
             status["port"] = port
+            status["dashboard name"] = name
         else:
             status["exists"] = False
         return status
