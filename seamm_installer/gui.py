@@ -1125,6 +1125,11 @@ class GUI(collections.abc.MutableMapping):
                 data[service]["port"] = (
                     "---" if status["port"] is None else status["port"]
                 )
+                data[service]["dashboard name"] = (
+                    "---"
+                    if status["dashboard name"] is None
+                    else status["dashboard name"]
+                )
             else:
                 data[service] = {"status": "not found"}
             data[service]["name"] = service_name
@@ -1147,6 +1152,8 @@ class GUI(collections.abc.MutableMapping):
         w.grid(row=0, column=3)
         w = ttk.Label(frame, text="Port")
         w.grid(row=0, column=4)
+        w = ttk.Label(frame, text="Name")
+        w.grid(row=0, column=5)
         row = 1
         for service, tmp in self.service_data.items():
             status = tmp["status"]
@@ -1170,6 +1177,8 @@ class GUI(collections.abc.MutableMapping):
                 w.grid(row=row, column=3, sticky=tk.W)
                 w = ttk.Label(frame, text=tmp["port"], style=style)
                 w.grid(row=row, column=4, sticky=tk.W)
+                w = ttk.Label(frame, text=tmp["dashboard name"], style=style)
+                w.grid(row=row, column=5, sticky=tk.W)
             row += 1
 
         self.root.update()
@@ -1177,9 +1186,15 @@ class GUI(collections.abc.MutableMapping):
     def _create_services(self):
         port = 55155 if my.development else 55055
         root = "~/SEAMM_DEV" if my.development else "~/SEAMM"
+        tmp = platform.node()
+        if tmp == "":
+            tmp = "Dashboard"
+        name = tmp + " Development" if my.development else tmp
         services = mgr.list()
         for service, var in self._selected_services.items():
             if var.get() == 1:
+                if service == "dashboard":
+                    port, name = self._dashboard_parameters(port, name)
                 service_name = f"dev_{service}" if my.development else service
                 if service_name in services:
                     if my.options.force:
@@ -1208,6 +1223,8 @@ class GUI(collections.abc.MutableMapping):
                         port,
                         "--root",
                         root,
+                        "--dashboard-name",
+                        name,
                         stderr_path=str(stderr_path),
                         stdout_path=str(stdout_path),
                     )
@@ -1226,6 +1243,42 @@ class GUI(collections.abc.MutableMapping):
         self._clear_services_selection()
         self.refresh_services()
         self.layout_services()
+
+    def _dashboard_parameters(self, port, name):
+        "Let the user edit the parameters for the Dashboard service."
+        dialog = Pmw.Dialog(
+            self.root,
+            buttons=("OK",),
+            defaultbutton="OK",
+            title="Dashboard Parameters",
+        )
+        # command=dialog.deactivate,
+        dialog.withdraw()
+
+        # Create a frame to hold everything in the dialog
+        frame = ttk.Frame(dialog.interior())
+        frame.pack(expand=tk.YES, fill=tk.BOTH)
+
+        # Then create the widgets
+        w_port = sw.LabeledEntry(frame, labeltext="Port:", width=50)
+        w_port.set(str(port))
+        w_name = sw.LabeledEntry(frame, labeltext="Name:", width=50)
+        w_name.set(name)
+
+        w_port.grid(row=0, column=0, sticky=tk.EW)
+        w_name.grid(row=1, column=0, sticky=tk.EW)
+
+        dialog.activate(geometry="centerscreenfirst")
+
+        try:
+            port = int(w_port.get())
+        except Exception:
+            pass
+        name = w_name.get()
+
+        dialog.destroy()
+
+        return port, name
 
     def _remove_services(self):
         for service, var in self._selected_services.items():
