@@ -1087,7 +1087,7 @@ class GUI(collections.abc.MutableMapping):
             if location == "not found":
                 style = "Red.TLabel"
             else:
-                style = "TLabel"
+                style = "Green.TLabel"
 
             if app_lower not in self._selected_apps:
                 self._selected_apps[app_lower] = tk.IntVar()
