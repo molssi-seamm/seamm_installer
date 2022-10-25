@@ -143,7 +143,7 @@ def find_packages(progress=True, update=None, update_cache=False, cache_valid=1)
             data["version"] = tmp["version"]
             data["channel"] = tmp["channel"]
             if "/conda-forge" in data["channel"]:
-                data["channel"] = 'conda-forge'
+                data["channel"] = "conda-forge"
     if progress:
         if update is None:
             print("", flush=True)
