@@ -716,17 +716,21 @@ class GUI(collections.abc.MutableMapping):
                         run_plugin_installer(package, "install")
 
                     # Get the actual version and patch up data
-                    version = my.pip.show(package)["version"]
-                    self.packages[package]["version"] = version
-                    m, i, a, d, status = self.package_data[package]
-                    self.package_data[package] = [
-                        m,
-                        version,
-                        version,
-                        d,
-                        "up to date",
-                    ]
-                    changed = True
+                    tmp = my.pip.show(package)
+                    if "version" not in tmp:
+                        print(f"Could not get version for package '{package}'")
+                    else:
+                        version = tmp["version"]
+                        self.packages[package]["version"] = version
+                        m, i, a, d, status = self.package_data[package]
+                        self.package_data[package] = [
+                            m,
+                            version,
+                            version,
+                            d,
+                            "up to date",
+                        ]
+                        changed = True
 
                     count += 1
                     self.progress_bar.step()
@@ -762,16 +766,20 @@ class GUI(collections.abc.MutableMapping):
                         run_plugin_installer(package, "install")
 
                     # Get the actual version and patch up data
-                    version = my.pip.show(package)["version"]
-                    m, i, a, d, status = self.package_data[package]
-                    self.package_data[package] = [
-                        m,
-                        version,
-                        a,
-                        d,
-                        "up to date",
-                    ]
-                    changed = True
+                    tmp = my.pip.show(package)
+                    if "version" not in tmp:
+                        print(f"Could not get version for package '{package}'")
+                    else:
+                        version = tmp["version"]
+                        m, i, a, d, status = self.package_data[package]
+                        self.package_data[package] = [
+                            m,
+                            version,
+                            a,
+                            d,
+                            "up to date",
+                        ]
+                        changed = True
 
                     count += 1
                     self.progress_bar.step()
@@ -862,6 +870,9 @@ class GUI(collections.abc.MutableMapping):
             if var.get() == 1:
                 available = self.packages[package]["version"]
                 channel = self.packages[package]["channel"]
+                if "/conda-forge" in channel:
+                    print(f"{channel=} --> conda-forge")
+                    channel = "conda-forge"
                 installed_version, installed_channel = package_info(package)
                 ptype = self.packages[package]["type"]
 
@@ -872,18 +883,28 @@ class GUI(collections.abc.MutableMapping):
                         f"(was installed using {installed_channel})"
                     )
                     if channel == installed_channel:
+                        self.logger.debug("    Same channel")
                         if channel == "pypi":
+                            self.logger.debug("    Updating with pip")
                             my.pip.update(package)
                         else:
+                            self.logger.debug("    Updating with conda")
                             my.conda.update(package)
                     else:
                         if installed_channel == "pypi":
+                            self.logger.debug("    uninstalling with pip")
                             my.pip.uninstall(package)
                         else:
+                            print("uninstalling '{channel=}' '{installed_channel=}'")
+                            self.logger.debug(
+                                "uninstalling '{channel=}' '{installed_channel=}'"
+                            )
                             my.conda.uninstall(package)
                         if channel == "pypi":
+                            self.logger.debug("    installing with pip")
                             my.pip.install(package)
                         else:
+                            self.logger.debug("    installing with conda")
                             my.conda.install(package)
                     # See if the package has an installer
                     if not gui_only:
@@ -894,16 +915,20 @@ class GUI(collections.abc.MutableMapping):
                         run_plugin_installer(package, "update")
 
                     # Get the actual version and patch up data
-                    version = my.pip.show(package)["version"]
-                    m, i, a, d, status = self.package_data[package]
-                    self.package_data[package] = [
-                        m,
-                        version,
-                        version,
-                        d,
-                        "up to date",
-                    ]
-                    changed = True
+                    tmp = my.pip.show(package)
+                    if "version" not in tmp:
+                        print(f"Could not get version for package '{package}'")
+                    else:
+                        version = tmp["version"]
+                        m, i, a, d, status = self.package_data[package]
+                        self.package_data[package] = [
+                            m,
+                            version,
+                            version,
+                            d,
+                            "up to date",
+                        ]
+                        changed = True
 
                     count += 1
                     self.progress_bar.step()

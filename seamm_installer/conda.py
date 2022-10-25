@@ -338,6 +338,9 @@ class Conda(object):
             self.logger.warning(f"Output:\n\n{e.output}\n\n")
             raise
 
+        if stdout is None or stdout == "":
+            return None
+
         result = {}
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -455,6 +458,22 @@ class Conda(object):
             }
 
         return result
+
+    def show(self, package):
+        """Show the information for a single package.
+
+        Parameters
+        ----------
+        package : str
+            The name of the package.
+        """
+        # Should be able to use fullname=True, but conda has a bug! Use regexp.
+        result = self.list(query="^" + package + "$")
+        if result is None:
+            return None
+        if package not in result:
+            return None
+        return result[package]
 
     def update(
         self,

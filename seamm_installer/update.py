@@ -132,6 +132,10 @@ def update_packages(to_update):
             continue
         ptype = packages[package]["type"]
         if installed_version < available:
+            # Convert conda-forge url in channel to 'conda-forge'
+            if "/conda-forge" in channel:
+                channel = "conda-forge"
+
             print(
                 f"Updating {ptype.lower()} {package} from version {installed_version} "
                 f"to {available}"
