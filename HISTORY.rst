@@ -2,7 +2,6 @@
 History
 =======
 
-2021.3.10 (10 March 2021)
--------------------------
-
-* First release on PyPI. A working version! But surely issues will appear...
+2022.10.25
+  Added QuickMin and ensured the Dashboard is included.
+  Also hardened the code, handling more errors gracefully.
