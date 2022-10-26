@@ -26,6 +26,7 @@ molssi_plug_ins = (
     "mopac-step",
     "packmol-step",
     "psi4-step",
+    "quickmin-step",
     "rdkit-step",
     "read-structure-step",
     "set-cell-step",
@@ -37,7 +38,6 @@ external_plug_ins = []
 excluded_plug_ins = (
     "chemical-formula",
     "cms-plots",
-    "seamm-dashboard",
     "seamm-dashboard-client",
     "seamm-cookiecutter",
     "cassandra-step",

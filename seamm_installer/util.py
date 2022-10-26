@@ -92,6 +92,11 @@ def find_packages(progress=True, update=None, update_cache=False, cache_valid=1)
             if package in packages:
                 del packages[package]
 
+        # Convert conda-forge url in channel to 'conda-forge'
+        for data in packages.values():
+            if "/conda-forge" in data["channel"]:
+                data["channel"] = "conda-forge"
+
         return packages
 
     # Update the package list and database!
@@ -137,7 +142,8 @@ def find_packages(progress=True, update=None, update_cache=False, cache_valid=1)
         if tmp["version"] >= data["version"]:
             data["version"] = tmp["version"]
             data["channel"] = tmp["channel"]
-
+            if "/conda-forge" in data["channel"]:
+                data["channel"] = "conda-forge"
     if progress:
         if update is None:
             print("", flush=True)
@@ -153,6 +159,11 @@ def find_packages(progress=True, update=None, update_cache=False, cache_valid=1)
     with package_db_path.open("w") as fd:
         json.dump(package_db, fd, cls=JSONEncoder)
     print(f"Wrote the package database to {str(package_db_path)}.")
+
+    # Convert conda-forge url in channel to 'conda-forge'
+    for data in packages.values():
+        if "/conda-forge" in data["channel"]:
+            data["channel"] = "conda-forge"
 
     return packages
 
@@ -216,16 +227,18 @@ def package_info(package, conda_only=False):
 
     # See if conda knows it is installed
     my.logger.debug("    Checking if installed by conda")
-    data = my.conda.list(query=package, fullname=True)
-    if package not in data:
+    data = my.conda.show(package)
+    if data is None:
         version = None
         channel = None
         my.logger.debug("        No.")
     else:
         my.logger.debug(f"Conda:\n---------\n{pprint.pformat(data)}\n---------\n")
-        version = data[package]["version"]
-        channel = data[package]["channel"]
+        version = data["version"]
+        channel = data["channel"]
         my.logger.info(f"   version {version} installed by conda, channel {channel}")
+        if "/conda-forge" in channel:
+            channel = "conda-forge"
 
     if conda_only:
         return version, channel

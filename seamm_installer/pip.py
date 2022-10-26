@@ -238,13 +238,15 @@ class Pip(object):
         """
         command = f"pip uninstall --yes {package}"
         try:
-            subprocess.check_output(
+            output = subprocess.check_output(
                 command, shell=True, text=True, stderr=subprocess.STDOUT
             )
         except subprocess.CalledProcessError as e:
             logger.warning(f"Calling pip, returncode = {e.returncode}")
             logger.warning(f"Output: {e.output}")
             raise
+        logger.debug("pip uninstall -->")
+        logger.debug(output)
 
     def update(self, package):
         """Update the requested package.
