@@ -157,7 +157,7 @@ def find_packages(progress=True, update=None, update_cache=False, cache_valid=1)
     }
     # pprint.pprint(package_db)
     with package_db_path.open("w") as fd:
-        json.dump(package_db, fd, cls=JSONEncoder)
+        json.dump(package_db, fd, cls=JSONEncoder, indent=4, sort_keys=True)
     print(f"Wrote the package database to {str(package_db_path)}.")
 
     # Convert conda-forge url in channel to 'conda-forge'
