@@ -12,6 +12,7 @@ from seamm_installer.conda import Conda  # noqa: F401
 from seamm_installer.configuration import Configuration  # noqa: F401
 from seamm_installer.installer_base import InstallerBase  # noqa: F401
 from seamm_installer.pip import Pip  # noqa: F401
+import seamm_installer.my  # noqa: F401
 
 # Handle versioneer
 from ._version import get_versions
