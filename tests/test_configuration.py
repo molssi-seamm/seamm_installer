@@ -59,7 +59,6 @@ def test_get_values_with_empty_value(seamm_conf):
 
 
 def test_to_string(seamm_conf):
-
     answer = """\
 [lammps-step]
 # How many cores to use for LAMMPS.  Set to 1 to use only the serial
@@ -112,7 +111,6 @@ lammps-path = /Users/psaxe/opt/miniconda3/envs/seamm-lammps/bin
 
 
 def test_set_value(seamm_conf):
-
     answer = """\
 [lammps-step]
 # How many cores to use for LAMMPS.  Set to 1 to use only the serial
@@ -166,7 +164,6 @@ lammps-path = /Users/psaxe/opt/miniconda3/envs/seamm-lammps/bin
 
 
 def test_add_section(seamm_conf):
-
     text = """\
 # This is a test section
 
