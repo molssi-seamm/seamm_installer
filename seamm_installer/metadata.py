@@ -20,6 +20,7 @@ molssi_plug_ins = (
     "custom-step",
     "dftbplus-step",
     "forcefield-step",
+    "geometry-analysis-step",
     "from-smiles-step",
     "lammps-step",
     "loop-step",
@@ -30,6 +31,7 @@ molssi_plug_ins = (
     "rdkit-step",
     "read-structure-step",
     "set-cell-step",
+    "strain-step",
     "supercell-step",
     "table-step",
 )
@@ -48,10 +50,12 @@ development_packages = (
     "codecov",
     "flake8",
     "nodejs",
+    "pydata-sphinx-theme",
     "pytest",
     "pytest-cov",
     "pygments",
     "sphinx",
+    "sphinx-design",
     "twine",
     "watchdog",
 )
@@ -59,6 +63,7 @@ development_packages_pip = (
     "build",
     "rinohtype",
     "seamm-cookiecutter",
+    "sphinx-copybutton",
     "sphinx-rtd-theme",
     "pystemmer",
 )
