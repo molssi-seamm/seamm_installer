@@ -96,13 +96,13 @@ def setup(parser):
     )
 
     # restart
-    tmp_parser = subparser.add_parser("start")
+    tmp_parser = subparser.add_parser("restart")
     tmp_parser.set_defaults(func=start)
     tmp_parser.add_argument(
         "services",
         nargs="*",
         default=known_services,
-        help="The services to start: %(default)s",
+        help="The services to restart: %(default)s",
     )
 
     # Show
