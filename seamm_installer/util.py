@@ -121,11 +121,12 @@ def find_packages(progress=True, update=None, update_cache=False, cache_valid=1)
 
     # Set the type
     for package in packages:
-        packages[package]["type"] = "3rd-party plug-in"
-    for package in core_packages:
-        packages[package]["type"] = "Core package"
-    for package in molssi_plug_ins:
-        packages[package]["type"] = "MolSSI plug-in"
+        if package in core_packages:
+            packages[package]["type"] = "Core package"
+        elif package in molssi_plug_ins:
+            packages[package]["type"] = "MolSSI plug-in"
+        else:
+            packages[package]["type"] = "3rd-party plug-in"
 
     # Check the versions on conda, and prefer those...
     my.logger.info("Find packages: checking for conda versions")

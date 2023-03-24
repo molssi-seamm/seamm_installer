@@ -349,11 +349,13 @@ class Conda(object):
                     try:
                         x["version"] = pkg_resources.parse_version(x["version"])
                     except Exception as e:
-                        self.logger.warning(
-                            f"Error {e} getting version information for {x['name']}: "
-                            f'\'{x["version"]}\''
-                            f"\n   ran '{command}'"
-                        )
+                        if x["name"] not in ("jpeg", "tzdata"):
+                            self.logger.warning(
+                                f"Error {e} getting version information for "
+                                "{x['name']}: "
+                                f'\'{x["version"]}\''
+                                f"\n   ran '{command}'"
+                            )
                     result[x["name"]] = x
         return result
 

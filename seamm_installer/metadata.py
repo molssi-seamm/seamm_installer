@@ -22,9 +22,11 @@ molssi_plug_ins = (
     "forcefield-step",
     "geometry-analysis-step",
     "from-smiles-step",
+    "gaussian-step",
     "lammps-step",
     "loop-step",
     "mopac-step",
+    "nwchem-step",
     "packmol-step",
     "psi4-step",
     "quickmin-step",
@@ -33,6 +35,7 @@ molssi_plug_ins = (
     "set-cell-step",
     "strain-step",
     "supercell-step",
+    "torchani-step",
     "table-step",
 )
 external_plug_ins = []
