@@ -690,12 +690,14 @@ class GUI(collections.abc.MutableMapping):
                 installed_version, installed_channel = package_info(package)
                 ptype = self.packages[package]["type"]
 
+                spec = f"{package}=={available}"
+
                 if installed_channel is None:
                     print(f"Installing {ptype.lower()} {package} version {available}.")
                     if channel == "pypi":
-                        my.pip.install(package)
+                        my.pip.install(spec)
                     else:
-                        my.conda.install(package)
+                        my.conda.install(spec)
 
                     if package == "seamm-datastore":
                         datastore.update()
@@ -745,18 +747,18 @@ class GUI(collections.abc.MutableMapping):
                     )
                     if channel == installed_channel:
                         if channel == "pypi":
-                            my.pip.install(package)
+                            my.pip.install(spec)
                         else:
-                            my.conda.install(package)
+                            my.conda.install(spec)
                     else:
                         if installed_channel == "pypi":
                             my.pip.uninstall(package)
                         else:
                             my.conda.uninstall(package)
                         if channel == "pypi":
-                            my.pip.install(package)
+                            my.pip.install(spec)
                         else:
-                            my.conda.install(package)
+                            my.conda.install(spec)
                     # See if the package has an installer
                     if not gui_only:
                         self.progress_text.configure(
@@ -876,6 +878,16 @@ class GUI(collections.abc.MutableMapping):
                 installed_version, installed_channel = package_info(package)
                 ptype = self.packages[package]["type"]
 
+                pinned = (
+                    "pinned" in self.packages[package]
+                    and self.packages[package]["pinned"]
+                )
+                if pinned:
+                    spec = f"{package}=={available}"
+                    print(f"pinning {package} to version {available}")
+                else:
+                    spec = package
+
                 if installed_version is not None and installed_version < available:
                     print(
                         f"Updating {ptype.lower()} {package} from version "
@@ -886,10 +898,16 @@ class GUI(collections.abc.MutableMapping):
                         self.logger.debug("    Same channel")
                         if channel == "pypi":
                             self.logger.debug("    Updating with pip")
-                            my.pip.update(package)
+                            if pinned:
+                                my.pip.install(spec)
+                            else:
+                                my.pip.update(spec)
                         else:
                             self.logger.debug("    Updating with conda")
-                            my.conda.update(package)
+                            if pinned:
+                                my.conda.install(spec)
+                            else:
+                                my.conda.update(spec)
                     else:
                         if installed_channel == "pypi":
                             self.logger.debug("    uninstalling with pip")
@@ -902,10 +920,10 @@ class GUI(collections.abc.MutableMapping):
                             my.conda.uninstall(package)
                         if channel == "pypi":
                             self.logger.debug("    installing with pip")
-                            my.pip.install(package)
+                            my.pip.install(spec)
                         else:
                             self.logger.debug("    installing with conda")
-                            my.conda.install(package)
+                            my.conda.install(spec)
                     # See if the package has an installer
                     if not gui_only:
                         self.progress_text.configure(

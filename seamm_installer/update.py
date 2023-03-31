@@ -130,6 +130,14 @@ def update_packages(to_update):
         # Skip packages that aren't installed.
         if installed_version is None:
             continue
+
+        pinned = "pinned" in packages[package] and packages[package]["pinned"]
+        if pinned:
+            spec = f"{package}=={available}"
+            print(f"pinning {package} to version {available}")
+        else:
+            spec = package
+
         ptype = packages[package]["type"]
         if installed_version < available:
             # Convert conda-forge url in channel to 'conda-forge'
@@ -142,18 +150,24 @@ def update_packages(to_update):
             )
             if channel == installed_channel:
                 if channel == "pypi":
-                    my.pip.update(package)
+                    if pinned:
+                        my.pip.install(spec)
+                    else:
+                        my.pip.update(spec)
                 else:
-                    my.conda.update(package)
+                    if pinned:
+                        my.conda.install(spec)
+                    else:
+                        my.conda.update(spec)
             else:
                 if installed_channel == "pypi":
                     my.pip.uninstall(package)
                 else:
                     my.conda.uninstall(package)
                 if channel == "pypi":
-                    my.pip.install(package)
+                    my.pip.install(spec)
                 else:
-                    my.conda.install(package)
+                    my.conda.install(spec)
         # See if the package has an installer
         if not metadata["gui-only"] and not my.options.gui_only:
             run_plugin_installer(package, "update")
