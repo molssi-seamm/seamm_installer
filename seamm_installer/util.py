@@ -11,6 +11,7 @@ import shutil
 import subprocess
 
 from platformdirs import user_data_dir
+import requests
 
 from .conda import Conda
 from .metadata import core_packages, molssi_plug_ins, excluded_plug_ins
@@ -62,6 +63,18 @@ def find_packages(progress=True, update=None, update_cache=False, cache_valid=1)
     dict(str, str)
         A dictionary with information about the packages.
     """
+    if True:
+        url = "https://zenodo.org/record/7789854/files/SEAMM_packages.json?download=1"
+        try:
+            response = requests.get(url)
+            package_db = response.json(cls=JSONDecoder)
+        except Exception:
+            print("Unable to get the package list from Zenodo!")
+            print("")
+            raise
+
+        return package_db["packages"]
+
     user_data_path = Path(user_data_dir("seamm-installer", appauthor=False))
     package_db_path = user_data_path / "downloads.json"
     if package_db_path.exists():

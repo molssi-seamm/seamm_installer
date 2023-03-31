@@ -115,12 +115,19 @@ def install_packages(to_install, update=False, third_party=False):
         installed_version, installed_channel = package_info(package)
         ptype = packages[package]["type"]
 
+        pinned = "pinned" in packages[package] and packages[package]["pinned"]
+        if pinned:
+            spec = f"{package}=={available}"
+            print(f"pinning {package} to version {available}")
+        else:
+            spec = package
+
         if installed_channel is None:
             print(f"Installing {ptype.lower()} {package} version {available}.")
             if channel == "pypi":
-                my.pip.install(package)
+                my.pip.install(spec)
             else:
-                my.conda.install(package)
+                my.conda.install(spec)
 
             if package == "seamm-datastore":
                 datastore.update()
@@ -138,18 +145,18 @@ def install_packages(to_install, update=False, third_party=False):
             )
             if channel == installed_channel:
                 if channel == "pypi":
-                    my.pip.install(package)
+                    my.pip.install(spec)
                 else:
-                    my.conda.install(package)
+                    my.conda.install(spec)
             else:
                 if installed_channel == "pypi":
                     my.pip.uninstall(package)
                 else:
                     my.conda.uninstall(package)
                 if channel == "pypi":
-                    my.pip.install(package)
+                    my.pip.install(spec)
                 else:
-                    my.conda.install(package)
+                    my.conda.install(spec)
         # See if the package has an installer
         if not metadata["gui-only"]:
             run_plugin_installer(package, "install")
