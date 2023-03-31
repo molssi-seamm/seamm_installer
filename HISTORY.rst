@@ -2,6 +2,10 @@
 History
 =======
 
+2023.3.31.1 Swtiching to Zenodo
+   * Getting the package list from Zenodo
+   * Added ability to pin packages.
+
 2023.3.31
    * Added new plug-in: QCArchive
 
