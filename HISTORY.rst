@@ -2,6 +2,9 @@
 History
 =======
 
+2023.3.31
+   * Added new plug-in: QCArchive
+
 2023.3.23
    * Added new plug-ins: Gaussian, TorchANI and NWChem
    * Updated creating the JobServer service to handle changes in the JobServer
