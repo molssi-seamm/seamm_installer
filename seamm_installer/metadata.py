@@ -29,6 +29,7 @@ molssi_plug_ins = (
     "nwchem-step",
     "packmol-step",
     "psi4-step",
+    "qcarchive-step",
     "quickmin-step",
     "rdkit-step",
     "read-structure-step",
