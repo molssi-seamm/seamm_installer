@@ -2,7 +2,9 @@
 History
 =======
 
-2023.3.31.1 Swtiching to Zenodo
+2023.4.1 Bugfix: get latest version from Zenodo
+
+2023.3.31.1 Switching to Zenodo
    * Getting the package list from Zenodo
    * Added ability to pin packages.
 
