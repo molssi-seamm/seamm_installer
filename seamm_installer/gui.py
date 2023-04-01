@@ -1275,6 +1275,7 @@ class GUI(collections.abc.MutableMapping):
                     mgr.create(
                         service_name,
                         exe_path,
+                        "--no-windows",
                         "--root",
                         root,
                         stderr_path=str(stderr_path),

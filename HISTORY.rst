@@ -2,6 +2,8 @@
 History
 =======
 
+2023.4.1.1 Bugfix: Problem with JobServer service
+
 2023.4.1 Bugfix: get latest version from Zenodo
 
 2023.3.31.1 Switching to Zenodo
