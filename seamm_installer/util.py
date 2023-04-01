@@ -64,7 +64,16 @@ def find_packages(progress=True, update=None, update_cache=False, cache_valid=1)
         A dictionary with information about the packages.
     """
     if True:
-        url = "https://zenodo.org/record/7789854/files/SEAMM_packages.json?download=1"
+        url = "https://zenodo.org/api/records/7789853"
+        try:
+            response = requests.get(url)
+            record = response.json(cls=JSONDecoder)
+        except Exception:
+            print("Unable to get the package list from Zenodo!")
+            print("")
+            raise
+
+        url = record["files"][0]["links"]["self"]
         try:
             response = requests.get(url)
             package_db = response.json(cls=JSONDecoder)
