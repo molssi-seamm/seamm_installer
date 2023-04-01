@@ -1277,6 +1277,8 @@ class GUI(collections.abc.MutableMapping):
                         exe_path,
                         "--root",
                         root,
+                        "JobServer",
+                        "--no-windows",
                         stderr_path=str(stderr_path),
                         stdout_path=str(stdout_path),
                     )
