@@ -179,9 +179,10 @@ def create():
             mgr.create(
                 service_name,
                 exe_path,
-                "--no-windows",
                 "--root",
                 root,
+                "JobServer",
+                "--no-windows",
                 stderr_path=str(stderr_path),
                 stdout_path=str(stdout_path),
             )
