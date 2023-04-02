@@ -64,9 +64,9 @@ def update():
 
     if my.options.all:
         # First update the conda environment
-        environment = my.conda.active_environment
-        print(f"Updating the conda environment {environment}")
-        my.conda.update(all=True)
+        # environment = my.conda.active_environment
+        # print(f"Updating the conda environment {environment}")
+        # my.conda.update(all=True)
 
         update_packages("all")
     else:

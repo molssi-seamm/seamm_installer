@@ -2,6 +2,9 @@
 History
 =======
 
+2023.4.2 Bugfix: Updating full conda environment breaks pinning.
+   So removed that capability.
+   
 2023.4.1.1 Bugfix: Problem with JobServer service
 
 2023.4.1 Bugfix: get latest version from Zenodo
