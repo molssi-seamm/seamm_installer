@@ -38,6 +38,7 @@ molssi_plug_ins = (
     "supercell-step",
     "torchani-step",
     "table-step",
+    "thermal-conductivity-step",
 )
 external_plug_ins = []
 
