@@ -282,6 +282,7 @@ class ServiceManager:
 
         # Write the file ... we may not have permission, so catch that.
         try:
+            launchd_path.mkdir(parents=True, exist_ok=True)
             with plist_path.open(mode="wb") as fd:
                 plistlib.dump(plist, fd)
         except PermissionError:
