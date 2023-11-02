@@ -2,6 +2,8 @@
 History
 =======
 
+2023.11.2 Bugfix: Fixed a crash casued by a minor change in the Zenodo API
+
 2023.6.7 Bugfix: Ensuring the LaunchAgents directory exists on Mac
 
 2023.4.2 Bugfix: Updating full conda environment breaks pinning.
