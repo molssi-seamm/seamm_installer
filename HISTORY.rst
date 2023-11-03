@@ -1,6 +1,7 @@
 =======
 History
 =======
+2023.11.3 BugFix: Internal update due to changes for versioneer
 
 2023.11.2 Bugfix: Fixed a crash casued by a minor change in the Zenodo API
 
