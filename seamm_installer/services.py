@@ -261,9 +261,11 @@ def status():
                     "running" if status["running"] else "not running",
                     "---" if status["root"] is None else status["root"],
                     "---" if status["port"] is None else status["port"],
-                    "---"
-                    if status["dashboard name"] is None
-                    else status["dashboard name"],
+                    (
+                        "---"
+                        if status["dashboard name"] is None
+                        else status["dashboard name"]
+                    ),
                 ]
             else:
                 row = [service, "not created"]
