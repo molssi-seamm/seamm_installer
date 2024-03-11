@@ -3,7 +3,6 @@ import json
 import logging
 import os
 from pathlib import Path
-import pkg_resources
 import shlex
 import subprocess
 import sys
@@ -346,16 +345,6 @@ class Conda(object):
             warnings.simplefilter("ignore")
             for x in json.loads(stdout):
                 if "version" in x:
-                    try:
-                        x["version"] = pkg_resources.parse_version(x["version"])
-                    except Exception as e:
-                        if x["name"] not in ("jpeg", "tzdata"):
-                            self.logger.warning(
-                                f"Error {e} getting version information for "
-                                "{x['name']}: "
-                                f'\'{x["version"]}\''
-                                f"\n   ran '{command}'"
-                            )
                     result[x["name"]] = x
         return result
 
@@ -462,7 +451,7 @@ class Conda(object):
         for package, data in output.items():
             result[package] = {
                 "channel": data[-1]["channel"],
-                "version": pkg_resources.parse_version(data[-1]["version"]),
+                "version": data[-1]["version"],
                 "description": "not available",
             }
 

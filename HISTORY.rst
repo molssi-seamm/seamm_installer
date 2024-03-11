@@ -1,6 +1,10 @@
 =======
 History
 =======
+2024.3.11 Updating to work with new packing list.
+    * Versions of packages are now stored as strings and compared using semver, since
+      the older approach is being deprecated in Python.
+      
 2023.11.3 BugFix: Internal update due to changes for versioneer
 
 2023.11.2 Bugfix: Fixed a crash casued by a minor change in the Zenodo API

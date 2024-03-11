@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import logging
-import pkg_resources
 import pprint
 import re
 import subprocess
@@ -86,7 +85,7 @@ class Pip(object):
         result = {}
         for line in output.splitlines():
             package, version = line.split()
-            result[package] = pkg_resources.parse_version(version)
+            result[package] = version
         return result
 
     def search(
@@ -152,7 +151,7 @@ class Pip(object):
                         if len(version) == 0:
                             version = None
                         else:
-                            version = pkg_resources.parse_version(version[0])
+                            version = version[0]
                         if len(description) == 0:
                             description = "no description given"
                         else:
@@ -220,7 +219,7 @@ class Pip(object):
             if "require" in key:
                 value = [x.strip() for x in value.split(",")]
             if key == "version":
-                data[key] = pkg_resources.parse_version(value)
+                data[key] = value
             else:
                 data[key] = value
 

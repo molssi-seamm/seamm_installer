@@ -2,6 +2,7 @@ alembic
 platformdirs
 pmw
 requests
+semver
 seamm-widgets
 tabulate
 
