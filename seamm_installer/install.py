@@ -3,6 +3,8 @@
 """Install requested components of SEAMM."""
 import platform
 
+import semver
+
 from . import datastore
 from .metadata import development_packages, development_packages_pip
 from . import my
@@ -138,7 +140,7 @@ def install_packages(to_install, update=False, third_party=False):
             elif package == "seamm-jobserver":
                 service = f"dev_{package}" if my.development else package
                 mgr.restart(service, ignore_errors=True)
-        elif update and installed_version < available:
+        elif update and semver.compare(installed_version, available) < 0:
             print(
                 f"Updating {ptype.lower()} {package} from version {installed_version} "
                 f"to {available}"
