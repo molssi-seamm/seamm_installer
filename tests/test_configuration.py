@@ -247,7 +247,6 @@ def test_set_value_not_existing(conf):
     answer = """\
 This is a simple prolog.
 
-
 [TEST]
 # This is a test section.
 
@@ -264,7 +263,6 @@ def test_set_value_force(conf):
     """Test setting a key that does no exist, using force."""
     answer = """\
 This is a simple prolog.
-
 
 [TEST]
 # This is a test section.
