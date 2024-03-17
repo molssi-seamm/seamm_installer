@@ -253,6 +253,7 @@ This is a simple prolog.
 value1 = 53
 value2 = 54
 value3 = 55
+
 """
     conf.set_value("Test", "value3", 55)
     assert str(conf) == answer
@@ -268,6 +269,7 @@ This is a simple prolog.
 
 value1 = 53
 value2 = 54
+
 """
     with pytest.raises(KeyError, match="'value3' not in section Test."):
         conf.set_value("Test", "value3", 55, strict=True)

@@ -674,8 +674,15 @@ class GUI(collections.abc.MutableMapping):
 
                 if installed_channel is None:
                     n += 1
-                elif update and installed_version < available:
-                    n += 1
+                elif update:
+                    pinned = (
+                        "pinned" in self.packages[package]
+                        and self.packages[package]["pinned"]
+                    )
+                    if pinned and installed_version < available:
+                        n += 1
+                    else:
+                        n += 1
 
         self.progress_bar.configure(mode="determinate", maximum=n, value=0)
         self.progress_text.configure(text=f"Installing/updating packages (0 of {n})")
@@ -690,7 +697,16 @@ class GUI(collections.abc.MutableMapping):
                 installed_version, installed_channel = package_info(package)
                 ptype = self.packages[package]["type"]
 
-                spec = f"{package}=={available}"
+                # spec = f"{package}=={available}"
+                pinned = (
+                    "pinned" in self.packages[package]
+                    and self.packages[package]["pinned"]
+                )
+                if pinned:
+                    spec = f"{package}=={available}"
+                    print(f"pinning {package} to version {available}")
+                else:
+                    spec = package
 
                 if installed_channel is None:
                     print(f"Installing {ptype.lower()} {package} version {available}.")
@@ -740,7 +756,7 @@ class GUI(collections.abc.MutableMapping):
                         text=f"Installing/updating packages ({count} of {n})"
                     )
                     self.root.update()
-                elif update and installed_version < available:
+                elif update and (not pinned or installed_version < available):
                     print(
                         f"Updating {ptype.lower()} {package} from version "
                         f"{installed_version} to {available}"
@@ -822,6 +838,15 @@ class GUI(collections.abc.MutableMapping):
         count = 0
         for package, var in self._selected.items():
             if var.get() == 1:
+                # Run the package uninstall if it exists
+                if not gui_only:
+                    self.progress_text.configure(
+                        text=f"Running uninstaller for {package}"
+                    )
+                    self.root.update()
+                    run_plugin_installer(package, "uninstall")
+
+                # Uninstall the plug-in
                 version, channel = package_info(package)
                 ptype = self.packages[package]["type"]
                 print(f"Uninstalling {ptype.lower()} {package}")
@@ -888,7 +913,7 @@ class GUI(collections.abc.MutableMapping):
                 else:
                     spec = package
 
-                if installed_version is not None and installed_version < available:
+                if installed_version is not None:
                     print(
                         f"Updating {ptype.lower()} {package} from version "
                         f"{installed_version} to {available} using {channel} "
