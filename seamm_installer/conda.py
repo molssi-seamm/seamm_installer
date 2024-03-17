@@ -156,21 +156,22 @@ class Conda(object):
         # In some installations there are more than one base environment! So
         # pick the one that looks like 'anacondaX' or 'minicondaX'.
         # As a last resort, just pick one.
-        self.logger.debug("Finding the conda root path")
-        roots = set()
-        for env in self._data["envs"]:
-            path = Path(env)
-            self.logger.debug(f"    environment path {path}")
-            if path.parent.name == "envs":
-                roots.add(path.parent.parent)
-            else:
-                roots.add(path)
-        for root in roots:
-            name = root.name
-            if "miniconda" in name or "anaconda" in name:
-                break
+        # self.logger.debug("Finding the conda root path")
+        # roots = set()
+        # for env in self._data["envs"]:
+        #     path = Path(env)
+        #     self.logger.debug(f"    environment path {path}")
+        #     if path.parent.name == "envs":
+        #         roots.add(path.parent.parent)
+        #     else:
+        #         roots.add(path)
+        # for root in roots:
+        #     name = root.name
+        #     if "miniconda" in name or "anaconda" in name:
+        #         break
 
-        self.root_path = root
+        # self.root_path = root
+        self.root_path = Path(self._data["conda_prefix"])
 
         tmp = "\n\t".join(self.environments)
         self.logger.info(f"environments:\n\t{tmp}")

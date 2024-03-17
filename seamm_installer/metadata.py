@@ -66,9 +66,6 @@ development_packages = (
 )
 development_packages_pip = (
     "build",
-    "rinohtype",
     "seamm-cookiecutter",
     "sphinx-copybutton",
-    "sphinx-rtd-theme",
-    "pystemmer",
 )

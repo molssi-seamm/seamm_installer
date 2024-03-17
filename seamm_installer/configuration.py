@@ -224,7 +224,10 @@ class Configuration(object):
             if "=" in line:
                 if line.strip().split("=", maxsplit=1)[0].strip() == key:
                     found = True
-                    lines[i] = f"{key} = {value}"
+                    if value is None:
+                        lines[i] = f"# {line}"
+                    else:
+                        lines[i] = f"{key} = {value}"
                     break
             i += 1
 
@@ -240,11 +243,15 @@ class Configuration(object):
                     if "=" in line:
                         if line.split("=", maxsplit=1)[0].strip() == key:
                             found = True
-                            lines[i] = f"{key} = {value}"
+                            if value is not None:
+                                lines[i] = f"{key} = {value}"
                             break
                     i += 1
                 if not found:
-                    lines.append(f"{key} = {value}")
+                    if value is None:
+                        lines.append(f"# {key} = ")
+                    else:
+                        lines.append(f"{key} = {value}")
 
     def to_string(self, section=None):
         """Create the text of a section.
@@ -258,8 +265,12 @@ class Configuration(object):
             result = []
             if "PROLOG" in self._data:
                 result.extend(self._data["PROLOG"])
+                if result[-1] != "":
+                    result.append("")
             for section in self.sections():
                 result.extend(self._data[section])
+                if result[-1] != "":
+                    result.append("")
         else:
             result = self._data[section.lower()]
 

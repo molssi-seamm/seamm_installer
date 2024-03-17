@@ -84,6 +84,14 @@ class InstallerBase(object):
         self.subparser = {}
         self.parser = self.setup_parser()
 
+        # Other attributes
+        self.section = None
+        self.path_name = None
+        self.executables = None
+        self.resource_path = None
+        self._exe_config = seamm_installer.Configuration(None)
+        self.environment = None
+
     @property
     def conda(self):
         """The Conda object to use for accessing Conda."""
@@ -93,6 +101,11 @@ class InstallerBase(object):
     def configuration(self):
         """The Configuration object for working with the ini file."""
         return self._configuration
+
+    @property
+    def exe_config(self):
+        # The ini data for the executables
+        return self._exe_config
 
     @property
     def pip(self):
@@ -183,12 +196,12 @@ class InstallerBase(object):
             ):
                 self.check_configuration_file()
                 print(
-                    f"Added the {self.section} section to the configuration file "
+                    f"    Added the {self.section} section to the configuration file "
                     f"{self.configuration.path}"
                 )
 
-        # Get the values from the configuration
-        data = self.configuration.get_values(self.section)
+        # Get the values from the executable configuration
+        data = self.exe_config.get_values("local")
 
         # Save the initial values, if any, of the key configuration variables
         if self.path_name in data and data[self.path_name] != "":
@@ -220,7 +233,7 @@ class InstallerBase(object):
         self.logger.debug(f"initial-exe-path = {initial_exe_path}.")
 
         # Is there an installation indicated?
-        if initial_installation in ("user", "conda", "modules"):
+        if initial_installation in ("conda", "modules", "local", "docker"):
             installation = initial_installation
         else:
             installation = None
@@ -246,18 +259,36 @@ class InstallerBase(object):
                             f"It should be {conda_environment}. Fix?",
                             default="yes",
                         ):
-                            self.configuration.set_value(
-                                self.section, "installation", "conda"
+                            self.exe_config.set_value("local", "installation", "conda")
+                            self.exe_config.set_value(
+                                "local", "conda-environment", conda_environment
                             )
-                            self.configuration.set_value(
-                                self.section, "conda-environment", conda_environment
-                            )
-                            self.configuration.set_value(self.section, "modules", "")
-                            self.configuration.save()
+                            conda_exe = shutil.which("conda")
+                            if conda_exe is None:
+                                print(
+                                    "    Cannot find the path to the conda executable! "
+                                    "Please fix the path in the configuration file."
+                                )
+                            else:
+                                self.exe_config.set_value("local", "conda", conda_exe)
+
+                            # Clean up the environment file
+                            self.exe_config.set_value("local", "modules", None)
+                            self.exe_config.set_value("local", "container", None)
+                            self.exe_config.set_value("local", "platform", None)
+
+                            self.exe_config.save()
+
                             print(
-                                "Corrected the conda environment to "
+                                "    Corrected the conda environment to "
                                 f"{conda_environment}"
                             )
+                else:
+                    conda_environment = None
+                    print(
+                        "    The mopac.ini file specifies using a Conda environment, "
+                        "however, the executable(s) are not in the environment."
+                    )
             else:
                 # Have a Conda environment!
                 conda_path = self.conda.path(initial_conda_environment) / "bin"
@@ -267,39 +298,23 @@ class InstallerBase(object):
                 if self.have_executables(conda_path):
                     # All is good!
                     conda_environment = initial_conda_environment
-                    if exe_path is None:
-                        if self.options.yes or self.ask_yes_no(
-                            f"The {self.path_name} in the config file is not set,"
-                            f"but the Conda environment {conda_environment} "
-                            f"is.\nFix {self.path_name}?",
-                            default="yes",
-                        ):
-                            exe_path = conda_path
-                            self.configuration.set_value(
-                                self.section, self.path_name, exe_path
-                            )
-                            self.configuration.set_value(self.section, "modules", "")
-                            self.configuration.save()
-                            print(f"Set the {self.path_name} to {conda_path}")
-                    elif exe_path != conda_path:
-                        if self.options.yes or self.ask_yes_no(
-                            f"The {self.path_name} in the config file {exe_path}"
-                            "is different from that for  the Conda "
-                            f"environment {conda_environment} is.\n"
-                            "Use the path from the Conda environment?",
-                            default="yes",
-                        ):
-                            exe_path = conda_path
-                            self.configuration.set_value(
-                                self.section, self.path_name, exe_path
-                            )
-                            self.configuration.set_value(self.section, "modules", "")
-                            self.configuration.save()
-                            print(f"Changed the {self.path_name} to {conda_path}")
+                    conda_exe = shutil.which("conda")
+                    if conda_exe is None:
+                        print(
+                            "    Cannot find the path to the conda executable! "
+                            "Please fix the path in the configuration file."
+                        )
                     else:
-                        # Everything is fine!
-                        pass
-        if installation == "modules":
+                        self.exe_config.set_value("local", "conda", conda_exe)
+                        self.exe_config.save()
+                        print("    The conda path is correct.")
+                else:
+                    conda_environment = None
+                    print(
+                        "    The mopac.ini file specifies using a Conda environment, "
+                        "however, the executable(s) are not in the environment."
+                    )
+        elif installation == "modules":
             print(f"Can't check the actual modules {initial_modules} yet")
             if initial_conda_environment is not None:
                 if self.options.yes or self.ask_yes_no(
@@ -309,10 +324,43 @@ class InstallerBase(object):
                     "modules. Remove it from the configuration?",
                     default="yes",
                 ):
-                    self.configuration.set_value(self.section, "conda-environment", "")
-                    self.configuration.save()
+
+                    # Clean up the environment file
+                    self.exe_config.set_value("local", "conda", None)
+                    self.exe_config.set_value("local", "conda-environment", None)
+                    self.exe_config.set_value("local", "container", None)
+                    self.exe_config.set_value("local", "platform", None)
+
+                    self.exe_config.save()
                     print(
-                        "Using modules, so removed the conda-environment from "
+                        "    Using modules, so removed the conda-environment from "
+                        "the configuration"
+                    )
+        elif installation == "docker":
+            if "container" in data and data["container"] != "":
+                container = data["container"]
+                print(f"    Setup to use the docker container {container}")
+            else:
+                print("    Setup to use docker, but the container is not set!")
+            if initial_conda_environment is not None:
+                if self.options.yes or self.ask_yes_no(
+                    "A Conda environment is given: "
+                    f"{initial_conda_environment}.\n"
+                    "A Conda environment should not be used when using "
+                    "docker. Remove it from the configuration?",
+                    default="yes",
+                ):
+
+                    # Clean up the environment file
+                    self.exe_config.set_value("local", "conda", None)
+                    self.exe_config.set_value("local", "conda-environment", None)
+                    self.exe_config.set_value("local", "modules", None)
+                    self.exe_config.set_value("local", "conda", None)
+
+                    self.exe_config.save()
+
+                    print(
+                        "    Using docker, so removed the conda-environment from "
                         "the configuration"
                     )
         else:
@@ -335,19 +383,26 @@ class InstallerBase(object):
                         ):
                             conda_environment = tmp
                             exe_path = tmp_path
-                            self.configuration.set_value(
-                                self.section, self.path_name, exe_path
+                            self.exe_config.set_value("local", self.path_name, exe_path)
+                            self.exe_config.set_value("local", "installation", "conda")
+                            self.exe_config.set_value(
+                                "local", "conda-environment", conda_environment
                             )
-                            self.configuration.set_value(
-                                self.section, "installation", "conda"
+
+                            # Clean up the environment file
+                            self.exe_config.set_value("local", "conda", None)
+                            self.exe_config.set_value(
+                                "local", "conda-environment", None
                             )
-                            self.configuration.set_value(
-                                self.section, "conda-environment", conda_environment
-                            )
-                            self.configuration.set_value(self.section, "modules", "")
-                            self.configuration.save()
+                            self.exe_config.set_value("local", "modules", None)
+                            self.exe_config.set_value("local", "conda", None)
+                            self.exe_config.set_value("local", "container", None)
+                            self.exe_config.set_value("local", "platform", None)
+
+                            self.exe_config.save()
+
                             print(
-                                "Will use the conda environment "
+                                "    Will use the conda environment "
                                 f"'{conda_environment}'"
                             )
                             break
@@ -361,21 +416,23 @@ class InstallerBase(object):
                         "Use them?",
                         default="yes",
                     ):
-                        self.configuration.set_value(
-                            self.section, "installation", "user"
-                        )
-                        self.configuration.set_value(
-                            self.section, "conda-environment", ""
-                        )
-                        self.configuration.set_value(self.section, "modules", "")
-                        self.configuration.save()
-                        print("Using the executable(s) at {exe_path}")
+                        self.exe_config.set_value("local", "installation", "local")
+
+                        # Clean up the environment file
+                        self.exe_config.set_value("local", "conda", None)
+                        self.exe_config.set_value("local", "conda-environment", None)
+                        self.exe_config.set_value("local", "modules", None)
+                        self.exe_config.set_value("local", "container", None)
+                        self.exe_config.set_value("local", "platform", None)
+
+                        self.exe_config.save()
+                        print("    Using the executable(s) at {exe_path}")
 
             if exe_path is None:
                 # Can't find the executable(s)
                 print(
-                    f"Cannot find the executable(s): {', '.join(self.executables)}. "
-                    "You will need to install them."
+                    f"    Cannot find the executable(s): {', '.join(self.executables)}."
+                    "\n    You will need to install them."
                 )
                 if (
                     initial_installation is not None
@@ -387,21 +444,22 @@ class InstallerBase(object):
                         "Fix the configuration file?",
                         default="yes",
                     ):
-                        self.configuration.set_value(
-                            self.section, "installation", "not installed"
-                        )
-                        self.configuration.set_value(self.section, self.path_name, "")
-                        self.configuration.set_value(
-                            self.section, "conda-environment", ""
-                        )
-                        self.configuration.set_value(self.section, "modules", "")
-                        self.configuration.save()
+                        # Update the configuration file.
+                        self.exe_config.set_value("local", "installation", None)
+                        self.exe_config.set_value("local", "conda", None)
+                        self.exe_config.set_value("local", "conda-environment", None)
+                        self.exe_config.set_value("local", "modules", None)
+                        self.exe_config.set_value("local", "container", None)
+                        self.exe_config.set_value("local", "platform", None)
+
+                        self.exe_config.save()
+
                         print(
-                            "Since no executable(s) were found, cleared "
+                            "    Since no executable(s) were found, cleared "
                             "the configuration."
                         )
             else:
-                print("The check completed successfully.")
+                print("    The check completed successfully.")
 
     def check_configuration_file(self):
         """Checks that the necessary section for the plug-in is in the
@@ -460,21 +518,28 @@ class InstallerBase(object):
     def install(self):
         """Install using a Conda environment."""
         print(
-            f"Installing Conda environment '{self.environment}'. This "
+            f"    Installing Conda environment '{self.environment}'. This "
             "may take a minute or two."
         )
         self.conda.create_environment(self.environment_file, name=self.environment)
+
         # Update the configuration file.
         self.check_configuration_file()
-        path = self.conda.path(self.environment) / "bin"
-        self.configuration.set_value(self.section, self.path_name, str(path))
-        self.configuration.set_value(self.section, "installation", "conda")
-        self.configuration.set_value(
-            self.section, "conda-environment", self.environment
-        )
-        self.configuration.set_value(self.section, "modules", "")
-        self.configuration.save()
-        print("Done!\n")
+
+        # Update the executable configuration file.
+        self.exe_config.set_value("local", "installation", "conda")
+        conda_exe = shutil.which("conda")
+        if conda_exe is not None:
+            self.exe_config.set_value("local", "conda", conda_exe)
+        self.exe_config.set_value("local", "conda-environment", self.environment)
+
+        # Clean up the environment file
+        self.exe_config.set_value("local", "modules", None)
+        self.exe_config.set_value("local", "container", None)
+        self.exe_config.set_value("local", "platform", None)
+
+        self.exe_config.save()
+        print("    Done!\n")
 
     def run(self):
         """Do what the user asks via the commandline."""
@@ -550,103 +615,99 @@ class InstallerBase(object):
         self.logger.debug("Entering show")
 
         # See if the executables are already registered in the configuration file
-        if not self.configuration.section_exists(self.section):
-            print(f"There is no section in the configuration file for {self.section}.")
-        data = self.configuration.get_values(self.section)
+        if not self.exe_config.section_exists("local"):
+            print("    There is no section in the configuration file for 'local'.")
+        data = self.exe_config.get_values("local")
 
-        # Keep track of where executables are
-        exe_path = None
-
-        # Is the path in the configuration file?
-        if self.path_name in data:
-            conf_path = Path(data[self.path_name]).expanduser().resolve()
-            if self.have_executables(conf_path):
-                exe_path = conf_path
-                exe_version = self.exe_version(exe_path / self.executables[0])
-
-            extra = f"from path {conf_path}."
-            if "installation" in data:
-                installation = data["installation"]
-                if installation == "conda":
-                    if "conda-environment" in data and data["conda-environment"] != "":
-                        extra = (
-                            "from Conda environment " f"{data['conda-environment']}."
-                        )
-                    else:
-                        extra = "from an unknown Conda environment."
-                elif installation == "modules":
-                    if "modules" in data and data["modules"] != "":
-                        extra = f"from module(s) {data['modules']}."
-                    else:
-                        extra = "from unknown modules."
-                elif installation == "user":
-                    extra = f"from user-defined path {conf_path}."
-
-            if exe_path is not None:
-                print(f"{self.executables[0]} executable, version {exe_version}")
-                print(extra)
-            else:
-                print(f"{self.executables[0]} is not configured to run.")
+        if "code" in data:
+            print(f"    The command line:\n\t{data['code']}")
         else:
-            print(f"{self.executables[0]} is not configured to run.")
+            print("!   There is no command line specified.")
 
-        # Look in the PATH, but only record if not same as in the conf file
-        tmp = shutil.which(self.executables[0])
-        if tmp is not None:
-            tmp = Path(tmp).expanduser().resolve().parent
-            if exe_path is not None and exe_path != tmp:
-                version = self.exe_version(tmp)
-                print(
-                    f"Another executable (version {version}) "
-                    "is in the PATH:\n"
-                    f"    {tmp}"
-                )
+        if "installation" in data:
+            installation = data["installation"]
+            if installation == "conda":
+                if "conda-environment" in data and data["conda-environment"] != "":
+                    print(
+                        "    run using the Conda environment "
+                        f"{data['conda-environment']}."
+                    )
+                    name, version = self.exe_version(data)
+                    print(f"    {name} version {version}.")
+                else:
+                    print("!  run from an unknown Conda environment.")
+            elif installation == "modules":
+                if "modules" in data and data["modules"] != "":
+                    print(f"    run using module(s) {data['modules']}.")
+                else:
+                    print("!   run using unknown modules.")
+            elif installation == "local":
+                pass
+            elif installation == "docker":
+                line = f"    run using the Docker container {data['container']}"
+                if "platform" in data:
+                    line += f" for {data['platform']}."
+                else:
+                    line += "."
+                print(line)
+            else:
+                print(f"!    Unknown installation method '{installation}'")
+        else:
+            print("!   Does not seem to be configured to run!")
 
     def uninstall(self):
         """Uninstall the Conda environment."""
-        # See if the exectuables are already registered in the configuration file
-        data = self.configuration.get_values(self.section)
+        # See if the executables are already registered in the configuration file
+        data = self.exe_config.get_values("local")
         if "installation" in data and data["installation"] == "conda":
             if "conda-environment" in data and data["conda-environment"] != "":
                 environment = data["conda-environment"]
                 print(
-                    f"Uninstalling Conda environment '{environment}'. This "
+                    f"    Uninstalling Conda environment '{environment}'. This "
                     "may take a minute or two."
                 )
                 self.conda.remove_environment(environment)
+
                 # Update the configuration file.
-                self.configuration.set_value(self.section, self.path_name, "")
-                self.configuration.set_value(self.section, "modules", "")
-                self.configuration.set_value(
-                    self.section, "installation", "not installed"
-                )
-                self.configuration.set_value(self.section, "conda-environment", "")
-                self.configuration.save()
-                print("Done!\n")
+                self.exe_config.set_value("local", "installation", None)
+                self.exe_config.set_value("local", "conda", None)
+                self.exe_config.set_value("local", "conda-environment", None)
+                self.exe_config.set_value("local", "modules", None)
+                self.exe_config.set_value("local", "container", None)
+                self.exe_config.set_value("local", "platform", None)
+
+                self.exe_config.save()
+                print("    Done!\n")
 
     def update(self):
         """Update the installation, if possible."""
         # See if the executables are already registered in the configuration file
-        data = self.configuration.get_values(self.section)
+        data = self.exe_config.get_values("local")
         if "installation" in data and data["installation"] == "conda":
             environment = self.environment
             if "conda-environment" in data and data["conda-environment"] != "":
                 environment = data["conda-environment"]
             print(
-                f"Updating Conda environment '{environment}'. This may "
+                f"    Updating Conda environment '{environment}'. This may "
                 "take a minute or two."
             )
             self.conda.update_environment(self.environment_file, name=environment)
             # Update the configuration file, just in case.
-            path = self.conda.path(environment) / "bin"
-            self.configuration.set_value(self.section, self.path_name, str(path))
-            self.configuration.set_value(self.section, "installation", "conda")
-            self.configuration.set_value(self.section, "conda-environment", environment)
-            self.configuration.set_value(self.section, "modules", "")
-            self.configuration.save()
-            print("Done!\n")
+            self.exe_config.set_value("local", "installation", "conda")
+            conda_exe = shutil.which("conda")
+            if conda_exe is not None:
+                self.exe_config.set_value("local", "conda", conda_exe)
+            self.exe_config.set_value("local", "conda-environment", environment)
+
+            # Clean up the environment file
+            self.exe_config.set_value("local", "modules", None)
+            self.exe_config.set_value("local", "container", None)
+            self.exe_config.set_value("local", "platform", None)
+
+            self.exe_config.save()
+            print("    Done!\n")
         else:
             print(
-                "Unable to update the executables because they were not installed "
+                "!   Unable to update the executables because they were not installed "
                 "using Conda"
             )

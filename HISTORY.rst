@@ -1,6 +1,12 @@
 =======
 History
 =======
+2024.3.17 Enhancements
+    * Install and update now use the latest version unless the package is pinned in the
+      packing list.
+    * Changes to support the plug-ion specific installs, which are now handling the
+      specific <code>.ini files.
+      
 2024.3.11 Updating to work with new packing list.
     * Versions of packages are now stored as strings and compared using semver, since
       the older approach is being deprecated in Python.
