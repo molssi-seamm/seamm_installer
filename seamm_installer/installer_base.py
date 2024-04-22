@@ -68,7 +68,7 @@ class InstallerBase(object):
         The section of the configuration file to use. Defaults to None.
     """
 
-    def __init__(self, ini_file="~/SEAMM/seamm.ini", logger=logger):
+    def __init__(self, ini_file="~/.seamm.d/seamm.ini", logger=logger):
         # Create the ini file if it does not exist.
         self._check_ini_file(ini_file)
 

@@ -1,6 +1,9 @@
 =======
 History
 =======
+2024.4.22 -- Moving user preferences to ~/.seamm.d
+    * Moved seamm.ini from ~/SEAMM to ~/seamm.d since it only contains personal preferences.
+
 2024.3.17 Enhancements
     * Install and update now use the latest version unless the package is pinned in the
       packing list.
