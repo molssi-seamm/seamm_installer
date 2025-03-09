@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 
 """Install requested components of SEAMM."""
+from datetime import datetime
 import platform
 
-import semver
+from packaging.version import Version
 
 from . import datastore
 from .metadata import development_packages, development_packages_pip
 from . import my
 from .util import (
+    create_env,
     find_packages,
     get_metadata,
-    package_info,
     run_plugin_installer,
     set_metadata,
 )
@@ -109,12 +110,19 @@ def install_packages(to_install, update=False, third_party=False):
                 p for p, d in packages.items() if "3rd-party" not in d["type"]
             ]
 
+    # Get the info about the installed packages
+    info = my.conda.list(environment=my.environment)
+
+    conda_packages = []
+    pypi_packages = []
     for package in to_install:
         if package == "development":
             continue
-        available = packages[package]["version"]
+        available = Version(packages[package]["version"])
         channel = packages[package]["channel"]
-        installed_version, installed_channel = package_info(package)
+        installed_version = (
+            Version(info[package]["version"]) if package in info else None
+        )
         ptype = packages[package]["type"]
 
         pinned = "pinned" in packages[package] and packages[package]["pinned"]
@@ -124,41 +132,74 @@ def install_packages(to_install, update=False, third_party=False):
         else:
             spec = package
 
-        if installed_channel is None:
+        if package not in info:
             print(f"Installing {ptype.lower()} {package} version {available}.")
             if channel == "pypi":
-                my.pip.install(spec)
+                pypi_packages.append(spec)
             else:
-                my.conda.install(spec)
-
-            if package == "seamm-datastore":
-                datastore.update()
-            elif package == "seamm-dashboard":
-                # If installing, the service should not exist, but restrt if it does.
-                service = f"dev_{package}" if my.development else package
-                mgr.restart(service, ignore_errors=True)
-            elif package == "seamm-jobserver":
-                service = f"dev_{package}" if my.development else package
-                mgr.restart(service, ignore_errors=True)
-        elif update and semver.compare(installed_version, available) < 0:
+                conda_packages.append(spec)
+        elif update and installed_version < available:
+            installed_channel = info[package]["channel"]
             print(
                 f"Updating {ptype.lower()} {package} from version {installed_version} "
                 f"to {available}"
             )
             if channel == installed_channel:
                 if channel == "pypi":
-                    my.pip.install(spec)
+                    pypi_packages.append(spec)
                 else:
-                    my.conda.install(spec)
+                    conda_packages.append(spec)
             else:
-                if installed_channel == "pypi":
-                    my.pip.uninstall(package)
-                else:
-                    my.conda.uninstall(package)
-                if channel == "pypi":
-                    my.pip.install(spec)
-                else:
-                    my.conda.install(spec)
+                raise NotImplementedError(
+                    f"Install: channel {channel} != {installed_channel} for "
+                    f"package {package}"
+                )
+
+    # Create a list of all packages that exist already or will be installer
+    all_packages = [*packages.keys()]
+    for packagee in to_install:
+        if package not in all_packages:
+            all_packages.append(package)
+
+    # Get the environment file data, accounting for pinned dependencies
+    env = create_env(conda_packages, pypi_packages, installed_packages=all_packages)
+
+    directory = my.root / "environments"
+    directory.mkdir(exist_ok=True)
+    tstamp = datetime.now().isoformat(timespec="seconds")
+    path = directory / f"{tstamp}_install.yml"
+    path.write_text(env)
+
+    # And do the update
+    if update:
+        print(f"Installing to and updating the Conda environment with {path.name}")
+    else:
+        print(f"Installing into the Conda environment with {path.name}")
+    my.conda.update_environment(path, name=my.environment)
+    print("done")
+
+    # Write the export file
+    path = directory / f"{tstamp}_environment.yml"
+    my.conda.export_environment(my.environment, path=path)
+
+    # Restart services and run custom installer
+    for package in to_install:
+        if not update and package in info:
+            continue
+
+        if package == "development":
+            continue
+
+        if package == "seamm-datastore":
+            datastore.update()
+        elif package == "seamm-dashboard":
+            # If installing, the service should not exist, but restart if it does.
+            service = f"dev_{package}" if my.development else package
+            mgr.restart(service, ignore_errors=True)
+        elif package == "seamm-jobserver":
+            service = f"dev_{package}" if my.development else package
+            mgr.restart(service, ignore_errors=True)
+
         # See if the package has an installer
         if not metadata["gui-only"]:
             run_plugin_installer(package, "install")

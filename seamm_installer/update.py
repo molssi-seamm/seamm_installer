@@ -1,12 +1,21 @@
 # -*- coding: utf-8 -*-
 
 """Update requested components of SEAMM."""
+from datetime import datetime
 import platform
+
+from packaging.version import Version
 
 from .datastore import update as update_datastore
 from .metadata import development_packages, development_packages_pip
 from . import my
-from .util import find_packages, get_metadata, package_info, run_plugin_installer
+from .util import (
+    create_env,
+    find_packages,
+    get_metadata,
+    package_info,
+    run_plugin_installer,
+)
 
 
 system = platform.system()
@@ -80,7 +89,8 @@ def update():
     if (
         initial_version["seamm-datastore"] is not None
         and final_version["seamm-datastore"] is not None
-        and final_version["seamm-datastore"] > initial_version["seamm-datastore"]
+        and Version(final_version["seamm-datastore"])
+        > Version(initial_version["seamm-datastore"])
     ):
         service_name = "dev_dashboard" if my.development else "dashboard"
         if mgr.is_installed(service_name):
@@ -96,7 +106,8 @@ def update():
         if (
             initial_version["seamm-dashboard"] is not None
             and final_version["seamm-dashboard"] is not None
-            and final_version["seamm-dashboard"] > initial_version["seamm-dashboard"]
+            and Version(final_version["seamm-dashboard"])
+            > Version(initial_version["seamm-dashboard"])
         ):
             service_name = "dev_dashboard" if my.development else "dashboard"
             if mgr.is_installed(service_name):
@@ -105,7 +116,8 @@ def update():
         if (
             initial_version["seamm-jobserver"] is not None
             and final_version["seamm-jobserver"] is not None
-            and final_version["seamm-jobserver"] > initial_version["seamm-jobserver"]
+            and Version(final_version["seamm-jobserver"])
+            > Version(initial_version["seamm-jobserver"])
         ):
             service_name = "dev_jobserver" if my.development else "jobserver"
             if mgr.is_installed(service_name):
@@ -123,13 +135,21 @@ def update_packages(to_update):
     if to_update == "all":
         to_update = [*packages.keys()]
 
+    # Get the info about the installed packages
+    info = my.conda.list(environment=my.environment)
+
+    conda_packages = []
+    pypi_packages = []
     for package in to_update:
-        available = packages[package]["version"]
+        available = Version(packages[package]["version"])
         channel = packages[package]["channel"]
-        installed_version, installed_channel = package_info(package)
+
         # Skip packages that aren't installed.
-        if installed_version is None:
+        if package not in info:
             continue
+
+        installed_version = Version(info[package]["version"])
+        installed_channel = info[package]["channel"]
 
         pinned = "pinned" in packages[package] and packages[package]["pinned"]
         if pinned:
@@ -150,27 +170,39 @@ def update_packages(to_update):
             )
             if channel == installed_channel:
                 if channel == "pypi":
-                    if pinned:
-                        my.pip.install(spec)
-                    else:
-                        my.pip.update(spec)
+                    pypi_packages.append(spec)
                 else:
-                    if pinned:
-                        my.conda.install(spec)
-                    else:
-                        my.conda.update(spec)
+                    conda_packages.append(spec)
             else:
-                if installed_channel == "pypi":
-                    my.pip.uninstall(package)
-                else:
-                    my.conda.uninstall(package)
-                if channel == "pypi":
-                    my.pip.install(spec)
-                else:
-                    my.conda.install(spec)
-        # See if the package has an installer
-        if not metadata["gui-only"] and not my.options.gui_only:
-            run_plugin_installer(package, "update")
+                raise NotImplementedError(
+                    f"package {package} changed from {installed_channel} to {channel}!"
+                )
+    # Added any pinned dependencies based on everything installed
+    env = create_env(
+        conda_packages, pypi_packages, installed_packages=[*packages.keys()]
+    )
+
+    directory = my.root / "environments"
+    directory.mkdir(exist_ok=True)
+    tstamp = datetime.now().isoformat(timespec="seconds")
+    path = directory / f"{tstamp}_update.yml"
+    path.write_text(env)
+
+    # And do the update
+    print(f"Updating the Conda environment with {path.name}")
+    my.conda.update_environment(path, name=my.environment)
+    print("done")
+
+    # Write the export file
+    path = directory / f"{tstamp}_environment.yml"
+    my.conda.export_environment(my.environment, path=path)
+
+    # See if any packages have an installer
+    if not metadata["gui-only"] and not my.options.gui_only:
+        for package in to_update:
+            # Skip packages that aren't installed.
+            if package in info:
+                run_plugin_installer(package, "update")
 
 
 def update_development_environment():

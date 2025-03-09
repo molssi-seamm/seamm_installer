@@ -89,7 +89,9 @@ class InstallerBase(object):
         self.path_name = None
         self.executables = None
         self.resource_path = None
+        self._root = None
         self._exe_config = seamm_installer.Configuration(None)
+        self._init_file_name = None
         self.environment = None
 
     @property
@@ -108,9 +110,33 @@ class InstallerBase(object):
         return self._exe_config
 
     @property
+    def init_file_name(self):
+        """The initialization file for the executable."""
+        if self._init_file_name is None:
+            self._init_file_name = self.section.replace("-step", "") + ".ini"
+        return self._init_file_name
+
+    @init_file_name.setter
+    def init_file_name(self, value):
+        self._init_file_name = value
+
+    @property
     def pip(self):
         """The Pip object used for working with pip."""
         return self._pip
+
+    @property
+    def root(self):
+        if self._root is None:
+            if self.configuration.section_exists("SEAMM"):
+                tmp = self.configuration.get_values("SEAMM")
+                if "root" in tmp:
+                    self._root = Path(tmp["root"]).expanduser()
+                else:
+                    self._root = Path("~/SEAMM").expanduser()
+            else:
+                self._root = Path("~/SEAMM").expanduser()
+        return self._root
 
     def ask_yes_no(self, text, default=None):
         """Ask a simple yes/no question, returning True/False.
@@ -200,8 +226,14 @@ class InstallerBase(object):
                     f"{self.configuration.path}"
                 )
 
+        # Ensure that the config file for the executable exists
+        self.check_exe_configuration_file()
+
         # Get the values from the executable configuration
         data = self.exe_config.get_values("local")
+
+        if "conda-environment" in data and data["conda-environment"] != "":
+            self.environment = data["conda-environment"]
 
         # Save the initial values, if any, of the key configuration variables
         if self.path_name in data and data[self.path_name] != "":
@@ -474,6 +506,16 @@ class InstallerBase(object):
             self.configuration.add_section(self.section, text)
             self.configuration.save()
 
+    def check_exe_configuration_file(self):
+        """Checks that the init file for the executable for the plug-in exists."""
+        path = self.root / self.init_file_name
+        if not path.exists():
+            text = (self.resource_path / self.init_file_name).read_text()
+            path.write_text(text)
+            print(f"    The {self.init_file_name} file did not exist. Created {path}")
+
+        self.exe_config.path = path
+
     def have_executables(self, path):
         """Check whether the executables are found at the given path.
 
@@ -524,7 +566,7 @@ class InstallerBase(object):
         self.conda.create_environment(self.environment_file, name=self.environment)
 
         # Update the configuration file.
-        self.check_configuration_file()
+        self.check_exe_configuration_file()
 
         # Update the executable configuration file.
         self.exe_config.set_value("local", "installation", "conda")
@@ -613,6 +655,12 @@ class InstallerBase(object):
     def show(self):
         """Show the current installation status."""
         self.logger.debug("Entering show")
+
+        path = self.root / self.init_file_name
+        if not path.exists():
+            print(f"The {self.init_file_name} file does not exist. Check can make it.")
+
+        self.exe_config.path = path
 
         # See if the executables are already registered in the configuration file
         if not self.exe_config.section_exists("local"):

@@ -55,7 +55,7 @@ red = "#D20000"
 help_text = """\
 The SEAMM installer handles three different aspects of installing SEAMM:
 <ol>
-  <li><b>Components</b> tab: Instal the SEAMM components and plug-ins,</li>
+  <li><b>Components</b> tab: Install the SEAMM components and plug-ins,</li>
   <li><b>Shortcuts</b> tab: Create application shortcuts so you can click on an icon
     to start the application, and</li>
   <li><b>Services</b> tab: Create services (or daemons) for the Dashboard and JobServer.

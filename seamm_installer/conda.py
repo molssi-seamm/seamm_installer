@@ -250,6 +250,27 @@ class Conda(object):
         """
         return environment in self.environments
 
+    def export_environment(self, environment, path=None):
+        """Export the definition of an environment.
+
+        Parameters
+        ----------
+        environment : str
+            The name of the environment to export
+        path : str or pathlib.Path = None
+            An optional filename to export to
+        """
+        command = f"conda env export --name '{environment}'"
+        if path is not None:
+            command += f" --file '{path}'"
+        print(command)
+        try:
+            result, stdout, stderr = self._execute(command)
+        except subprocess.CalledProcessError as e:
+            self.logger.warning(f"Calling conda, returncode = {e.returncode}")
+            self.logger.warning(f"Output:\n\n{e.output}\n\n")
+            raise
+
     def install(
         self,
         package,
@@ -548,7 +569,7 @@ class Conda(object):
 
         Parameters
         ----------
-        package: str
+        package: str or [str]
             The package to uninstall install.
         environment : str
             The name of the environment to list, defaults to the current.
@@ -574,7 +595,12 @@ class Conda(object):
         else:
             for channel in channels:
                 command += f" -c {channel}"
-        command += f" {package}"
+
+        if isinstance(package, str):
+            command += f" {package}"
+        else:
+            command += " "
+            command += " ".join(package)
 
         self._execute(command)
 
@@ -599,6 +625,7 @@ class Conda(object):
             # command += f" --name '{name}'"
             path = self.root_path / "envs" / name
             command += f" --prefix '{str(path)}'"
+        print(f"command = {command}")
         self.logger.debug(f"command = {command}")
         try:
             self._execute(command)

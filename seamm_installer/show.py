@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """Show the status of the SEAMM installation."""
+from packaging.version import Version
 import textwrap
 
 from tabulate import tabulate
@@ -34,6 +35,10 @@ def show():
 
     print("")
     print("Showing the modules in SEAMM:")
+
+    # Get the info about the installed packages
+    info = my.conda.list(environment=my.environment)
+
     data = []
     am_current = True
     state = {}
@@ -52,15 +57,14 @@ def show():
         else:
             description = "description unavailable"
 
-        try:
-            version = my.pip.show(package)["version"]
-        except Exception:
+        if package not in info:
             available = packages[package]["version"]
             data.append(["*" + package, "--", available, description])
             am_current = False
             state[package] = "not installed"
         else:
-            available = packages[package]["version"]
+            version = Version(info[package]["version"])
+            available = Version(packages[package]["version"])
             if version < available:
                 am_current = False
                 state[package] = "not up-to-date"
