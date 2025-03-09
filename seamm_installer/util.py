@@ -2,10 +2,10 @@
 
 """Utility methods for the SEAMM installer."""
 
-from datetime import datetime
+# from datetime import datetime
 import json
+from packaging.version import Version
 from pathlib import Path
-import pkg_resources
 import pprint
 import shutil
 import subprocess
@@ -14,16 +14,17 @@ from platformdirs import user_data_dir
 import requests
 
 from .conda import Conda
-from .metadata import core_packages, molssi_plug_ins, excluded_plug_ins
 from . import my
 from .pip import Pip
+
+# from .metadata import core_packages, molssi_plug_ins, excluded_plug_ins
 
 
 class JSONEncoder(json.JSONEncoder):
     """Class for handling the package versions in JSON."""
 
     def default(self, obj):
-        if isinstance(obj, pkg_resources.extern.packaging.version.Version):
+        if isinstance(obj, Version):
             return {"__type__": "Version", "data": str(obj)}
         else:
             return json.JSONEncoder.default(self, obj)
@@ -39,11 +40,85 @@ class JSONDecoder(json.JSONDecoder):
         if "__type__" in d:
             type_ = d.pop("__type__")
             if type_ == "Version":
-                return pkg_resources.parse_version(d["data"])
+                return Version(d["data"])
             else:
                 # Oops... better put this back together.
                 d["__type__"] = type
         return d
+
+
+def create_env(conda_packages, pypi_packages, installed_packages=[]):
+    """Create the environment files for the packages.
+
+    Parameters
+    ----------
+    conda_packages : [str]
+        The packages from conda
+    pypi_packages : [str]
+        The packages from PyPi
+    installed_packages : [str]
+        The installed packages for dependecy pinning
+    """
+    print("Creating the environment file for the packages.")
+    prelines = [
+        """name: seamm
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - pip
+  - python
+"""
+    ]
+
+    lines = []
+    # First the conda installable packages, including any dependencies
+    for repo in ("conda-forge", "pypi"):
+        if repo == "conda-forge":
+            lines.extend(prelines)
+            spc = 2 * " "
+            packages = conda_packages
+        else:
+            lines.append("  # PyPi packages")
+            lines.append("  - pip:")
+            spc = 6 * " "
+            packages = pypi_packages
+
+        for _type in ("Core package", "MolSSI plug-in", "3rd-party plug-in"):
+            if _type not in my.package_metadata:
+                continue
+            lines.append(f"{spc}# {_type}s")
+            for package in sorted(my.package_metadata[_type].keys()):
+                base = package.split("==")[0]
+                if base in packages:
+                    lines.append(f"{spc}- {package}")
+            lines.append("")
+
+        # Are there any dependencies that require conda installs?
+        dependencies = []
+        for _type in ("Core package", "MolSSI plug-in", "3rd-party plug-in"):
+            if _type not in my.package_metadata:
+                continue
+            for package, meta in my.package_metadata[_type].items():
+                if package in installed_packages and "dependencies" in meta:
+                    for dependency, depdata in meta["dependencies"].items():
+                        if depdata["repository"] == repo:
+                            dependencies.append(
+                                f"{spc}# {package}: {depdata['comment']}"
+                            )
+                            if "pinning" in depdata and depdata["pinning"] != "":
+                                dependencies.append(
+                                    f"{spc}- {dependency}{depdata['pinning']}"
+                                )
+                            else:
+                                dependencies.append(f"{spc}- {dependency}")
+
+        if len(dependencies) > 0:
+            lines.append(f"{spc}# Dependencies that require special handling\n")
+            lines.extend(dependencies)
+            lines.append("")
+
+    return "\n".join(lines)
 
 
 def find_packages(progress=True, update=None, update_cache=False, cache_valid=1):
@@ -63,139 +138,34 @@ def find_packages(progress=True, update=None, update_cache=False, cache_valid=1)
     dict(str, str)
         A dictionary with information about the packages.
     """
-    if True:
-        url = "https://zenodo.org/api/records/7789854/versions/latest"
-        try:
-            response = requests.get(url)
-            record = response.json(cls=JSONDecoder)
-        except Exception as e:
-            raise RuntimeError(f"Error finding the package list from Zenodo: {str(e)}")
+    url = "https://zenodo.org/api/records/7789854/versions/latest"
+    try:
+        response = requests.get(url)
+        record = response.json(cls=JSONDecoder)
+    except Exception as e:
+        raise RuntimeError(f"Error finding the package list from Zenodo: {str(e)}")
 
-        # Find SEAMM_packages.json
-        url = None
-        for data in record["files"]:
-            if data["key"] == "SEAMM_packages.json":
-                url = data["links"]["self"]
-                break
-        if url is None:
-            raise RuntimeError(
-                "Unable to get the package list from Zenodo. "
-                "There is no file 'SEAMM_packages.json'"
-            )
-
-        try:
-            response = requests.get(url)
-            package_db = response.json(cls=JSONDecoder)
-        except Exception as e:
-            raise RuntimeError(f"Error getting the package list from Zenodo: {str(e)}")
-
-        return package_db["packages"]
-
-    user_data_path = Path(user_data_dir("seamm-installer", appauthor=False))
-    package_db_path = user_data_path / "downloads.json"
-    if package_db_path.exists():
-        try:
-            with package_db_path.open("r") as fd:
-                package_db = json.load(fd, cls=JSONDecoder)
-        except Exception as e:
-            my.logger.warning(f"Exception reading the package cache: {e}")
-            age = cache_valid
-        else:
-            db_date = datetime.fromisoformat(package_db["date"])
-            age = datetime.now() - db_date
-            packages = package_db["packages"]
-    else:
-        user_data_path.mkdir(parents=True, exist_ok=True)
-        age = None
-
-    if not (update_cache or age is None) and age.days < cache_valid:
-        print(f"Using the package database which is {age.days} days old.")
-        print(
-            "    run 'seamm-installer refresh-cache' if you think packages have been "
-            "added or updated recently."
+    # Find SEAMM_packages.json
+    url = None
+    for data in record["files"]:
+        if data["key"] == "SEAMM_packages.json":
+            url = data["links"]["self"]
+            break
+    if url is None:
+        raise RuntimeError(
+            "Unable to get the package list from Zenodo. "
+            "There is no file 'SEAMM_packages.json'"
         )
 
-        # If the installer has been updated, the list of excluded packages may have
-        # changed. So check.
-        for package in excluded_plug_ins:
-            if package in packages:
-                del packages[package]
+    try:
+        response = requests.get(url)
+        package_db = response.json(cls=JSONDecoder)
+    except Exception as e:
+        raise RuntimeError(f"Error getting the package list from Zenodo: {str(e)}")
 
-        # Convert conda-forge url in channel to 'conda-forge'
-        for data in packages.values():
-            if "/conda-forge" in data["channel"]:
-                data["channel"] = "conda-forge"
+    my.package_metadata = package_db["metadata"] if "metadata" in package_db else []
 
-        return packages
-
-    # Update the package list and database!
-    print("Finding all the packages that make up SEAMM. This may take several minutes.")
-    # Use pip to find possible packages.
-    packages = my.pip.search(
-        query="SEAMM", progress=progress, newline=False, update=update
-    )
-    for package in excluded_plug_ins:
-        if package in packages:
-            del packages[package]
-
-    # Need to add molsystem and reference-handler by hand
-    for package in core_packages:
-        if package not in packages:
-            tmp = my.pip.search(
-                query=package, exact=True, progress=True, newline=False, update=update
-            )
-            my.logger.debug(f"Query for package {package}\n{pprint.pformat(tmp)}\n")
-            if package in tmp:
-                packages[package] = tmp[package]
-
-    # Set the type
-    for package in packages:
-        if package in core_packages:
-            packages[package]["type"] = "Core package"
-        elif package in molssi_plug_ins:
-            packages[package]["type"] = "MolSSI plug-in"
-        else:
-            packages[package]["type"] = "3rd-party plug-in"
-
-    # Check the versions on conda, and prefer those...
-    my.logger.info("Find packages: checking for conda versions")
-    for package, data in packages.items():
-        my.logger.info(f"    {package}")
-        conda_packages = my.conda.search(
-            package, progress=True, newline=False, update=update
-        )
-
-        if conda_packages is None:
-            continue
-
-        tmp = conda_packages[package]
-        if tmp["version"] >= data["version"]:
-            data["version"] = tmp["version"]
-            data["channel"] = tmp["channel"]
-            if "/conda-forge" in data["channel"]:
-                data["channel"] = "conda-forge"
-    if progress:
-        if update is None:
-            print("", flush=True)
-        else:
-            update()
-
-    # Save the package database for future use
-    package_db = {
-        "date": datetime.now().isoformat(),
-        "packages": packages,
-    }
-    # pprint.pprint(package_db)
-    with package_db_path.open("w") as fd:
-        json.dump(package_db, fd, cls=JSONEncoder, indent=4, sort_keys=True)
-    print(f"Wrote the package database to {str(package_db_path)}.")
-
-    # Convert conda-forge url in channel to 'conda-forge'
-    for data in packages.values():
-        if "/conda-forge" in data["channel"]:
-            data["channel"] = "conda-forge"
-
-    return packages
+    return package_db["packages"]
 
 
 def get_metadata():

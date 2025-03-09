@@ -228,14 +228,18 @@ class Pip(object):
         return data
 
     def uninstall(self, package):
-        """Remove the requested package.
+        """Remove the requested packages.
 
         Parameters
         ----------
-        package : str
+        package : str or [str]
             The package of interest.
         """
-        command = f"pip uninstall --yes {package}"
+        if isinstance(package, str):
+            command = f"pip uninstall --yes '{package}'"
+        else:
+            packages = "', '".join(package)
+            command = f"pip uninstall --yes '{packages}'"
         try:
             output = subprocess.check_output(
                 command, shell=True, text=True, stderr=subprocess.STDOUT

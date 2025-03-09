@@ -2,7 +2,7 @@
 
 """Uninstall requested components of SEAMM."""
 from . import my
-from .util import find_packages, get_metadata, package_info, run_plugin_installer
+from .util import find_packages, get_metadata, run_plugin_installer
 
 
 def setup(parser):
@@ -64,27 +64,37 @@ def uninstall_packages(to_uninstall):
     # Find all the packages
     packages = find_packages(progress=True)
 
+    # Get the info about the installed packages
+    info = my.conda.list(environment=my.environment)
+
     if to_uninstall == "all":
-        for package in package_info:
-            version, channel = package_info(package)
-            ptype = packages[package]["type"]
-            print(f"Uninstalling {ptype.lower()} {package}")
-            if channel == "pypi":
-                my.pip.uninstall(package)
+        to_uninstall = [*packages.keys()]
+
+    # First uninstall any plug-in installation
+    if not metadata["gui-only"] and not my.options.gui_only:
+        print(
+            "Checking for plug-ins that have their own installations, and "
+            "uninstalling them."
+        )
+    conda_packages = []
+    pypi_packages = []
+    for package in to_uninstall:
+        if package in info:
+            if info["channel"] == "pypi":
+                pypi_packages.append(package)
             else:
-                my.conda.uninstall(package)
+                conda_packages.append(package)
             # See if the package has an installer
             if not metadata["gui-only"] and not my.options.gui_only:
                 run_plugin_installer(package, "uninstall")
-    else:
-        for package in to_uninstall:
-            version, channel = package_info(package)
-            ptype = packages[package]["type"]
-            print(f"Uninstalling {ptype.lower()} {package}")
-            if channel == "pypi":
-                my.pip.uninstall(package)
-            else:
-                my.conda.uninstall(package)
-            # See if the package has an installer
-            if not metadata["gui-only"] and not my.options.gui_only:
-                run_plugin_installer(package, "uninstall")
+
+    # Now the pip packages, if any
+    if len(pypi_packages) > 0:
+        tmp = ", ".join(pypi_packages)
+        print(f"Uninstalling PyPi packages {tmp}")
+        my.pip.uninstall(pypi_packages)
+
+    if len(conda_packages) > 0:
+        tmp = ", ".join(conda_packages)
+        print(f"Uninstalling Conda packages {tmp}")
+        my.conda.uninstall(conda_packages)

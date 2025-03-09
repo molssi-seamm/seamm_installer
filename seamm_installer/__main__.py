@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-"""The main module for running the SEAMM installer.
-"""
+"""The main module for running the SEAMM installer."""
 import argparse
+from pathlib import Path
 import logging
 import sys
 
@@ -67,7 +67,19 @@ def run():
         level = kwargs.pop("log_level", "WARNING")
         logging.basicConfig(level=level)
 
-        my.development = kwargs.pop("development", False)
+        # Check for switching to/from development
+        if my.development:
+            if not kwargs["development"]:
+                my.development = False
+                my.conda.activate("seamm")
+                my.environment = my.conda.active_environment
+        else:
+            if kwargs["development"]:
+                my.development = True
+                my.conda.activate("seamm-dev")
+                my.environment = my.conda.active_environment
+
+    print(f"Working with Conda environment '{my.environment}'")
 
     # Now setup the rest of the command-line interface.
     parser.add_argument(
@@ -80,6 +92,7 @@ def run():
 
     # Parse the command-line arguments and call the requested function or the GUI
     my.options = parser.parse_args()
+    my.root = Path(my.options.root).expanduser()
     if "func" in my.options:
         try:
             sys.exit(my.options.func())

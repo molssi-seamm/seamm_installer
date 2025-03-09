@@ -6,3 +6,5 @@ environment = None
 logger = None
 options = None
 pip = None
+package_metadata = {}
+root = None

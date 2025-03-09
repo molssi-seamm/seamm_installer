@@ -1,8 +1,8 @@
 alembic
+packaging
 platformdirs
 pmw
 requests
-semver
 seamm-widgets
 tabulate
 
