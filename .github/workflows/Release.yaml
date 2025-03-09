@@ -15,7 +15,7 @@ jobs:
     name: Lint ubuntu-latest Py3.12
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
     - name: Additional info about the build
       shell: bash
       run: |
@@ -23,7 +23,7 @@ jobs:
         df -h
         ulimit -a
     # More info on options: https://github.com/conda-incubator/setup-miniconda
-    - uses: conda-incubator/setup-miniconda@v2
+    - uses: conda-incubator/setup-miniconda@v3
       with:
         python-version: 3.12
         environment-file: devtools/conda-envs/release.yaml
@@ -52,14 +52,14 @@ jobs:
         os: [macOS-latest, ubuntu-latest]
         python-version: [3.11, 3.12]
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
     - name: Additional info about the build
       shell: bash
       run: |
         uname -a
         df -h
         ulimit -a
-    - uses: conda-incubator/setup-miniconda@v2
+    - uses: conda-incubator/setup-miniconda@v3
       with:
         python-version: ${{ matrix.python-version }}
         environment-file: devtools/conda-envs/release.yaml
@@ -91,9 +91,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint, test]
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
     - name: Set up Python 3.12
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v5
       with:
         python-version: 3.12
     - name: Install package
@@ -109,13 +109,13 @@ jobs:
         python -m build --sdist --wheel --outdir dist/
         ls -l dist/
     - name: Publish distribution 📦 to Test PyPI
-      uses: pypa/gh-action-pypi-publish@master
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.test_pypi_password }}
         repository_url: https://test.pypi.org/legacy/
         skip_existing: true
     - name: Publish distribution 📦 to PyPI
       if: contains(github.ref, 'dev') == false && contains(github.ref, 'rc') == false
-      uses: pypa/gh-action-pypi-publish@master
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.pypi_password }}
