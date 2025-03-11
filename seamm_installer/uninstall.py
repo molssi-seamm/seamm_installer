@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 """Uninstall requested components of SEAMM."""
+from datetime import datetime
+
 from . import my
 from .util import find_packages, get_metadata, run_plugin_installer
 
@@ -52,12 +54,12 @@ def uninstall():
         print(f"Removing the conda environment {environment}")
         # my.conda.uninstall(all=True)
 
-        uninstall_packages("all")
+        uninstall_packages("all", gui_only=my.options.gui_only)
     else:
-        uninstall_packages(my.options.modules)
+        uninstall_packages(my.options.modules, gui_only=my.options.gui_only)
 
 
-def uninstall_packages(to_uninstall):
+def uninstall_packages(to_uninstall, gui_only=False):
     """Uninstall SEAMM components and plug-ins."""
     metadata = get_metadata()
 
@@ -71,7 +73,7 @@ def uninstall_packages(to_uninstall):
         to_uninstall = [*packages.keys()]
 
     # First uninstall any plug-in installation
-    if not metadata["gui-only"] and not my.options.gui_only:
+    if not metadata["gui-only"] and not gui_only:
         print(
             "Checking for plug-ins that have their own installations, and "
             "uninstalling them."
@@ -80,12 +82,12 @@ def uninstall_packages(to_uninstall):
     pypi_packages = []
     for package in to_uninstall:
         if package in info:
-            if info["channel"] == "pypi":
+            if info[package]["channel"] == "pypi":
                 pypi_packages.append(package)
             else:
                 conda_packages.append(package)
             # See if the package has an installer
-            if not metadata["gui-only"] and not my.options.gui_only:
+            if not metadata["gui-only"] and not gui_only:
                 run_plugin_installer(package, "uninstall")
 
     # Now the pip packages, if any
@@ -98,3 +100,15 @@ def uninstall_packages(to_uninstall):
         tmp = ", ".join(conda_packages)
         print(f"Uninstalling Conda packages {tmp}")
         my.conda.uninstall(conda_packages)
+
+    directory = my.root / "environments"
+    directory.mkdir(exist_ok=True)
+    tstamp = datetime.now().isoformat(timespec="seconds")
+
+    # Write the export file
+    path = directory / f"{tstamp}_environment.yml"
+    my.conda.export_environment(my.environment, path=path)
+
+    # And the explicit file for "conda create --file"
+    path = directory / f"{tstamp}_environment.txt"
+    path.write_text(my.conda.list(my.environment, explicit=True))

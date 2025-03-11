@@ -107,6 +107,10 @@ class InstallerBase(object):
     @property
     def exe_config(self):
         # The ini data for the executables
+        if self._exe_config.path is None:
+            path = self.root / self.init_file_name
+            if path.exists():
+                self._exe_config.path = path
         return self._exe_config
 
     @property
