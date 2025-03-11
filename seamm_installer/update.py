@@ -77,9 +77,9 @@ def update():
         # print(f"Updating the conda environment {environment}")
         # my.conda.update(all=True)
 
-        update_packages("all")
+        update_packages("all", gui_only=my.options.gui_only)
     else:
-        update_packages(my.options.modules)
+        update_packages(my.options.modules, gui_only=my.options.gui_only)
 
     if my.development:
         update_development_environment()
@@ -125,7 +125,7 @@ def update():
                 print(f"Restarted the {service_name} because it was updated.")
 
 
-def update_packages(to_update):
+def update_packages(to_update, gui_only=False):
     """Update SEAMM components and plug-ins."""
     metadata = get_metadata()
 
@@ -197,8 +197,12 @@ def update_packages(to_update):
     path = directory / f"{tstamp}_environment.yml"
     my.conda.export_environment(my.environment, path=path)
 
+    # And the explicit file for "conda create --file"
+    path = directory / f"{tstamp}_environment.txt"
+    path.write_text(my.conda.list(my.environment, explicit=True))
+
     # See if any packages have an installer
-    if not metadata["gui-only"] and not my.options.gui_only:
+    if not metadata["gui-only"] and not gui_only:
         for package in to_update:
             # Skip packages that aren't installed.
             if package in info:

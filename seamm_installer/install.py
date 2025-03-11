@@ -86,16 +86,21 @@ def install():
 
     if my.options.all:
         install_packages(
-            "all", third_party=my.options.third_party, update=my.options.update
+            "all",
+            third_party=my.options.third_party,
+            update=my.options.update,
+            gui_only=my.options.gui_only,
         )
     else:
-        install_packages(my.options.modules, update=my.options.update)
+        install_packages(
+            my.options.modules, update=my.options.update, gui_only=my.options.gui_only
+        )
 
     if my.development:
         install_development_environment()
 
 
-def install_packages(to_install, update=False, third_party=False):
+def install_packages(to_install, update=False, third_party=False, gui_only=False):
     """Install SEAMM components and plug-ins."""
     metadata = get_metadata()
 
@@ -157,7 +162,7 @@ def install_packages(to_install, update=False, third_party=False):
 
     # Create a list of all packages that exist already or will be installer
     all_packages = [*packages.keys()]
-    for packagee in to_install:
+    for package in to_install:
         if package not in all_packages:
             all_packages.append(package)
 
@@ -182,6 +187,10 @@ def install_packages(to_install, update=False, third_party=False):
     path = directory / f"{tstamp}_environment.yml"
     my.conda.export_environment(my.environment, path=path)
 
+    # And the explicit file for "conda create --file"
+    path = directory / f"{tstamp}_environment.txt"
+    path.write_text(my.conda.list(my.environment, explicit=True))
+
     # Restart services and run custom installer
     for package in to_install:
         if not update and package in info:
@@ -201,7 +210,7 @@ def install_packages(to_install, update=False, third_party=False):
             mgr.restart(service, ignore_errors=True)
 
         # See if the package has an installer
-        if not metadata["gui-only"]:
+        if not metadata["gui-only"] and not gui_only:
             run_plugin_installer(package, "install")
 
 

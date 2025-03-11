@@ -263,7 +263,6 @@ class Conda(object):
         command = f"conda env export --name '{environment}'"
         if path is not None:
             command += f" --file '{path}'"
-        print(command)
         try:
             result, stdout, stderr = self._execute(command)
         except subprocess.CalledProcessError as e:
@@ -323,7 +322,14 @@ class Conda(object):
 
         self._execute(command, progress=progress, newline=newline, update=update)
 
-    def list(self, environment=None, query=None, fullname=False, update=None):
+    def list(
+        self,
+        environment=None,
+        query=None,
+        fullname=False,
+        update=None,
+        explicit=False,
+    ):
         """The contents of an environment.
 
         Parameters
@@ -332,15 +338,22 @@ class Conda(object):
             The name of the environment to list, defaults to the current.
         query: str
             Regexp for package names, default to all packages
+        fullname : bool = False
+            For a query, match only the full name
         update : None or method
             Method to call to e.g. update a progress bar
+        explicit : bool = False
+            If true, get an explicit list, suitable for "conda create --file"
 
         Returns
         -------
         dict
             A dictionary keyed by the package names.
         """
-        command = "conda list --json"
+        if explicit:
+            command = "conda list --explicit"
+        else:
+            command = "conda list --json"
         if environment is not None:
             command += f" --name '{environment}'"
         if fullname:
@@ -361,6 +374,9 @@ class Conda(object):
 
         if stdout is None or stdout == "":
             return None
+
+        if explicit:
+            return stdout
 
         result = {}
         with warnings.catch_warnings():
