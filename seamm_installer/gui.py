@@ -9,23 +9,21 @@ import sys
 import tkinter as tk
 import tkinter.ttk as ttk
 
+from packaging.version import Version
 import Pmw
 import seamm_widgets as sw
 
 from . import apps
-from . import datastore
 from . import my
 from .util import (
     find_packages,
     get_metadata,
-    package_info,
     run_plugin_installer,
 )
 from .services import known_services
-from .install import install_development_environment
-from .update import update_development_environment
-
-#    set_metadata,
+from .install import install_packages, install_development_environment
+from .uninstall import uninstall_packages
+from .update import update_packages, update_development_environment
 
 
 system = platform.system()
@@ -449,7 +447,7 @@ class GUI(collections.abc.MutableMapping):
         for package in self.packages:
             count += 1
 
-            available = self.packages[package]["version"]
+            available = Version(self.packages[package]["version"])
             if package in self.packages and "description" in self.packages[package]:
                 description = self.packages[package]["description"].strip()
             else:
@@ -458,7 +456,7 @@ class GUI(collections.abc.MutableMapping):
             if package not in installed:
                 data[package] = [package, "--", available, description, "not installed"]
             else:
-                version = installed[package]["version"]
+                version = Version(installed[package]["version"])
                 # See if the package has an installer
                 self.progress_text.configure(
                     text=f"Checking background codes for {package}."
@@ -613,6 +611,9 @@ class GUI(collections.abc.MutableMapping):
 
         self.root.update()
 
+        # This is a kluge! the 2000 height is a reasonable guess but may be too small
+        table.canvas.configure(scrollregion=(0, 0, 1287, 2000))
+
         # Set the heights of the descriptions
         self.description_width = {}
         for w in self.descriptions:
@@ -662,323 +663,81 @@ class GUI(collections.abc.MutableMapping):
     def _install(self, gui_only=False):
         "Install selected packages."
         update = True
-        changed = False
 
-        n = 0
+        to_install = []
         for package, var in self._selected.items():
             if var.get() == 1:
-                available = self.packages[package]["version"]
-                channel = self.packages[package]["channel"]
-                installed_version, installed_channel = package_info(package)
-                ptype = self.packages[package]["type"]
+                to_install.append(package)
+        n = len(to_install)
 
-                if installed_channel is None:
-                    n += 1
-                elif update:
-                    pinned = (
-                        "pinned" in self.packages[package]
-                        and self.packages[package]["pinned"]
-                    )
-                    if pinned and installed_version < available:
-                        n += 1
-                    else:
-                        n += 1
-
-        self.progress_bar.configure(mode="determinate", maximum=n, value=0)
-        self.progress_text.configure(text=f"Installing/updating packages (0 of {n})")
+        self.progress_bar.configure(mode="indeterminate")
+        self.progress_text.configure(text=f"Installing/updating {n} packages")
         self.progress_dialog.deiconify()
         self.root.update()
+        self.progress_bar.start()
 
-        count = 0
-        for package, var in self._selected.items():
-            if var.get() == 1:
-                available = self.packages[package]["version"]
-                channel = self.packages[package]["channel"]
-                installed_version, installed_channel = package_info(package)
-                ptype = self.packages[package]["type"]
+        install_packages(to_install, update=update, gui_only=gui_only)
 
-                # spec = f"{package}=={available}"
-                pinned = (
-                    "pinned" in self.packages[package]
-                    and self.packages[package]["pinned"]
-                )
-                if pinned:
-                    spec = f"{package}=={available}"
-                    print(f"pinning {package} to version {available}")
-                else:
-                    spec = package
-
-                if installed_channel is None:
-                    print(f"Installing {ptype.lower()} {package} version {available}.")
-                    if channel == "pypi":
-                        my.pip.install(spec)
-                    else:
-                        my.conda.install(spec)
-
-                    if package == "seamm-datastore":
-                        datastore.update()
-                    elif package == "seamm-dashboard":
-                        # If installing, the service should not exist, but restart if
-                        # it does.
-                        service = f"dev_{package}" if my.development else package
-                        mgr.restart(service, ignore_errors=True)
-                    elif package == "seamm-jobserver":
-                        service = f"dev_{package}" if my.development else package
-                        mgr.restart(service, ignore_errors=True)
-                    # See if the package has an installer
-                    if not gui_only:
-                        self.progress_text.configure(
-                            text=f"Running installer for {package}"
-                        )
-                        self.root.update()
-                        run_plugin_installer(package, "install")
-
-                    # Get the actual version and patch up data
-                    tmp = my.pip.show(package)
-                    if "version" not in tmp:
-                        print(f"Could not get version for package '{package}'")
-                    else:
-                        version = tmp["version"]
-                        self.packages[package]["version"] = version
-                        m, i, a, d, status = self.package_data[package]
-                        self.package_data[package] = [
-                            m,
-                            version,
-                            version,
-                            d,
-                            "up to date",
-                        ]
-                        changed = True
-
-                    count += 1
-                    self.progress_bar.step()
-                    self.progress_text.configure(
-                        text=f"Installing/updating packages ({count} of {n})"
-                    )
-                    self.root.update()
-                elif update and (not pinned or installed_version < available):
-                    print(
-                        f"Updating {ptype.lower()} {package} from version "
-                        f"{installed_version} to {available}"
-                    )
-                    if channel == installed_channel:
-                        if channel == "pypi":
-                            my.pip.install(spec)
-                        else:
-                            my.conda.install(spec)
-                    else:
-                        if installed_channel == "pypi":
-                            my.pip.uninstall(package)
-                        else:
-                            my.conda.uninstall(package)
-                        if channel == "pypi":
-                            my.pip.install(spec)
-                        else:
-                            my.conda.install(spec)
-                    # See if the package has an installer
-                    if not gui_only:
-                        self.progress_text.configure(
-                            text=f"Running installer for {package}"
-                        )
-                        self.root.update()
-                        run_plugin_installer(package, "install")
-
-                    # Get the actual version and patch up data
-                    tmp = my.pip.show(package)
-                    if "version" not in tmp:
-                        print(f"Could not get version for package '{package}'")
-                    else:
-                        version = tmp["version"]
-                        m, i, a, d, status = self.package_data[package]
-                        self.package_data[package] = [
-                            m,
-                            version,
-                            a,
-                            d,
-                            "up to date",
-                        ]
-                        changed = True
-
-                    count += 1
-                    self.progress_bar.step()
-                    self.progress_text.configure(
-                        text=f"Installing/updating packages ({count} of {n})"
-                    )
-                    self.root.update()
+        # Fix the package list
+        self._clear_selection()
+        self._refresh_cache()
 
         if my.development:
-            # Install the development packages
-            self.progress_bar.configure(mode="indeterminate", value=0)
-            self.progress_text.configure(text="Installing the development environment.")
+            self.progress_text.configure(
+                text="Installing/updating development packages"
+            )
+            self.progress_dialog.deiconify()
             self.root.update()
-            self.progress_bar.start()
 
             install_development_environment()
 
-        # Fix the package list
-        if changed:
-            self.reset_table()
-        self._clear_selection()
-
+        self.progress_bar.stop()
         self.progress_dialog.withdraw()
 
     def _uninstall(self, gui_only=False):
         "Uninstall selected packages."
-        n = 0
+        to_uninstall = []
         for package, var in self._selected.items():
             if var.get() == 1:
-                n += 1
+                to_uninstall.append(package)
+        n = len(to_uninstall)
 
-        self.progress_bar.configure(mode="determinate", maximum=n, value=0)
-        self.progress_text.configure(text=f"Uninstalling packages (0 of {n})")
+        self.progress_bar.configure(mode="indeterminate")
+        self.progress_text.configure(text=f"Uninstalling {n} packages")
         self.progress_dialog.deiconify()
         self.root.update()
+        self.progress_bar.start()
 
-        changed = False
-        count = 0
-        for package, var in self._selected.items():
-            if var.get() == 1:
-                # Run the package uninstall if it exists
-                if not gui_only:
-                    self.progress_text.configure(
-                        text=f"Running uninstaller for {package}"
-                    )
-                    self.root.update()
-                    run_plugin_installer(package, "uninstall")
+        uninstall_packages(to_uninstall, gui_only=gui_only)
 
-                # Uninstall the plug-in
-                version, channel = package_info(package)
-                ptype = self.packages[package]["type"]
-                print(f"Uninstalling {ptype.lower()} {package}")
-                if channel == "pypi":
-                    my.pip.uninstall(package)
-                else:
-                    my.conda.uninstall(package)
-                # See if the package has an installer
-                if not gui_only:
-                    self.progress_text.configure(
-                        text=f"Running uninstaller for {package}"
-                    )
-                    self.root.update()
-                    run_plugin_installer(package, "uninstall")
-
-                # Patch up data
-                m, i, a, d, status = self.package_data[package]
-                self.package_data[package] = [m, "--", a, d, "not installed"]
-                changed = True
-
-                count += 1
-                self.progress_bar.step()
-                self.progress_text.configure(
-                    text=f"Uninstalling packages ({count} of {n})"
-                )
-                self.root.update()
-        if changed:
-            self.reset_table()
+        # self.reset_table()
         self._clear_selection()
+        self._refresh_cache()
 
+        self.progress_bar.stop()
         self.progress_dialog.withdraw()
 
     def _update(self, gui_only=False):
         "Update the selected packages."
-        n = 0
+        to_update = []
         for package, var in self._selected.items():
             if var.get() == 1:
-                n += 1
+                to_update.append(package)
+        n = len(to_update)
 
-        self.progress_bar.configure(mode="determinate", maximum=n, value=0)
-        self.progress_text.configure(text=f"Updating packages (0 of {n})")
+        self.progress_bar.configure(mode="indeterminate")
+        self.progress_text.configure(text=f"Updating {n} packages")
         self.progress_dialog.deiconify()
         self.root.update()
+        self.progress_bar.start()
 
-        changed = False
-        count = 0
-        for package, var in self._selected.items():
-            if var.get() == 1:
-                available = self.packages[package]["version"]
-                channel = self.packages[package]["channel"]
-                if "/conda-forge" in channel:
-                    print(f"{channel=} --> conda-forge")
-                    channel = "conda-forge"
-                installed_version, installed_channel = package_info(package)
-                ptype = self.packages[package]["type"]
+        update_packages(to_update, gui_only=gui_only)
 
-                pinned = (
-                    "pinned" in self.packages[package]
-                    and self.packages[package]["pinned"]
-                )
-                if pinned:
-                    spec = f"{package}=={available}"
-                    print(f"pinning {package} to version {available}")
-                else:
-                    spec = package
+        self._clear_selection()
+        self._refresh_cache()
 
-                if installed_version is not None:
-                    print(
-                        f"Updating {ptype.lower()} {package} from version "
-                        f"{installed_version} to {available} using {channel} "
-                        f"(was installed using {installed_channel})"
-                    )
-                    if channel == installed_channel:
-                        self.logger.debug("    Same channel")
-                        if channel == "pypi":
-                            self.logger.debug("    Updating with pip")
-                            if pinned:
-                                my.pip.install(spec)
-                            else:
-                                my.pip.update(spec)
-                        else:
-                            self.logger.debug("    Updating with conda")
-                            if pinned:
-                                my.conda.install(spec)
-                            else:
-                                my.conda.update(spec)
-                    else:
-                        if installed_channel == "pypi":
-                            self.logger.debug("    uninstalling with pip")
-                            my.pip.uninstall(package)
-                        else:
-                            print("uninstalling '{channel=}' '{installed_channel=}'")
-                            self.logger.debug(
-                                "uninstalling '{channel=}' '{installed_channel=}'"
-                            )
-                            my.conda.uninstall(package)
-                        if channel == "pypi":
-                            self.logger.debug("    installing with pip")
-                            my.pip.install(spec)
-                        else:
-                            self.logger.debug("    installing with conda")
-                            my.conda.install(spec)
-                    # See if the package has an installer
-                    if not gui_only:
-                        self.progress_text.configure(
-                            text=f"Running update for {package}"
-                        )
-                        self.root.update()
-                        run_plugin_installer(package, "update")
-
-                    # Get the actual version and patch up data
-                    tmp = my.pip.show(package)
-                    if "version" not in tmp:
-                        print(f"Could not get version for package '{package}'")
-                    else:
-                        version = tmp["version"]
-                        m, i, a, d, status = self.package_data[package]
-                        self.package_data[package] = [
-                            m,
-                            version,
-                            version,
-                            d,
-                            "up to date",
-                        ]
-                        changed = True
-
-                    count += 1
-                    self.progress_bar.step()
-                    self.progress_text.configure(
-                        text=f"Updating packages ({count} of {n})"
-                    )
-                    self.root.update()
+        self.progress_bar.stop()
+        self.progress_dialog.withdraw()
 
         if my.development:
             # Update the development packages
@@ -989,9 +748,8 @@ class GUI(collections.abc.MutableMapping):
 
             update_development_environment()
 
-        if changed:
-            self.reset_table()
         self._clear_selection()
+        self._refresh_cache()
 
         self.progress_dialog.withdraw()
 
@@ -1069,7 +827,7 @@ class GUI(collections.abc.MutableMapping):
         self.layout_apps()
 
     def _refresh_cache(self):
-        """Refresh the cache of vailable codes and reset the GUI."""
+        """Refresh the cache of available codes and reset the GUI."""
         self.progress_bar.configure(mode="indeterminate", value=0)
         self.progress_text.configure(
             text="Finding all packages. This may take a couple minutes."
