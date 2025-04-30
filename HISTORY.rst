@@ -1,7 +1,7 @@
 =======
 History
 =======
-2025.3.11 -- Bugfix: Issues in graphical install
+2025.4.30 -- Bugfix: Issues in graphical install
     * Also added 'conda list --explicit' environment files for each environment.
       
 2025.3.9 -- Significant update
