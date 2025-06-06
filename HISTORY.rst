@@ -1,6 +1,12 @@
 =======
 History
 =======
+2025.6.6 -- Better handling of Conda paths
+    * Some conda installations use paths rather than names. This may be common at
+      computer centeres with a central installation of the base environment and
+      individual user installations of other environments. This version supports such
+      installations.
+
 2025.4.30 -- Bugfix: Issues in graphical install
     * Also added 'conda list --explicit' environment files for each environment.
       
