@@ -201,10 +201,7 @@ class Conda(object):
             command += " --force"
         if name is not None:
             # Using the name leads to odd paths, so be explicit.
-            if "/" in name:
-                path = Path(name)
-            else:
-                path = self.root_path / "envs" / name
+            path = self._resolve_environment_path(name)
             command += f" --prefix '{str(path)}'"
         self.logger.debug(f"command = {command}")
         try:
@@ -225,10 +222,7 @@ class Conda(object):
             The name of the environment.
         """
         # Using the name leads to odd paths, so be explicit.
-        if "/" in name:
-            path = Path(name)
-        else:
-            path = self.root_path / "envs" / name
+        path = self._resolve_environment_path(name)
 
         command = f"conda env remove --yes  --prefix '{str(path)}'"
 
@@ -267,10 +261,8 @@ class Conda(object):
         path : str or pathlib.Path = None
             An optional filename to export to
         """
-        if "/" in environment:
-            command = f"conda env export --prefix '{environment}'"
-        else:
-            command = f"conda env export --name '{environment}'"
+        environment_path = self._resolve_environment_path(environment)
+        command = f"conda env export --prefix '{environment_path}'"
         if path is not None:
             command += f" --file '{path}'"
         try:
@@ -313,10 +305,7 @@ class Conda(object):
         if environment is not None:
             # Using the name leads to odd paths, so be explicit.
             # command += f" --name '{environment}'"
-            if "/" in environment:
-                path = Path(environment)
-            else:
-                path = self.root_path / "envs" / environment
+            path = self._resolve_environment_path(environment)
             command += f" --prefix '{str(path)}'"
         if override_channels:
             command += " --override-channels"
@@ -368,10 +357,8 @@ class Conda(object):
         else:
             command = "conda list --json"
         if environment is not None:
-            if "/" in environment:
-                command += f" --prefix '{environment}'"
-            else:
-                command += f" --name '{environment}'"
+            path = self._resolve_environment_path(environment)
+            command += f" --prefix '{path}'"
         if fullname:
             command += " --full-name"
         if query is not None:
@@ -433,10 +420,8 @@ class Conda(object):
         environment : str
             The name of the environment to remove.
         """
-        if "/" in environment:
-            command = f"conda env remove --prefix '{environment}' --yes --json"
-        else:
-            command = f"conda env remove --name '{environment}' --yes --json"
+        path = self._resolve_environment_path(environment)
+        command = f"conda env remove --prefix '{path}' --yes --json"
         try:
             self._execute(command)
         except subprocess.CalledProcessError as e:
@@ -566,10 +551,7 @@ class Conda(object):
         if environment is not None:
             # Using the name leads to odd paths, so be explicit.
             # command += f" --name '{environment}'"
-            if "/" in environment:
-                path = Path(environment)
-            else:
-                path = self.root_path / "envs" / environment
+            path = self._resolve_environment_path(environment)
             command += f" --prefix '{str(path)}'"
         if override_channels:
             command += " --override-channels"
@@ -624,10 +606,8 @@ class Conda(object):
         """
         command = "conda uninstall --yes "
         if environment is not None:
-            if "/" in environment:
-                command += f" --prefix '{environment}'"
-            else:
-                command += f" --name '{environment}'"
+            path = self._resolve_environment_path(environment)
+            command += f" --prefix '{path}'"
         if override_channels:
             command += " --override-channels"
         if channels is None:
@@ -664,10 +644,7 @@ class Conda(object):
         if name is not None:
             # Using the name leads to odd paths, so be explicit.
             # command += f" --name '{name}'"
-            if "/" in name:
-                path = Path(name)
-            else:
-                path = self.root_path / "envs" / name
+            path = self._resolve_environment_path(name)
             command += f" --prefix '{str(path)}'"
         print(f"command = {command}")
         self.logger.debug(f"command = {command}")
@@ -740,3 +717,11 @@ class Conda(object):
             if update is None:
                 print("")
         return result, stdout, stderr
+
+    def _resolve_environment_path(self, pathname):
+        """Get the path given either a name or path for an environment."""
+        if Path(pathname).is_absolute:
+            path = Path(pathname)
+        else:
+            path = self.root_path / "envs" / pathname
+        return path
