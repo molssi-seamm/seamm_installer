@@ -1,6 +1,10 @@
 =======
 History
 =======
+2025.6.21: Bugfix: error in path to Conda environments.
+    * Fixed an error in the previous release that caused the code to get the incorrect
+      path to the conda installation.
+      
 2025.6.6 -- Better handling of Conda paths
     * Some conda installations use paths rather than names. This may be common at
       computer centers with a central installation of the base environment and
