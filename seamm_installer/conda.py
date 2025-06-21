@@ -720,7 +720,7 @@ class Conda(object):
 
     def _resolve_environment_path(self, pathname):
         """Get the path given either a name or path for an environment."""
-        if Path(pathname).is_absolute:
+        if Path(pathname).is_absolute():
             path = Path(pathname)
         else:
             path = self.root_path / "envs" / pathname
