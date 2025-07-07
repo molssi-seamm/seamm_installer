@@ -170,7 +170,7 @@ def install_packages(to_install, update=False, third_party=False, gui_only=False
     env = create_env(conda_packages, pypi_packages, installed_packages=all_packages)
 
     directory = my.root / "environments"
-    directory.mkdir(exist_ok=True)
+    directory.mkdir(parents=True, exist_ok=True)
     tstamp = datetime.now().isoformat(timespec="seconds")
     path = directory / f"{tstamp}_install.yml"
     path.write_text(env)

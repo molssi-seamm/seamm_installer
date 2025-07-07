@@ -1,6 +1,8 @@
 =======
 History
 =======
+2025.7.7: Bugfix: Ensure creation of ~/SEAMM directory
+
 2025.6.21: Bugfix: error in path to Conda environments.
     * Fixed an error in the previous release that caused the code to get the incorrect
       path to the conda installation.
