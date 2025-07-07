@@ -93,6 +93,9 @@ def run():
     # Parse the command-line arguments and call the requested function or the GUI
     my.options = parser.parse_args()
     my.root = Path(my.options.root).expanduser()
+    # Ensure the root exsists
+    my.root.mkdir(parents=True, exist_ok=True)
+
     if "func" in my.options:
         try:
             sys.exit(my.options.func())
