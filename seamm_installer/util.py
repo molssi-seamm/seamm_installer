@@ -33,7 +33,8 @@ class JSONEncoder(json.JSONEncoder):
 class JSONDecoder(json.JSONDecoder):
     """Class for handling the package versions in JSON."""
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        # kwargs because simplejson passes in encoding=.... causing crash
         super().__init__(object_hook=self.dict_to_object)
 
     def dict_to_object(self, d):
@@ -143,6 +144,11 @@ def find_packages(progress=True, update=None, update_cache=False, cache_valid=1)
         response = requests.get(url)
         record = response.json(cls=JSONDecoder)
     except Exception as e:
+        print(f"Error finding the package list from Zenodo: {str(e)}")
+        print("The text of the response from Zenodo is:")
+        print(80 * "-")
+        pprint.pprint(response.text)
+        print(80 * "-")
         raise RuntimeError(f"Error finding the package list from Zenodo: {str(e)}")
 
     # Find SEAMM_packages.json

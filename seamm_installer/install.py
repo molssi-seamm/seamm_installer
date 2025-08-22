@@ -100,12 +100,25 @@ def install():
         install_development_environment()
 
 
-def install_packages(to_install, update=False, third_party=False, gui_only=False):
+def install_packages(
+    to_install,
+    update=False,
+    third_party=False,
+    gui_only=False,
+    progress=None,
+    update_text=None,
+):
     """Install SEAMM components and plug-ins."""
     metadata = get_metadata()
 
+    if progress is not None:
+        progress()
+
     # Find all the packages
     packages = find_packages(progress=True)
+
+    if progress is not None:
+        progress()
 
     if to_install == "all":
         if third_party:
@@ -117,6 +130,9 @@ def install_packages(to_install, update=False, third_party=False, gui_only=False
 
     # Get the info about the installed packages
     info = my.conda.list(environment=my.environment)
+
+    if progress is not None:
+        progress()
 
     conda_packages = []
     pypi_packages = []
@@ -175,12 +191,15 @@ def install_packages(to_install, update=False, third_party=False, gui_only=False
     path = directory / f"{tstamp}_install.yml"
     path.write_text(env)
 
+    if progress is not None:
+        progress()
+
     # And do the update
     if update:
         print(f"Installing to and updating the Conda environment with {path.name}")
     else:
         print(f"Installing into the Conda environment with {path.name}")
-    my.conda.update_environment(path, name=my.environment)
+    my.conda.update_environment(path, name=my.environment, update=progress)
     print("done")
 
     # Write the export file
@@ -193,6 +212,8 @@ def install_packages(to_install, update=False, third_party=False, gui_only=False
 
     # Restart services and run custom installer
     for package in to_install:
+        if progress is not None:
+            progress()
         if not update and package in info:
             continue
 
@@ -211,6 +232,11 @@ def install_packages(to_install, update=False, third_party=False, gui_only=False
 
         # See if the package has an installer
         if not metadata["gui-only"] and not gui_only:
+            if progress is not None:
+                progress()
+            if update_text is not None:
+                print(f"Installing background codes for {package}")
+                update_text(f"Installing background codes for {package}")
             run_plugin_installer(package, "install")
 
 

@@ -1,6 +1,12 @@
 =======
 History
 =======
+2025.8.22: Bugfix: simplejson caused crash
+    * If installed by one of the packages, simplejson caused the installer to crash
+      because of an incompatibility between simplejson and the standard Python JSON
+      package.
+    * Improved feedback about progress when install and updating from the GUI.
+
 2025.7.7: Bugfix: Ensure creation of ~/SEAMM directory
 
 2025.6.21: Bugfix: error in path to Conda environments.

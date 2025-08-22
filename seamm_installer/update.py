@@ -125,18 +125,27 @@ def update():
                 print(f"Restarted the {service_name} because it was updated.")
 
 
-def update_packages(to_update, gui_only=False):
+def update_packages(to_update, gui_only=False, progress=None, update_text=None):
     """Update SEAMM components and plug-ins."""
     metadata = get_metadata()
 
+    if progress is not None:
+        progress()
+
     # Find all the packages
     packages = find_packages(progress=True)
+
+    if progress is not None:
+        progress()
 
     if to_update == "all":
         to_update = [*packages.keys()]
 
     # Get the info about the installed packages
     info = my.conda.list(environment=my.environment)
+
+    if progress is not None:
+        progress()
 
     conda_packages = []
     pypi_packages = []
@@ -182,6 +191,9 @@ def update_packages(to_update, gui_only=False):
         conda_packages, pypi_packages, installed_packages=[*packages.keys()]
     )
 
+    if progress is not None:
+        progress()
+
     directory = my.root / "environments"
     directory.mkdir(exist_ok=True)
     tstamp = datetime.now().isoformat(timespec="seconds")
@@ -190,7 +202,7 @@ def update_packages(to_update, gui_only=False):
 
     # And do the update
     print(f"Updating the Conda environment with {path.name}")
-    my.conda.update_environment(path, name=my.environment)
+    my.conda.update_environment(path, name=my.environment, update=progress)
     print("done")
 
     # Write the export file
@@ -206,6 +218,11 @@ def update_packages(to_update, gui_only=False):
         for package in to_update:
             # Skip packages that aren't installed.
             if package in info:
+                if progress is not None:
+                    progress()
+                if update_text is not None:
+                    print(f"Updating background codes for {package}")
+                    update_text(f"Updating background codes for {package}")
                 run_plugin_installer(package, "update")
 
 
