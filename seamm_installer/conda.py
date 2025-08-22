@@ -623,9 +623,9 @@ class Conda(object):
             command += " "
             command += " ".join(package)
 
-        self._execute(command)
+        self._execute(command, progress=progress, update=update)
 
-    def update_environment(self, environment_file, name=None):
+    def update_environment(self, environment_file, name=None, update=None):
         """Update a Conda environment.
 
         Parameters
@@ -649,7 +649,7 @@ class Conda(object):
         print(f"command = {command}")
         self.logger.debug(f"command = {command}")
         try:
-            self._execute(command)
+            self._execute(command, update=update)
         except subprocess.CalledProcessError as e:
             self.logger.warning(f"Calling conda, returncode = {e.returncode}")
             self.logger.warning(f"Output:\n\n{e.output}\n\n")
@@ -705,6 +705,7 @@ class Conda(object):
                             n = 0
                         sys.stdout.flush()
                     else:
+                        print("Conda execute calling update")
                         update()
             else:
                 if output != "":

@@ -670,13 +670,18 @@ class GUI(collections.abc.MutableMapping):
                 to_install.append(package)
         n = len(to_install)
 
-        self.progress_bar.configure(mode="indeterminate")
+        self.progress_bar.configure(mode="indeterminate", maximum=20, value=0)
         self.progress_text.configure(text=f"Installing/updating {n} packages")
         self.progress_dialog.deiconify()
         self.root.update()
-        self.progress_bar.start()
 
-        install_packages(to_install, update=update, gui_only=gui_only)
+        install_packages(
+            to_install,
+            update=update,
+            gui_only=gui_only,
+            progress=self._update_progress_step,
+            update_text=self._update_progress_text,
+        )
 
         # Fix the package list
         self._clear_selection()
@@ -691,8 +696,16 @@ class GUI(collections.abc.MutableMapping):
 
             install_development_environment()
 
-        self.progress_bar.stop()
+        # self.progress_bar.stop()
         self.progress_dialog.withdraw()
+
+    def _update_progress_step(self):
+        self.progress_bar.step()
+        self.root.update()
+
+    def _update_progress_text(self, text):
+        self.progress_text.configure(text=text)
+        self.root.update()
 
     def _uninstall(self, gui_only=False):
         "Uninstall selected packages."
@@ -725,18 +738,21 @@ class GUI(collections.abc.MutableMapping):
                 to_update.append(package)
         n = len(to_update)
 
-        self.progress_bar.configure(mode="indeterminate")
+        self.progress_bar.configure(mode="indeterminate", maximum=20, value=0)
         self.progress_text.configure(text=f"Updating {n} packages")
         self.progress_dialog.deiconify()
         self.root.update()
-        self.progress_bar.start()
 
-        update_packages(to_update, gui_only=gui_only)
+        update_packages(
+            to_update,
+            gui_only=gui_only,
+            progress=self._update_progress_step,
+            update_text=self._update_progress_text,
+        )
 
         self._clear_selection()
         self._refresh_cache()
 
-        self.progress_bar.stop()
         self.progress_dialog.withdraw()
 
         if my.development:
