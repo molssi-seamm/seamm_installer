@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>seamm_installer &#8212; SEAMM Installer Step 2025.8.22 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/classic.css?v=def86cc0" />
+    
+    <script src="../_static/documentation_options.js?v=39bacb12"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">SEAMM Installer Step 2025.8.22 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">seamm_installer</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="seamm-installer">
+<h1>seamm_installer<a class="headerlink" href="#seamm-installer" title="Link to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="seamm_installer.html">seamm_installer package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="seamm_installer.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_installer.html#module-seamm_installer.apps">seamm_installer.apps module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.apps.create"><code class="docutils literal notranslate"><span class="pre">create()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.apps.delete"><code class="docutils literal notranslate"><span class="pre">delete()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.apps.setup"><code class="docutils literal notranslate"><span class="pre">setup()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.apps.show"><code class="docutils literal notranslate"><span class="pre">show()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.apps.update"><code class="docutils literal notranslate"><span class="pre">update()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_installer.html#module-seamm_installer.cache">seamm_installer.cache module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.cache.refresh"><code class="docutils literal notranslate"><span class="pre">refresh()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.cache.setup"><code class="docutils literal notranslate"><span class="pre">setup()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_installer.html#module-seamm_installer.cli">seamm_installer.cli module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.cli.setup"><code class="docutils literal notranslate"><span class="pre">setup()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_installer.html#module-seamm_installer.conda">seamm_installer.conda module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.conda.Conda"><code class="docutils literal notranslate"><span class="pre">Conda</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.conda.Conda.activate"><code class="docutils literal notranslate"><span class="pre">Conda.activate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.conda.Conda.active_environment"><code class="docutils literal notranslate"><span class="pre">Conda.active_environment</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.conda.Conda.create_environment"><code class="docutils literal notranslate"><span class="pre">Conda.create_environment()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.conda.Conda.delete_environment"><code class="docutils literal notranslate"><span class="pre">Conda.delete_environment()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.conda.Conda.environments"><code class="docutils literal notranslate"><span class="pre">Conda.environments</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.conda.Conda.exists"><code class="docutils literal notranslate"><span class="pre">Conda.exists()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.conda.Conda.export_environment"><code class="docutils literal notranslate"><span class="pre">Conda.export_environment()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.conda.Conda.install"><code class="docutils literal notranslate"><span class="pre">Conda.install()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.conda.Conda.is_installed"><code class="docutils literal notranslate"><span class="pre">Conda.is_installed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.conda.Conda.list"><code class="docutils literal notranslate"><span class="pre">Conda.list()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.conda.Conda.path"><code class="docutils literal notranslate"><span class="pre">Conda.path()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.conda.Conda.prefix"><code class="docutils literal notranslate"><span class="pre">Conda.prefix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.conda.Conda.remove_environment"><code class="docutils literal notranslate"><span class="pre">Conda.remove_environment()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.conda.Conda.root_prefix"><code class="docutils literal notranslate"><span class="pre">Conda.root_prefix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.conda.Conda.search"><code class="docutils literal notranslate"><span class="pre">Conda.search()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.conda.Conda.show"><code class="docutils literal notranslate"><span class="pre">Conda.show()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.conda.Conda.uninstall"><code class="docutils literal notranslate"><span class="pre">Conda.uninstall()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.conda.Conda.update"><code class="docutils literal notranslate"><span class="pre">Conda.update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.conda.Conda.update_environment"><code class="docutils literal notranslate"><span class="pre">Conda.update_environment()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_installer.html#module-seamm_installer.configuration">seamm_installer.configuration module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.configuration.Configuration"><code class="docutils literal notranslate"><span class="pre">Configuration</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.configuration.Configuration.add_prolog"><code class="docutils literal notranslate"><span class="pre">Configuration.add_prolog()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.configuration.Configuration.add_section"><code class="docutils literal notranslate"><span class="pre">Configuration.add_section()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.configuration.Configuration.file_exists"><code class="docutils literal notranslate"><span class="pre">Configuration.file_exists()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.configuration.Configuration.from_string"><code class="docutils literal notranslate"><span class="pre">Configuration.from_string()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.configuration.Configuration.get_prolog"><code class="docutils literal notranslate"><span class="pre">Configuration.get_prolog()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.configuration.Configuration.get_values"><code class="docutils literal notranslate"><span class="pre">Configuration.get_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.configuration.Configuration.path"><code class="docutils literal notranslate"><span class="pre">Configuration.path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.configuration.Configuration.save"><code class="docutils literal notranslate"><span class="pre">Configuration.save()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.configuration.Configuration.section_exists"><code class="docutils literal notranslate"><span class="pre">Configuration.section_exists()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.configuration.Configuration.sections"><code class="docutils literal notranslate"><span class="pre">Configuration.sections()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.configuration.Configuration.set_value"><code class="docutils literal notranslate"><span class="pre">Configuration.set_value()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.configuration.Configuration.to_string"><code class="docutils literal notranslate"><span class="pre">Configuration.to_string()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_installer.html#module-seamm_installer.datastore">seamm_installer.datastore module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.datastore.db_version"><code class="docutils literal notranslate"><span class="pre">db_version()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.datastore.latest_version"><code class="docutils literal notranslate"><span class="pre">latest_version()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.datastore.setup"><code class="docutils literal notranslate"><span class="pre">setup()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.datastore.show"><code class="docutils literal notranslate"><span class="pre">show()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.datastore.update"><code class="docutils literal notranslate"><span class="pre">update()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.datastore.update_db"><code class="docutils literal notranslate"><span class="pre">update_db()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_installer.html#module-seamm_installer.gui">seamm_installer.gui module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.gui.GUI"><code class="docutils literal notranslate"><span class="pre">GUI</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.gui.GUI.about"><code class="docutils literal notranslate"><span class="pre">GUI.about()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.gui.GUI.cancel"><code class="docutils literal notranslate"><span class="pre">GUI.cancel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.gui.GUI.event_loop"><code class="docutils literal notranslate"><span class="pre">GUI.event_loop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.gui.GUI.gui_only"><code class="docutils literal notranslate"><span class="pre">GUI.gui_only</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.gui.GUI.handle_dbg_level"><code class="docutils literal notranslate"><span class="pre">GUI.handle_dbg_level()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.gui.GUI.layout_apps"><code class="docutils literal notranslate"><span class="pre">GUI.layout_apps()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.gui.GUI.layout_services"><code class="docutils literal notranslate"><span class="pre">GUI.layout_services()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.gui.GUI.preferences"><code class="docutils literal notranslate"><span class="pre">GUI.preferences()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.gui.GUI.refresh"><code class="docutils literal notranslate"><span class="pre">GUI.refresh()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.gui.GUI.refresh_apps"><code class="docutils literal notranslate"><span class="pre">GUI.refresh_apps()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.gui.GUI.refresh_services"><code class="docutils literal notranslate"><span class="pre">GUI.refresh_services()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.gui.GUI.reset_table"><code class="docutils literal notranslate"><span class="pre">GUI.reset_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.gui.GUI.setup"><code class="docutils literal notranslate"><span class="pre">GUI.setup()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_installer.html#module-seamm_installer.install">seamm_installer.install module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.install.install"><code class="docutils literal notranslate"><span class="pre">install()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.install.install_development_environment"><code class="docutils literal notranslate"><span class="pre">install_development_environment()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.install.install_packages"><code class="docutils literal notranslate"><span class="pre">install_packages()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.install.setup"><code class="docutils literal notranslate"><span class="pre">setup()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_installer.html#module-seamm_installer.installer_base">seamm_installer.installer_base module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.installer_base.InstallerBase"><code class="docutils literal notranslate"><span class="pre">InstallerBase</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.installer_base.InstallerBase.section"><code class="docutils literal notranslate"><span class="pre">InstallerBase.section</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.installer_base.InstallerBase.ask_yes_no"><code class="docutils literal notranslate"><span class="pre">InstallerBase.ask_yes_no()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.installer_base.InstallerBase.check"><code class="docutils literal notranslate"><span class="pre">InstallerBase.check()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.installer_base.InstallerBase.check_configuration_file"><code class="docutils literal notranslate"><span class="pre">InstallerBase.check_configuration_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.installer_base.InstallerBase.check_exe_configuration_file"><code class="docutils literal notranslate"><span class="pre">InstallerBase.check_exe_configuration_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.installer_base.InstallerBase.conda"><code class="docutils literal notranslate"><span class="pre">InstallerBase.conda</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.installer_base.InstallerBase.configuration"><code class="docutils literal notranslate"><span class="pre">InstallerBase.configuration</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.installer_base.InstallerBase.exe_config"><code class="docutils literal notranslate"><span class="pre">InstallerBase.exe_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.installer_base.InstallerBase.executables_in_path"><code class="docutils literal notranslate"><span class="pre">InstallerBase.executables_in_path()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.installer_base.InstallerBase.have_executables"><code class="docutils literal notranslate"><span class="pre">InstallerBase.have_executables()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.installer_base.InstallerBase.init_file_name"><code class="docutils literal notranslate"><span class="pre">InstallerBase.init_file_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.installer_base.InstallerBase.install"><code class="docutils literal notranslate"><span class="pre">InstallerBase.install()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.installer_base.InstallerBase.pip"><code class="docutils literal notranslate"><span class="pre">InstallerBase.pip</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.installer_base.InstallerBase.root"><code class="docutils literal notranslate"><span class="pre">InstallerBase.root</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.installer_base.InstallerBase.run"><code class="docutils literal notranslate"><span class="pre">InstallerBase.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.installer_base.InstallerBase.setup_parser"><code class="docutils literal notranslate"><span class="pre">InstallerBase.setup_parser()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.installer_base.InstallerBase.show"><code class="docutils literal notranslate"><span class="pre">InstallerBase.show()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.installer_base.InstallerBase.uninstall"><code class="docutils literal notranslate"><span class="pre">InstallerBase.uninstall()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.installer_base.InstallerBase.update"><code class="docutils literal notranslate"><span class="pre">InstallerBase.update()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_installer.html#module-seamm_installer.linux">seamm_installer.linux module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.linux.ServiceManager"><code class="docutils literal notranslate"><span class="pre">ServiceManager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.linux.ServiceManager.create"><code class="docutils literal notranslate"><span class="pre">ServiceManager.create()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.linux.ServiceManager.data"><code class="docutils literal notranslate"><span class="pre">ServiceManager.data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.linux.ServiceManager.delete"><code class="docutils literal notranslate"><span class="pre">ServiceManager.delete()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.linux.ServiceManager.file_path"><code class="docutils literal notranslate"><span class="pre">ServiceManager.file_path()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.linux.ServiceManager.is_installed"><code class="docutils literal notranslate"><span class="pre">ServiceManager.is_installed()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.linux.ServiceManager.is_running"><code class="docutils literal notranslate"><span class="pre">ServiceManager.is_running()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.linux.ServiceManager.list"><code class="docutils literal notranslate"><span class="pre">ServiceManager.list()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.linux.ServiceManager.paths"><code class="docutils literal notranslate"><span class="pre">ServiceManager.paths</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.linux.ServiceManager.restart"><code class="docutils literal notranslate"><span class="pre">ServiceManager.restart()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.linux.ServiceManager.start"><code class="docutils literal notranslate"><span class="pre">ServiceManager.start()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.linux.ServiceManager.status"><code class="docutils literal notranslate"><span class="pre">ServiceManager.status()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.linux.ServiceManager.stop"><code class="docutils literal notranslate"><span class="pre">ServiceManager.stop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.linux.ServiceManager.uid"><code class="docutils literal notranslate"><span class="pre">ServiceManager.uid</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.linux.create_app"><code class="docutils literal notranslate"><span class="pre">create_app()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.linux.delete_app"><code class="docutils literal notranslate"><span class="pre">delete_app()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.linux.get_apps"><code class="docutils literal notranslate"><span class="pre">get_apps()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.linux.list_to_dict"><code class="docutils literal notranslate"><span class="pre">list_to_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.linux.update_app"><code class="docutils literal notranslate"><span class="pre">update_app()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_installer.html#module-seamm_installer.mac">seamm_installer.mac module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.mac.ServiceManager"><code class="docutils literal notranslate"><span class="pre">ServiceManager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.mac.ServiceManager.create"><code class="docutils literal notranslate"><span class="pre">ServiceManager.create()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.mac.ServiceManager.data"><code class="docutils literal notranslate"><span class="pre">ServiceManager.data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.mac.ServiceManager.delete"><code class="docutils literal notranslate"><span class="pre">ServiceManager.delete()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.mac.ServiceManager.file_path"><code class="docutils literal notranslate"><span class="pre">ServiceManager.file_path()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.mac.ServiceManager.is_installed"><code class="docutils literal notranslate"><span class="pre">ServiceManager.is_installed()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.mac.ServiceManager.is_running"><code class="docutils literal notranslate"><span class="pre">ServiceManager.is_running()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.mac.ServiceManager.list"><code class="docutils literal notranslate"><span class="pre">ServiceManager.list()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.mac.ServiceManager.paths"><code class="docutils literal notranslate"><span class="pre">ServiceManager.paths</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.mac.ServiceManager.restart"><code class="docutils literal notranslate"><span class="pre">ServiceManager.restart()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.mac.ServiceManager.start"><code class="docutils literal notranslate"><span class="pre">ServiceManager.start()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.mac.ServiceManager.status"><code class="docutils literal notranslate"><span class="pre">ServiceManager.status()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.mac.ServiceManager.stop"><code class="docutils literal notranslate"><span class="pre">ServiceManager.stop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.mac.ServiceManager.uid"><code class="docutils literal notranslate"><span class="pre">ServiceManager.uid</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.mac.create_app"><code class="docutils literal notranslate"><span class="pre">create_app()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.mac.delete_app"><code class="docutils literal notranslate"><span class="pre">delete_app()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.mac.get_apps"><code class="docutils literal notranslate"><span class="pre">get_apps()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.mac.update_app"><code class="docutils literal notranslate"><span class="pre">update_app()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_installer.html#module-seamm_installer.metadata">seamm_installer.metadata module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_installer.html#module-seamm_installer.my">seamm_installer.my module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_installer.html#module-seamm_installer.pip">seamm_installer.pip module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.pip.Pip"><code class="docutils literal notranslate"><span class="pre">Pip</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.pip.Pip.install"><code class="docutils literal notranslate"><span class="pre">Pip.install()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.pip.Pip.list"><code class="docutils literal notranslate"><span class="pre">Pip.list()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.pip.Pip.search"><code class="docutils literal notranslate"><span class="pre">Pip.search()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.pip.Pip.show"><code class="docutils literal notranslate"><span class="pre">Pip.show()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.pip.Pip.uninstall"><code class="docutils literal notranslate"><span class="pre">Pip.uninstall()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.pip.Pip.update"><code class="docutils literal notranslate"><span class="pre">Pip.update()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_installer.html#module-seamm_installer.services">seamm_installer.services module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.services.create"><code class="docutils literal notranslate"><span class="pre">create()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.services.delete"><code class="docutils literal notranslate"><span class="pre">delete()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.services.restart"><code class="docutils literal notranslate"><span class="pre">restart()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.services.setup"><code class="docutils literal notranslate"><span class="pre">setup()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.services.show"><code class="docutils literal notranslate"><span class="pre">show()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.services.start"><code class="docutils literal notranslate"><span class="pre">start()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.services.status"><code class="docutils literal notranslate"><span class="pre">status()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.services.stop"><code class="docutils literal notranslate"><span class="pre">stop()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_installer.html#module-seamm_installer.show">seamm_installer.show module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.show.setup"><code class="docutils literal notranslate"><span class="pre">setup()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.show.show"><code class="docutils literal notranslate"><span class="pre">show()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_installer.html#module-seamm_installer.uninstall">seamm_installer.uninstall module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.uninstall.setup"><code class="docutils literal notranslate"><span class="pre">setup()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.uninstall.uninstall"><code class="docutils literal notranslate"><span class="pre">uninstall()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.uninstall.uninstall_packages"><code class="docutils literal notranslate"><span class="pre">uninstall_packages()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_installer.html#module-seamm_installer.update">seamm_installer.update module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.update.setup"><code class="docutils literal notranslate"><span class="pre">setup()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.update.update"><code class="docutils literal notranslate"><span class="pre">update()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.update.update_development_environment"><code class="docutils literal notranslate"><span class="pre">update_development_environment()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.update.update_packages"><code class="docutils literal notranslate"><span class="pre">update_packages()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_installer.html#module-seamm_installer.util">seamm_installer.util module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.util.JSONDecoder"><code class="docutils literal notranslate"><span class="pre">JSONDecoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.util.JSONDecoder.dict_to_object"><code class="docutils literal notranslate"><span class="pre">JSONDecoder.dict_to_object()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.util.JSONEncoder"><code class="docutils literal notranslate"><span class="pre">JSONEncoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="seamm_installer.html#seamm_installer.util.JSONEncoder.default"><code class="docutils literal notranslate"><span class="pre">JSONEncoder.default()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.util.create_env"><code class="docutils literal notranslate"><span class="pre">create_env()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.util.find_packages"><code class="docutils literal notranslate"><span class="pre">find_packages()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.util.get_metadata"><code class="docutils literal notranslate"><span class="pre">get_metadata()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.util.initialize"><code class="docutils literal notranslate"><span class="pre">initialize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.util.package_info"><code class="docutils literal notranslate"><span class="pre">package_info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.util.run_plugin_installer"><code class="docutils literal notranslate"><span class="pre">run_plugin_installer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_installer.html#seamm_installer.util.set_metadata"><code class="docutils literal notranslate"><span class="pre">set_metadata()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_installer.html#module-seamm_installer">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/developer/modules.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">SEAMM Installer Step 2025.8.22 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">seamm_installer</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2025, Paul Saxe.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    </div>
+  </body>
+</html>
