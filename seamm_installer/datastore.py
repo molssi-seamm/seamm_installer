@@ -9,7 +9,6 @@ import subprocess
 
 from . import my
 
-
 system = platform.system()
 if system in ("Darwin",):
     from .mac import ServiceManager

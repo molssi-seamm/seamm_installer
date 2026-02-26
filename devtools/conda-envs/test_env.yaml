@@ -1,0 +1,31 @@
+name: test
+
+channels:
+  - conda-forge
+
+dependencies:
+  # Base depends
+  - python
+  - pip
+  - platformdirs
+  - pmw
+  - requests
+  - seamm-widgets
+  - tabulate
+
+  # Testing
+  - black
+  - codecov
+  - flake8
+  - pytest
+  - pytest-cov
+
+  # Documentation
+  - pydata-sphinx-theme
+  - sphinx-design
+
+  # Pip-only installs
+  - pip:
+    # - pmw
+    # Documentation
+    - sphinx-copybutton

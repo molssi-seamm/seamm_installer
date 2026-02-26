@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """Uninstall requested components of SEAMM."""
+
 from datetime import datetime
 
 from . import my

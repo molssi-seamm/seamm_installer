@@ -1,6 +1,8 @@
 =======
 History
 =======
+2026.2.26 -- Internal: moving from pkg_resources to importlib.resources
+
 2025.8.22: Bugfix: simplejson caused crash
     * If installed by one of the packages, simplejson caused the installer to crash
       because of an incompatibility between simplejson and the standard Python JSON

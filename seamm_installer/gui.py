@@ -1,8 +1,8 @@
 import collections.abc
+import importlib
 import locale
 import logging
 from pathlib import Path
-import pkg_resources
 import platform
 import shutil
 import sys
@@ -24,7 +24,6 @@ from .services import known_services
 from .install import install_packages, install_development_environment
 from .uninstall import uninstall_packages
 from .update import update_packages, update_development_environment
-
 
 system = platform.system()
 if system in ("Darwin",):
@@ -790,9 +789,7 @@ class GUI(collections.abc.MutableMapping):
                 if app_name in installed_apps:
                     continue
 
-                data_path = Path(
-                    pkg_resources.resource_filename("seamm_installer", "data/")
-                )
+                data_path = importlib.resources.files("seamm_installer") / "data"
                 icons_path = data_path / icons
                 root = "~/SEAMM_DEV" if my.development else "~/SEAMM"
 

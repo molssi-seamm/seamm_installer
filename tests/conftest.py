@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """Fixtures for testing the `seamm-installer` package."""
+
 from pathlib import Path
 
 import pytest

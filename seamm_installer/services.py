@@ -10,7 +10,6 @@ from tabulate import tabulate
 
 from . import my
 
-
 system = platform.system()
 if system in ("Darwin",):
     from .mac import ServiceManager

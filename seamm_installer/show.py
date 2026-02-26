@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """Show the status of the SEAMM installation."""
+
 from packaging.version import Version
 import textwrap
 
