@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """The main module for running the SEAMM installer."""
+
 import argparse
 from pathlib import Path
 import logging

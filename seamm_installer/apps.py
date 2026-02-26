@@ -2,8 +2,8 @@
 
 """Handle the apps for SEAMM."""
 
+import importlib
 from pathlib import Path
-import pkg_resources
 import platform
 import shutil
 
@@ -134,7 +134,7 @@ def create():
 
             delete_app(app_name)
 
-        data_path = Path(pkg_resources.resource_filename("seamm_installer", "data/"))
+        data_path = importlib.resources.files("seamm_installer") / "data"
         icons_path = data_path / icons
         root = "~/SEAMM_DEV" if my.development else "~/SEAMM"
 

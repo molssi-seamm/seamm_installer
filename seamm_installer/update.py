@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """Update requested components of SEAMM."""
+
 from datetime import datetime
 import platform
 
@@ -16,7 +17,6 @@ from .util import (
     package_info,
     run_plugin_installer,
 )
-
 
 system = platform.system()
 if system in ("Darwin",):
