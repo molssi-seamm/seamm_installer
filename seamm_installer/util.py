@@ -61,14 +61,16 @@ def create_env(conda_packages, pypi_packages, installed_packages=[]):
         The installed packages for dependecy pinning
     """
     print("Creating the environment file for the packages.")
-    prelines = ["""name: seamm
+    prelines = [
+        """name: seamm
 channels:
   - conda-forge
   - defaults
 dependencies:
   - pip
   - python
-"""]
+"""
+    ]
 
     lines = []
     # First the conda installable packages, including any dependencies
