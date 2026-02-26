@@ -4,13 +4,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_installer.services &#8212; SEAMM Installer Step 2025.8.22 documentation</title>
+    <title>seamm_installer.services &#8212; SEAMM Installer Step 2026.2.26 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../../_static/classic.css?v=def86cc0" />
+    <link rel="stylesheet" type="text/css" href="../../_static/classic.css?v=2bf1fcf8" />
     
-    <script src="../../_static/documentation_options.js?v=39bacb12"></script>
-    <script src="../../_static/doctools.js?v=9a2dae69"></script>
-    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/documentation_options.js?v=0cc0f2be"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -24,7 +24,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2025.8.22 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2026.2.26 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">seamm_installer.services</a></li> 
       </ul>
@@ -48,7 +48,6 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">my</span>
 
-
 <span class="n">system</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span>
 <span class="k">if</span> <span class="n">system</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;Darwin&quot;</span><span class="p">,):</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">.mac</span><span class="w"> </span><span class="kn">import</span> <span class="n">ServiceManager</span>
@@ -65,7 +64,7 @@
 
 
 <div class="viewcode-block" id="setup">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.services.setup">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.services.setup">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="n">parser</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Define the command-line interface for handling services.</span>
 
@@ -178,7 +177,7 @@
 
 
 <div class="viewcode-block" id="create">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.services.create">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.services.create">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">create</span><span class="p">():</span>
     <span class="n">services</span> <span class="o">=</span> <span class="n">mgr</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">service</span> <span class="ow">in</span> <span class="n">my</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">services</span><span class="p">:</span>
@@ -236,7 +235,7 @@
 
 
 <div class="viewcode-block" id="delete">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.services.delete">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.services.delete">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">delete</span><span class="p">():</span>
     <span class="k">for</span> <span class="n">service</span> <span class="ow">in</span> <span class="n">my</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">services</span><span class="p">:</span>
         <span class="n">service_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;dev_</span><span class="si">{</span><span class="n">service</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">my</span><span class="o">.</span><span class="n">development</span> <span class="k">else</span> <span class="n">service</span>
@@ -246,7 +245,7 @@
 
 
 <div class="viewcode-block" id="restart">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.services.restart">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.services.restart">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">restart</span><span class="p">():</span>
     <span class="k">for</span> <span class="n">service</span> <span class="ow">in</span> <span class="n">my</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">services</span><span class="p">:</span>
         <span class="n">service_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;dev_</span><span class="si">{</span><span class="n">service</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">my</span><span class="o">.</span><span class="n">development</span> <span class="k">else</span> <span class="n">service</span>
@@ -262,7 +261,7 @@
 
 
 <div class="viewcode-block" id="show">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.services.show">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.services.show">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">show</span><span class="p">():</span>
     <span class="n">services</span> <span class="o">=</span> <span class="n">mgr</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
     <span class="n">table</span> <span class="o">=</span> <span class="p">[]</span>
@@ -286,7 +285,7 @@
 
 
 <div class="viewcode-block" id="start">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.services.start">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.services.start">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">start</span><span class="p">():</span>
     <span class="k">for</span> <span class="n">service</span> <span class="ow">in</span> <span class="n">my</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">services</span><span class="p">:</span>
         <span class="n">service</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;dev_</span><span class="si">{</span><span class="n">service</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">my</span><span class="o">.</span><span class="n">development</span> <span class="k">else</span> <span class="n">service</span>
@@ -305,7 +304,7 @@
 
 
 <div class="viewcode-block" id="status">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.services.status">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.services.status">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">status</span><span class="p">():</span>
     <span class="n">services</span> <span class="o">=</span> <span class="n">mgr</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
     <span class="n">table</span> <span class="o">=</span> <span class="p">[]</span>
@@ -339,7 +338,7 @@
 
 
 <div class="viewcode-block" id="stop">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.services.stop">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.services.stop">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">stop</span><span class="p">():</span>
     <span class="k">for</span> <span class="n">service</span> <span class="ow">in</span> <span class="n">my</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">services</span><span class="p">:</span>
         <span class="n">service_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;dev_</span><span class="si">{</span><span class="n">service</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">my</span><span class="o">.</span><span class="n">development</span> <span class="k">else</span> <span class="n">service</span>
@@ -386,14 +385,14 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2025.8.22 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2026.2.26 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">seamm_installer.services</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-    &#169; Copyright 2026, Paul Saxe.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    &#169; Copyright 2021, Paul Saxe.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     </div>
   </body>
 </html>

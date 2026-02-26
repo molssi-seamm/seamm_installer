@@ -4,13 +4,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_installer.linux &#8212; SEAMM Installer Step 2025.8.22 documentation</title>
+    <title>seamm_installer.linux &#8212; SEAMM Installer Step 2026.2.26 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../../_static/classic.css?v=def86cc0" />
+    <link rel="stylesheet" type="text/css" href="../../_static/classic.css?v=2bf1fcf8" />
     
-    <script src="../../_static/documentation_options.js?v=39bacb12"></script>
-    <script src="../../_static/doctools.js?v=9a2dae69"></script>
-    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/documentation_options.js?v=0cc0f2be"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -24,7 +24,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2025.8.22 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2026.2.26 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">seamm_installer.linux</a></li> 
       </ul>
@@ -100,7 +100,7 @@
 
 
 <div class="viewcode-block" id="list_to_dict">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.linux.list_to_dict">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.linux.list_to_dict">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">list_to_dict</span><span class="p">(</span><span class="n">lst</span><span class="p">):</span>
     <span class="n">res_dct</span> <span class="o">=</span> <span class="p">{</span><span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span> <span class="n">lst</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">),</span> <span class="mi">2</span><span class="p">)}</span>
     <span class="k">return</span> <span class="n">res_dct</span></div>
@@ -108,7 +108,7 @@
 
 
 <div class="viewcode-block" id="create_app">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.linux.create_app">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.linux.create_app">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_app</span><span class="p">(</span>
     <span class="n">exe_path</span><span class="p">,</span>
     <span class="o">*</span><span class="n">args</span><span class="p">,</span>
@@ -164,7 +164,7 @@
 
 
 <div class="viewcode-block" id="delete_app">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.linux.delete_app">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.linux.delete_app">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">delete_app</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Delete the app given.</span>
 
@@ -184,7 +184,7 @@
 
 
 <div class="viewcode-block" id="get_apps">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.linux.get_apps">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.linux.get_apps">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_apps</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a list of all user applications.</span>
 
@@ -207,7 +207,7 @@
 
 
 <div class="viewcode-block" id="update_app">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.linux.update_app">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.linux.update_app">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">update_app</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the version for a Linux app.</span>
 
@@ -232,7 +232,7 @@
 
 
 <div class="viewcode-block" id="ServiceManager">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.linux.ServiceManager">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.linux.ServiceManager">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ServiceManager</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;A manager for handling services on Linux</span>
@@ -272,7 +272,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_uid</span>
 
 <div class="viewcode-block" id="ServiceManager.create">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.linux.ServiceManager.create">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.linux.ServiceManager.create">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">create</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">name</span><span class="p">,</span>
@@ -399,7 +399,7 @@
 
 
 <div class="viewcode-block" id="ServiceManager.delete">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.linux.ServiceManager.delete">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.linux.ServiceManager.delete">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">services</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">service</span> <span class="ow">in</span> <span class="n">services</span><span class="p">:</span>
@@ -419,7 +419,7 @@
 
 
 <div class="viewcode-block" id="ServiceManager.file_path">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.linux.ServiceManager.file_path">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.linux.ServiceManager.file_path">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">file_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service</span><span class="p">):</span>
         <span class="s2">&quot;Return the path to the unit file for the service.&quot;</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
@@ -429,13 +429,13 @@
 
 
 <div class="viewcode-block" id="ServiceManager.is_installed">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.linux.ServiceManager.is_installed">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.linux.ServiceManager.is_installed">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_installed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">service</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="ServiceManager.is_running">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.linux.ServiceManager.is_running">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.linux.ServiceManager.is_running">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_running</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service</span><span class="p">):</span>
         <span class="n">result</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">services</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
@@ -458,20 +458,20 @@
 
 
 <div class="viewcode-block" id="ServiceManager.list">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.linux.ServiceManager.list">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.linux.ServiceManager.list">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="ServiceManager.restart">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.linux.ServiceManager.restart">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.linux.ServiceManager.restart">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">restart</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">(</span><span class="n">service</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="n">ignore_errors</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">service</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="n">ignore_errors</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ServiceManager.start">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.linux.ServiceManager.start">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.linux.ServiceManager.start">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_running</span><span class="p">(</span><span class="n">service</span><span class="p">):</span>
             <span class="n">services</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
@@ -494,7 +494,7 @@
 
 
 <div class="viewcode-block" id="ServiceManager.status">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.linux.ServiceManager.status">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.linux.ServiceManager.status">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service</span><span class="p">):</span>
         <span class="n">status</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;service&quot;</span><span class="p">:</span> <span class="n">service</span><span class="p">}</span>
         <span class="n">services</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
@@ -526,7 +526,7 @@
 
 
 <div class="viewcode-block" id="ServiceManager.stop">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.linux.ServiceManager.stop">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.linux.ServiceManager.stop">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">services</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">service</span> <span class="ow">in</span> <span class="n">services</span><span class="p">:</span>
@@ -584,14 +584,14 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2025.8.22 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2026.2.26 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">seamm_installer.linux</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-    &#169; Copyright 2026, Paul Saxe.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    &#169; Copyright 2021, Paul Saxe.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     </div>
   </body>
 </html>

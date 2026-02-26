@@ -4,13 +4,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_installer.util &#8212; SEAMM Installer Step 2025.8.22 documentation</title>
+    <title>seamm_installer.util &#8212; SEAMM Installer Step 2026.2.26 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../../_static/classic.css?v=def86cc0" />
+    <link rel="stylesheet" type="text/css" href="../../_static/classic.css?v=2bf1fcf8" />
     
-    <script src="../../_static/documentation_options.js?v=39bacb12"></script>
-    <script src="../../_static/doctools.js?v=9a2dae69"></script>
-    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/documentation_options.js?v=0cc0f2be"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -24,7 +24,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2025.8.22 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2026.2.26 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">seamm_installer.util</a></li> 
       </ul>
@@ -59,12 +59,12 @@
 
 
 <div class="viewcode-block" id="JSONEncoder">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.util.JSONEncoder">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.util.JSONEncoder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">JSONEncoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for handling the package versions in JSON.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="JSONEncoder.default">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.util.JSONEncoder.default">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.util.JSONEncoder.default">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Version</span><span class="p">):</span>
             <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;__type__&quot;</span><span class="p">:</span> <span class="s2">&quot;Version&quot;</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="p">)}</span>
@@ -75,7 +75,7 @@
 
 
 <div class="viewcode-block" id="JSONDecoder">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.util.JSONDecoder">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.util.JSONDecoder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">JSONDecoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONDecoder</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for handling the package versions in JSON.&quot;&quot;&quot;</span>
 
@@ -84,7 +84,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">object_hook</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dict_to_object</span><span class="p">)</span>
 
 <div class="viewcode-block" id="JSONDecoder.dict_to_object">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.util.JSONDecoder.dict_to_object">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.util.JSONDecoder.dict_to_object">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">dict_to_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="k">if</span> <span class="s2">&quot;__type__&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
             <span class="n">type_</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;__type__&quot;</span><span class="p">)</span>
@@ -99,7 +99,7 @@
 
 
 <div class="viewcode-block" id="create_env">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.util.create_env">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.util.create_env">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_env</span><span class="p">(</span><span class="n">conda_packages</span><span class="p">,</span> <span class="n">pypi_packages</span><span class="p">,</span> <span class="n">installed_packages</span><span class="o">=</span><span class="p">[]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the environment files for the packages.</span>
 
@@ -113,16 +113,14 @@
 <span class="sd">        The installed packages for dependecy pinning</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Creating the environment file for the packages.&quot;</span><span class="p">)</span>
-    <span class="n">prelines</span> <span class="o">=</span> <span class="p">[</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;name: seamm</span>
-<span class="sd">channels:</span>
-<span class="sd">  - conda-forge</span>
-<span class="sd">  - defaults</span>
-<span class="sd">dependencies:</span>
-<span class="sd">  - pip</span>
-<span class="sd">  - python</span>
-<span class="sd">&quot;&quot;&quot;</span>
-    <span class="p">]</span>
+    <span class="n">prelines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;&quot;name: seamm</span>
+<span class="s2">channels:</span>
+<span class="s2">  - conda-forge</span>
+<span class="s2">  - defaults</span>
+<span class="s2">dependencies:</span>
+<span class="s2">  - pip</span>
+<span class="s2">  - python</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">]</span>
 
     <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="c1"># First the conda installable packages, including any dependencies</span>
@@ -176,7 +174,7 @@
 
 
 <div class="viewcode-block" id="find_packages">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.util.find_packages">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.util.find_packages">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">find_packages</span><span class="p">(</span><span class="n">progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">update_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cache_valid</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Find the Python packages in SEAMM.</span>
 
@@ -231,7 +229,7 @@
 
 
 <div class="viewcode-block" id="get_metadata">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.util.get_metadata">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.util.get_metadata">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_metadata</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the metadata for this installation.</span>
 
@@ -268,7 +266,7 @@
 
 
 <div class="viewcode-block" id="initialize">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.util.initialize">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.util.initialize">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">():</span>
     <span class="k">if</span> <span class="n">my</span><span class="o">.</span><span class="n">conda</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">my</span><span class="o">.</span><span class="n">conda</span> <span class="o">=</span> <span class="n">Conda</span><span class="p">()</span>
@@ -279,7 +277,7 @@
 
 
 <div class="viewcode-block" id="package_info">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.util.package_info">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.util.package_info">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">package_info</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">conda_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return info on a package</span>
 
@@ -333,7 +331,7 @@
 
 
 <div class="viewcode-block" id="run_plugin_installer">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.util.run_plugin_installer">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.util.run_plugin_installer">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">run_plugin_installer</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Run the plug-in installer with given arguments.</span>
 
@@ -368,7 +366,7 @@
 
 
 <div class="viewcode-block" id="set_metadata">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.util.set_metadata">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.util.set_metadata">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">set_metadata</span><span class="p">(</span><span class="n">metadata</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set the metadata for this installation.</span>
 
@@ -417,14 +415,14 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2025.8.22 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2026.2.26 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">seamm_installer.util</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-    &#169; Copyright 2026, Paul Saxe.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    &#169; Copyright 2021, Paul Saxe.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     </div>
   </body>
 </html>

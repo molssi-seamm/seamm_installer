@@ -4,13 +4,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_installer.gui &#8212; SEAMM Installer Step 2025.8.22 documentation</title>
+    <title>seamm_installer.gui &#8212; SEAMM Installer Step 2026.2.26 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../../_static/classic.css?v=def86cc0" />
+    <link rel="stylesheet" type="text/css" href="../../_static/classic.css?v=2bf1fcf8" />
     
-    <script src="../../_static/documentation_options.js?v=39bacb12"></script>
-    <script src="../../_static/doctools.js?v=9a2dae69"></script>
-    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/documentation_options.js?v=0cc0f2be"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -24,7 +24,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2025.8.22 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2026.2.26 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">seamm_installer.gui</a></li> 
       </ul>
@@ -37,10 +37,10 @@
             
   <h1>Source code for seamm_installer.gui</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">collections.abc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">importlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">locale</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">pkg_resources</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">platform</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
@@ -62,7 +62,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">.install</span><span class="w"> </span><span class="kn">import</span> <span class="n">install_packages</span><span class="p">,</span> <span class="n">install_development_environment</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.uninstall</span><span class="w"> </span><span class="kn">import</span> <span class="n">uninstall_packages</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.update</span><span class="w"> </span><span class="kn">import</span> <span class="n">update_packages</span><span class="p">,</span> <span class="n">update_development_environment</span>
-
 
 <span class="n">system</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span>
 <span class="k">if</span> <span class="n">system</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;Darwin&quot;</span><span class="p">,):</span>
@@ -140,7 +139,7 @@
 
 
 <div class="viewcode-block" id="GUI">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.gui.GUI">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.gui.GUI">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">GUI</span><span class="p">(</span><span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">MutableMapping</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dbg_level</span> <span class="o">=</span> <span class="mi">30</span>
@@ -206,13 +205,13 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_gui_only</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
 <div class="viewcode-block" id="GUI.event_loop">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.gui.GUI.event_loop">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.gui.GUI.event_loop">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">event_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">mainloop</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="GUI.setup">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.gui.GUI.setup">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.gui.GUI.setup">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">locale</span><span class="o">.</span><span class="n">setlocale</span><span class="p">(</span><span class="n">locale</span><span class="o">.</span><span class="n">LC_ALL</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
 
@@ -450,33 +449,33 @@
 
 
 <div class="viewcode-block" id="GUI.cancel">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.gui.GUI.cancel">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.gui.GUI.cancel">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">cancel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Cancel hit!&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cancel</span> <span class="o">=</span> <span class="kc">True</span></div>
 
 
 <div class="viewcode-block" id="GUI.handle_dbg_level">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.gui.GUI.handle_dbg_level">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.gui.GUI.handle_dbg_level">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">handle_dbg_level</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dbg_level</span> <span class="o">=</span> <span class="n">level</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbg_level</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="GUI.about">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.gui.GUI.about">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.gui.GUI.about">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">about</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="GUI.preferences">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.gui.GUI.preferences">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.gui.GUI.preferences">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">preferences</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="GUI.refresh">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.gui.GUI.refresh">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.gui.GUI.refresh">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the table of packages.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">progress_bar</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;indeterminate&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -563,7 +562,7 @@
 
 
 <div class="viewcode-block" id="GUI.reset_table">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.gui.GUI.reset_table">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.gui.GUI.reset_table">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reset_table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="s2">&quot;Redraw the table in the GUI.&quot;</span>
 
@@ -854,9 +853,7 @@
                 <span class="k">if</span> <span class="n">app_name</span> <span class="ow">in</span> <span class="n">installed_apps</span><span class="p">:</span>
                     <span class="k">continue</span>
 
-                <span class="n">data_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span>
-                    <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span><span class="s2">&quot;seamm_installer&quot;</span><span class="p">,</span> <span class="s2">&quot;data/&quot;</span><span class="p">)</span>
-                <span class="p">)</span>
+                <span class="n">data_path</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="s2">&quot;seamm_installer&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;data&quot;</span>
                 <span class="n">icons_path</span> <span class="o">=</span> <span class="n">data_path</span> <span class="o">/</span> <span class="n">icons</span>
                 <span class="n">root</span> <span class="o">=</span> <span class="s2">&quot;~/SEAMM_DEV&quot;</span> <span class="k">if</span> <span class="n">my</span><span class="o">.</span><span class="n">development</span> <span class="k">else</span> <span class="s2">&quot;~/SEAMM&quot;</span>
 
@@ -956,7 +953,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">layout_services</span><span class="p">()</span>
 
 <div class="viewcode-block" id="GUI.refresh_apps">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.gui.GUI.refresh_apps">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.gui.GUI.refresh_apps">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">refresh_apps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">applications</span> <span class="o">=</span> <span class="n">get_apps</span><span class="p">()</span>
 
@@ -977,7 +974,7 @@
 
 
 <div class="viewcode-block" id="GUI.layout_apps">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.gui.GUI.layout_apps">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.gui.GUI.layout_apps">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">layout_apps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="s2">&quot;Redraw the apps table in the GUI.&quot;</span>
 
@@ -1014,7 +1011,7 @@
 
 
 <div class="viewcode-block" id="GUI.refresh_services">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.gui.GUI.refresh_services">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.gui.GUI.refresh_services">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">refresh_services</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">services</span> <span class="o">=</span> <span class="n">mgr</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
 
@@ -1050,7 +1047,7 @@
 
 
 <div class="viewcode-block" id="GUI.layout_services">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.gui.GUI.layout_services">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.gui.GUI.layout_services">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">layout_services</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="s2">&quot;Redraw the services table in the GUI.&quot;</span>
 
@@ -1279,14 +1276,14 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2025.8.22 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2026.2.26 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">seamm_installer.gui</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-    &#169; Copyright 2026, Paul Saxe.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    &#169; Copyright 2021, Paul Saxe.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     </div>
   </body>
 </html>

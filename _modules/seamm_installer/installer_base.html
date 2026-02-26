@@ -4,13 +4,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_installer.installer_base &#8212; SEAMM Installer Step 2025.8.22 documentation</title>
+    <title>seamm_installer.installer_base &#8212; SEAMM Installer Step 2026.2.26 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../../_static/classic.css?v=def86cc0" />
+    <link rel="stylesheet" type="text/css" href="../../_static/classic.css?v=2bf1fcf8" />
     
-    <script src="../../_static/documentation_options.js?v=39bacb12"></script>
-    <script src="../../_static/doctools.js?v=9a2dae69"></script>
-    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/documentation_options.js?v=0cc0f2be"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -24,7 +24,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2025.8.22 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2026.2.26 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">seamm_installer.installer_base</a></li> 
       </ul>
@@ -95,7 +95,7 @@
 
 
 <div class="viewcode-block" id="InstallerBase">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.installer_base.InstallerBase">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.installer_base.InstallerBase">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">InstallerBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A base class for plug-in installers.</span>
 
@@ -183,7 +183,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_root</span>
 
 <div class="viewcode-block" id="InstallerBase.ask_yes_no">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.installer_base.InstallerBase.ask_yes_no">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.installer_base.InstallerBase.ask_yes_no">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">ask_yes_no</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Ask a simple yes/no question, returning True/False.</span>
 
@@ -235,7 +235,7 @@
             <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">prolog</span><span class="p">)</span>
 
 <div class="viewcode-block" id="InstallerBase.check">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.installer_base.InstallerBase.check">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.installer_base.InstallerBase.check">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Check the installation and fix errors if requested.</span>
 
@@ -544,7 +544,7 @@
 
 
 <div class="viewcode-block" id="InstallerBase.check_configuration_file">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.installer_base.InstallerBase.check_configuration_file">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.installer_base.InstallerBase.check_configuration_file">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">check_configuration_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks that the necessary section for the plug-in is in the</span>
 <span class="sd">        configuration file.</span>
@@ -560,7 +560,7 @@
 
 
 <div class="viewcode-block" id="InstallerBase.check_exe_configuration_file">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.installer_base.InstallerBase.check_exe_configuration_file">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.installer_base.InstallerBase.check_exe_configuration_file">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">check_exe_configuration_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks that the init file for the executable for the plug-in exists.&quot;&quot;&quot;</span>
         <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_file_name</span>
@@ -573,7 +573,7 @@
 
 
 <div class="viewcode-block" id="InstallerBase.have_executables">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.installer_base.InstallerBase.have_executables">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.installer_base.InstallerBase.have_executables">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">have_executables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Check whether the executables are found at the given path.</span>
 
@@ -597,7 +597,7 @@
 
 
 <div class="viewcode-block" id="InstallerBase.executables_in_path">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.installer_base.InstallerBase.executables_in_path">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.installer_base.InstallerBase.executables_in_path">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">executables_in_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Check whether the executables are found in the PATH.</span>
 
@@ -620,7 +620,7 @@
 
 
 <div class="viewcode-block" id="InstallerBase.install">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.installer_base.InstallerBase.install">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.installer_base.InstallerBase.install">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">install</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Install using a Conda environment.&quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span>
@@ -649,7 +649,7 @@
 
 
 <div class="viewcode-block" id="InstallerBase.run">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.installer_base.InstallerBase.run">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.installer_base.InstallerBase.run">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Do what the user asks via the commandline.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">options</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
@@ -662,7 +662,7 @@
 
 
 <div class="viewcode-block" id="InstallerBase.setup_parser">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.installer_base.InstallerBase.setup_parser">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.installer_base.InstallerBase.setup_parser">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">setup_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse the command line into the options.&quot;&quot;&quot;</span>
 
@@ -724,7 +724,7 @@
 
 
 <div class="viewcode-block" id="InstallerBase.show">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.installer_base.InstallerBase.show">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.installer_base.InstallerBase.show">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Show the current installation status.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Entering show&quot;</span><span class="p">)</span>
@@ -778,7 +778,7 @@
 
 
 <div class="viewcode-block" id="InstallerBase.uninstall">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.installer_base.InstallerBase.uninstall">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.installer_base.InstallerBase.uninstall">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">uninstall</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Uninstall the Conda environment.&quot;&quot;&quot;</span>
         <span class="c1"># See if the executables are already registered in the configuration file</span>
@@ -805,7 +805,7 @@
 
 
 <div class="viewcode-block" id="InstallerBase.update">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.installer_base.InstallerBase.update">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.installer_base.InstallerBase.update">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the installation, if possible.&quot;&quot;&quot;</span>
         <span class="c1"># See if the executables are already registered in the configuration file</span>
@@ -871,14 +871,14 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2025.8.22 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2026.2.26 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">seamm_installer.installer_base</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-    &#169; Copyright 2026, Paul Saxe.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    &#169; Copyright 2021, Paul Saxe.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     </div>
   </body>
 </html>

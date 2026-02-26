@@ -4,13 +4,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_installer.pip &#8212; SEAMM Installer Step 2025.8.22 documentation</title>
+    <title>seamm_installer.pip &#8212; SEAMM Installer Step 2026.2.26 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../../_static/classic.css?v=def86cc0" />
+    <link rel="stylesheet" type="text/css" href="../../_static/classic.css?v=2bf1fcf8" />
     
-    <script src="../../_static/documentation_options.js?v=39bacb12"></script>
-    <script src="../../_static/doctools.js?v=9a2dae69"></script>
-    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/documentation_options.js?v=0cc0f2be"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -24,7 +24,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2025.8.22 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2026.2.26 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">seamm_installer.pip</a></li> 
       </ul>
@@ -57,7 +57,7 @@
 
 
 <div class="viewcode-block" id="Pip">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.pip.Pip">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.pip.Pip">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Pip</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class for handling pip</span>
@@ -73,7 +73,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_base_url</span> <span class="o">=</span> <span class="s2">&quot;https://pypi.org/search/&quot;</span>
 
 <div class="viewcode-block" id="Pip.install">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.pip.Pip.install">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.pip.Pip.install">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">install</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Install the requested package.</span>
 
@@ -98,7 +98,7 @@
 
 
 <div class="viewcode-block" id="Pip.list">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.pip.Pip.list">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.pip.Pip.list">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outdated</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">uptodate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;List the installed packages.</span>
 
@@ -135,7 +135,7 @@
 
 
 <div class="viewcode-block" id="Pip.search">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.pip.Pip.search">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.pip.Pip.search">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">query</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -240,7 +240,7 @@
 
 
 <div class="viewcode-block" id="Pip.show">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.pip.Pip.show">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.pip.Pip.show">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the information for an installed package.</span>
 
@@ -280,7 +280,7 @@
 
 
 <div class="viewcode-block" id="Pip.uninstall">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.pip.Pip.uninstall">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.pip.Pip.uninstall">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">uninstall</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove the requested packages.</span>
 
@@ -307,7 +307,7 @@
 
 
 <div class="viewcode-block" id="Pip.update">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.pip.Pip.update">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.pip.Pip.update">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the requested package.</span>
 
@@ -366,14 +366,14 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2025.8.22 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2026.2.26 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">seamm_installer.pip</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-    &#169; Copyright 2026, Paul Saxe.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    &#169; Copyright 2021, Paul Saxe.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     </div>
   </body>
 </html>

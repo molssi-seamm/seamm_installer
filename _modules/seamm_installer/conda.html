@@ -4,13 +4,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_installer.conda &#8212; SEAMM Installer Step 2025.8.22 documentation</title>
+    <title>seamm_installer.conda &#8212; SEAMM Installer Step 2026.2.26 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../../_static/classic.css?v=def86cc0" />
+    <link rel="stylesheet" type="text/css" href="../../_static/classic.css?v=2bf1fcf8" />
     
-    <script src="../../_static/documentation_options.js?v=39bacb12"></script>
-    <script src="../../_static/doctools.js?v=9a2dae69"></script>
-    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/documentation_options.js?v=0cc0f2be"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -24,7 +24,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2025.8.22 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2026.2.26 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">seamm_installer.conda</a></li> 
       </ul>
@@ -50,7 +50,7 @@
 
 
 <div class="viewcode-block" id="Conda">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.conda.Conda">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.conda.Conda">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Conda</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class for handling conda</span>
@@ -133,7 +133,7 @@
             <span class="k">return</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="Conda.activate">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.conda.Conda.activate">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.conda.Conda.activate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">activate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environment</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Activate the requested environment.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_installed</span><span class="p">:</span>
@@ -222,7 +222,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;environments:</span><span class="se">\n\t</span><span class="si">{</span><span class="n">tmp</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Conda.create_environment">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.conda.Conda.create_environment">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.conda.Conda.create_environment">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">create_environment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environment_file</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a Conda environment.</span>
 
@@ -260,7 +260,7 @@
 
 
 <div class="viewcode-block" id="Conda.delete_environment">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.conda.Conda.delete_environment">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.conda.Conda.delete_environment">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">delete_environment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Delete a Conda environment.</span>
 
@@ -286,7 +286,7 @@
 
 
 <div class="viewcode-block" id="Conda.exists">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.conda.Conda.exists">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.conda.Conda.exists">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environment</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Whether an environment exists.</span>
 
@@ -304,7 +304,7 @@
 
 
 <div class="viewcode-block" id="Conda.export_environment">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.conda.Conda.export_environment">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.conda.Conda.export_environment">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">export_environment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environment</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Export the definition of an environment.</span>
 
@@ -328,7 +328,7 @@
 
 
 <div class="viewcode-block" id="Conda.install">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.conda.Conda.install">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.conda.Conda.install">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">install</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">package</span><span class="p">,</span>
@@ -383,7 +383,7 @@
 
 
 <div class="viewcode-block" id="Conda.list">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.conda.Conda.list">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.conda.Conda.list">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">environment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -451,7 +451,7 @@
 
 
 <div class="viewcode-block" id="Conda.path">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.conda.Conda.path">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.conda.Conda.path">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environment</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The path for an environment.</span>
 
@@ -477,7 +477,7 @@
 
 
 <div class="viewcode-block" id="Conda.remove_environment">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.conda.Conda.remove_environment">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.conda.Conda.remove_environment">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">remove_environment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environment</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove an existing environment.</span>
 
@@ -500,7 +500,7 @@
 
 
 <div class="viewcode-block" id="Conda.search">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.conda.Conda.search">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.conda.Conda.search">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">query</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -570,7 +570,7 @@
 
 
 <div class="viewcode-block" id="Conda.show">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.conda.Conda.show">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.conda.Conda.show">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Show the information for a single package.</span>
 
@@ -589,7 +589,7 @@
 
 
 <div class="viewcode-block" id="Conda.update">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.conda.Conda.update">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.conda.Conda.update">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">package</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -652,7 +652,7 @@
 
 
 <div class="viewcode-block" id="Conda.uninstall">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.conda.Conda.uninstall">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.conda.Conda.uninstall">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">uninstall</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">package</span><span class="p">,</span>
@@ -705,7 +705,7 @@
 
 
 <div class="viewcode-block" id="Conda.update_environment">
-<a class="viewcode-back" href="../../developer/seamm_installer.html#seamm_installer.conda.Conda.update_environment">[docs]</a>
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.conda.Conda.update_environment">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update_environment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environment_file</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update a Conda environment.</span>
 
@@ -840,14 +840,14 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2025.8.22 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2026.2.26 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">seamm_installer.conda</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-    &#169; Copyright 2026, Paul Saxe.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    &#169; Copyright 2021, Paul Saxe.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     </div>
   </body>
 </html>
