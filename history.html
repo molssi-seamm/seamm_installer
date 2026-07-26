@@ -5,11 +5,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>History &#8212; SEAMM Installer Step 2026.2.26 documentation</title>
+    <title>History &#8212; SEAMM Installer Step 2026.7.26 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
     
-    <script src="_static/documentation_options.js?v=0cc0f2be"></script>
+    <script src="_static/documentation_options.js?v=551e3ecc"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     
@@ -29,7 +29,7 @@
         <li class="right" >
           <a href="authors.html" title="Credits"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">SEAMM Installer Step 2026.2.26 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SEAMM Installer Step 2026.7.26 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">History</a></li> 
       </ul>
     </div>  
@@ -41,6 +41,17 @@
             
   <section id="history">
 <h1>History<a class="headerlink" href="#history" title="Link to this heading">¶</a></h1>
+<dl class="simple">
+<dt>2026.7.26 – Bugfix: clearer errors when the Zenodo package list can’t be fetched</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">find_packages()</span></code> now uses <code class="docutils literal notranslate"><span class="pre">seamm_util.Zenodo.get_latest_public_record()</span></code>
+instead of hand-rolled requests calls to the Zenodo API. This also fixes a
+latent bug: the old error handling referenced the HTTP response even when
+the request itself had failed before a response existed, which could raise
+a confusing <code class="docutils literal notranslate"><span class="pre">NameError</span></code> instead of reporting the real problem reaching
+Zenodo.</p></li>
+</ul>
+</dd>
+</dl>
 <p>2026.2.26 – Internal: moving from pkg_resources to importlib.resources</p>
 <dl class="simple">
 <dt>2025.8.22: Bugfix: simplejson caused crash</dt><dd><ul class="simple">
@@ -171,7 +182,7 @@ Also hardened the code, handling more errors gracefully.</p>
         <li class="right" >
           <a href="authors.html" title="Credits"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">SEAMM Installer Step 2026.2.26 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SEAMM Installer Step 2026.7.26 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">History</a></li> 
       </ul>
     </div>
