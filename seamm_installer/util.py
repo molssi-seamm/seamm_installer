@@ -11,7 +11,7 @@ import shutil
 import subprocess
 
 from platformdirs import user_data_dir
-import requests
+from seamm_util import Zenodo
 
 from .conda import Conda
 from . import my
@@ -137,35 +137,18 @@ def find_packages(progress=True, update=None, update_cache=False, cache_valid=1)
     dict(str, str)
         A dictionary with information about the packages.
     """
-    url = "https://zenodo.org/api/records/7789854/versions/latest"
+    zenodo = Zenodo()
     try:
-        response = requests.get(url)
-        record = response.json(cls=JSONDecoder)
+        record = zenodo.get_latest_public_record(7789854)
     except Exception as e:
-        print(f"Error finding the package list from Zenodo: {str(e)}")
-        print("The text of the response from Zenodo is:")
-        print(80 * "-")
-        pprint.pprint(response.text)
-        print(80 * "-")
         raise RuntimeError(f"Error finding the package list from Zenodo: {str(e)}")
 
-    # Find SEAMM_packages.json
-    url = None
-    for data in record["files"]:
-        if data["key"] == "SEAMM_packages.json":
-            url = data["links"]["self"]
-            break
-    if url is None:
-        raise RuntimeError(
-            "Unable to get the package list from Zenodo. "
-            "There is no file 'SEAMM_packages.json'"
-        )
-
     try:
-        response = requests.get(url)
-        package_db = response.json(cls=JSONDecoder)
+        text = record.get_file("SEAMM_packages.json")
     except Exception as e:
         raise RuntimeError(f"Error getting the package list from Zenodo: {str(e)}")
+
+    package_db = json.loads(text, cls=JSONDecoder)
 
     my.package_metadata = package_db["metadata"] if "metadata" in package_db else []
 
