@@ -1,6 +1,14 @@
 =======
 History
 =======
+2026.7.26 -- Bugfix: clearer errors when the Zenodo package list can't be fetched
+    * ``find_packages()`` now uses ``seamm_util.Zenodo.get_latest_public_record()``
+      instead of hand-rolled requests calls to the Zenodo API. This also fixes a
+      latent bug: the old error handling referenced the HTTP response even when
+      the request itself had failed before a response existed, which could raise
+      a confusing ``NameError`` instead of reporting the real problem reaching
+      Zenodo.
+
 2026.2.26 -- Internal: moving from pkg_resources to importlib.resources
 
 2025.8.22: Bugfix: simplejson caused crash
