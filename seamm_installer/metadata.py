@@ -11,6 +11,7 @@ core_packages = (
     "seamm-ff-util",
     "seamm-installer",
     "seamm-jobserver",
+    "seamm-thermochemistry",
     "seamm-util",
     "seamm-widgets",
 )
