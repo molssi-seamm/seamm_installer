@@ -185,7 +185,11 @@ def create():
                 print()
                 continue
 
-        root = "~/SEAMM_DEV" if my.development else "~/SEAMM"
+        # my.options.root already defaults to ~/SEAMM_DEV or ~/SEAMM based on
+        # development mode (see __main__.py) but also respects an explicit
+        # --root override -- use it directly rather than re-deriving a
+        # hardcoded value here, which silently ignored --root entirely.
+        root = my.options.root
         stderr_path = Path(f"{my.options.root}/logs/{service}.out").expanduser()
         stdout_path = Path(f"{my.options.root}/logs/{service}.out").expanduser()
 
