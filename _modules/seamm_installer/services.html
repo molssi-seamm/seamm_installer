@@ -4,11 +4,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_installer.services &#8212; SEAMM Installer Step 2026.7.26 documentation</title>
+    <title>seamm_installer.services &#8212; SEAMM Installer Step 2026.8.10 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../_static/classic.css?v=2bf1fcf8" />
     
-    <script src="../../_static/documentation_options.js?v=551e3ecc"></script>
+    <script src="../../_static/documentation_options.js?v=7ddc0e42"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     
@@ -24,7 +24,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2026.7.26 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2026.8.10 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">seamm_installer.services</a></li> 
       </ul>
@@ -60,7 +60,7 @@
 <span class="k">else</span><span class="p">:</span>
     <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SEAMM does not support services on </span><span class="si">{</span><span class="n">system</span><span class="si">}</span><span class="s2"> yet.&quot;</span><span class="p">)</span>
 
-<span class="n">known_services</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;dashboard&quot;</span><span class="p">,</span> <span class="s2">&quot;jobserver&quot;</span><span class="p">]</span>
+<span class="n">known_services</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;dashboard&quot;</span><span class="p">,</span> <span class="s2">&quot;jobserver&quot;</span><span class="p">,</span> <span class="s2">&quot;webui&quot;</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="setup">
@@ -96,6 +96,16 @@
     <span class="n">tmp_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s2">&quot;--dashboard-name&quot;</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">host</span><span class="si">}</span><span class="s2"> Development&quot;</span> <span class="k">if</span> <span class="n">my</span><span class="o">.</span><span class="n">development</span> <span class="k">else</span> <span class="n">host</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">tmp_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--webui-host&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;0.0.0.0&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">&quot;Host for the webui service to bind to (default: </span><span class="si">%(default)s</span><span class="s2">, &quot;</span>
+            <span class="s2">&quot;i.e. reachable from other machines -- seamm_webui then &quot;</span>
+            <span class="s2">&quot;requires per-user login and self-signed HTTPS automatically; &quot;</span>
+            <span class="s2">&quot;use 127.0.0.1 for local-only, no-login access instead).&quot;</span>
+        <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">tmp_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s2">&quot;services&quot;</span><span class="p">,</span>
@@ -192,13 +202,31 @@
                 <span class="p">)</span>
                 <span class="k">continue</span>
         <span class="c1"># Proceed to creating the service.</span>
-        <span class="n">exe_path</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;seamm-</span><span class="si">{</span><span class="n">service</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">exe_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">exe_path</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="n">service</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">exe_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not find seamm-</span><span class="si">{</span><span class="n">service</span><span class="si">}</span><span class="s2"> or </span><span class="si">{</span><span class="n">service</span><span class="si">}</span><span class="s2">. Is it installed?&quot;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">()</span>
-            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">service</span> <span class="o">==</span> <span class="s2">&quot;webui&quot;</span><span class="p">:</span>
+            <span class="c1"># Lives in its own dedicated Conda environment, not the active</span>
+            <span class="c1"># one -- see install.py&#39;s install_seamm_webui() -- so it can&#39;t</span>
+            <span class="c1"># be found with shutil.which() against the current PATH like</span>
+            <span class="c1"># dashboard/jobserver, which share the main environment.</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">exe_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">my</span><span class="o">.</span><span class="n">conda</span><span class="o">.</span><span class="n">path</span><span class="p">(</span><span class="s2">&quot;seamm-webui&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;bin&quot;</span> <span class="o">/</span> <span class="s2">&quot;seamm-webui&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">exe_path</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">exe_path</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="n">exe_path</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="s2">&quot;Could not find seamm-webui in the &#39;seamm-webui&#39; Conda &quot;</span>
+                    <span class="s2">&quot;environment. Run &#39;seamm-installer install seamm-webui&#39; &quot;</span>
+                    <span class="s2">&quot;first.&quot;</span>
+                <span class="p">)</span>
+                <span class="nb">print</span><span class="p">()</span>
+                <span class="k">continue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">exe_path</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;seamm-</span><span class="si">{</span><span class="n">service</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">exe_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">exe_path</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="n">service</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">exe_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not find seamm-</span><span class="si">{</span><span class="n">service</span><span class="si">}</span><span class="s2"> or </span><span class="si">{</span><span class="n">service</span><span class="si">}</span><span class="s2">. Is it installed?&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">()</span>
+                <span class="k">continue</span>
 
         <span class="n">root</span> <span class="o">=</span> <span class="s2">&quot;~/SEAMM_DEV&quot;</span> <span class="k">if</span> <span class="n">my</span><span class="o">.</span><span class="n">development</span> <span class="k">else</span> <span class="s2">&quot;~/SEAMM&quot;</span>
         <span class="n">stderr_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">my</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">root</span><span class="si">}</span><span class="s2">/logs/</span><span class="si">{</span><span class="n">service</span><span class="si">}</span><span class="s2">.out&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
@@ -214,6 +242,19 @@
                 <span class="n">my</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">port</span><span class="p">,</span>
                 <span class="s2">&quot;--dashboard-name&quot;</span><span class="p">,</span>
                 <span class="n">my</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">dashboard_name</span><span class="p">,</span>
+                <span class="n">stderr_path</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">stderr_path</span><span class="p">),</span>
+                <span class="n">stdout_path</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">stdout_path</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">service</span> <span class="o">==</span> <span class="s2">&quot;webui&quot;</span><span class="p">:</span>
+            <span class="n">mgr</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+                <span class="n">service_name</span><span class="p">,</span>
+                <span class="n">exe_path</span><span class="p">,</span>
+                <span class="s2">&quot;--root&quot;</span><span class="p">,</span>
+                <span class="n">root</span><span class="p">,</span>
+                <span class="s2">&quot;--port&quot;</span><span class="p">,</span>
+                <span class="n">my</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">port</span><span class="p">,</span>
+                <span class="s2">&quot;--host&quot;</span><span class="p">,</span>
+                <span class="n">my</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">webui_host</span><span class="p">,</span>
                 <span class="n">stderr_path</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">stderr_path</span><span class="p">),</span>
                 <span class="n">stdout_path</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">stdout_path</span><span class="p">),</span>
             <span class="p">)</span>
@@ -385,7 +426,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2026.7.26 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2026.8.10 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">seamm_installer.services</a></li> 
       </ul>

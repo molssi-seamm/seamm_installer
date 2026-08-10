@@ -4,11 +4,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_installer.install &#8212; SEAMM Installer Step 2026.7.26 documentation</title>
+    <title>seamm_installer.install &#8212; SEAMM Installer Step 2026.8.10 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../_static/classic.css?v=2bf1fcf8" />
     
-    <script src="../../_static/documentation_options.js?v=551e3ecc"></script>
+    <script src="../../_static/documentation_options.js?v=7ddc0e42"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     
@@ -24,7 +24,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2026.7.26 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2026.8.10 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">seamm_installer.install</a></li> 
       </ul>
@@ -42,11 +42,18 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">platform</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">packaging.version</span><span class="w"> </span><span class="kn">import</span> <span class="n">Version</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">datastore</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">development_packages</span><span class="p">,</span> <span class="n">development_packages_pip</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">development_packages</span><span class="p">,</span>
+    <span class="n">development_packages_pip</span><span class="p">,</span>
+    <span class="n">standalone_packages</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">my</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.util</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">create_env</span><span class="p">,</span>
@@ -135,12 +142,70 @@
             <span class="n">gui_only</span><span class="o">=</span><span class="n">my</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">gui_only</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">install_packages</span><span class="p">(</span>
-            <span class="n">my</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">modules</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="n">my</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">update</span><span class="p">,</span> <span class="n">gui_only</span><span class="o">=</span><span class="n">my</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">gui_only</span>
-        <span class="p">)</span>
+        <span class="c1"># standalone_packages (currently just seamm-webui) aren&#39;t in the</span>
+        <span class="c1"># Zenodo-hosted package registry install_packages() reads from --</span>
+        <span class="c1"># not installed into the shared main environment, so they can&#39;t go</span>
+        <span class="c1"># through that generic per-package flow. Handle them directly here,</span>
+        <span class="c1"># then hand off anything else requested to install_packages() as</span>
+        <span class="c1"># usual.</span>
+        <span class="n">modules</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">my</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">modules</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">package</span> <span class="ow">in</span> <span class="n">standalone_packages</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">package</span> <span class="ow">in</span> <span class="n">modules</span><span class="p">:</span>
+                <span class="n">modules</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">package</span><span class="p">)</span>
+                <span class="n">install_seamm_webui</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="n">my</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">update</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">modules</span><span class="p">:</span>
+            <span class="n">install_packages</span><span class="p">(</span>
+                <span class="n">modules</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="n">my</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">update</span><span class="p">,</span> <span class="n">gui_only</span><span class="o">=</span><span class="n">my</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">gui_only</span>
+            <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">my</span><span class="o">.</span><span class="n">development</span><span class="p">:</span>
         <span class="n">install_development_environment</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="install_seamm_webui">
+<a class="viewcode-back" href="../../api/seamm_installer.html#seamm_installer.install.install_seamm_webui">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">install_seamm_webui</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create/update the dedicated `seamm-webui` Conda environment and</span>
+<span class="sd">    install (or upgrade) seamm_webui into it from PyPI.</span>
+
+<span class="sd">    seamm_webui doesn&#39;t fit the generic install_packages() flow: it isn&#39;t</span>
+<span class="sd">    published in the Zenodo-hosted package registry that flow reads from,</span>
+<span class="sd">    and unlike everything else there, it&#39;s meant to live in its own</span>
+<span class="sd">    dedicated environment rather than the shared main one -- the same</span>
+<span class="sd">    reasoning already applied to compute-engine environments like</span>
+<span class="sd">    mopac-step&#39;s `seamm-mopac`, but seamm_webui has no installer.py of its</span>
+<span class="sd">    own (a Python daemon, not a plug-in imported by the flowchart engine),</span>
+<span class="sd">    so it&#39;s handled directly here instead -- the same way `services.py`</span>
+<span class="sd">    already special-cases the `dashboard`/`jobserver` daemons rather than</span>
+<span class="sd">    going through the generic per-package Installer mechanism.</span>
+
+<span class="sd">    The environment itself only needs `python`/`pip` -- seamm_webui&#39;s own</span>
+<span class="sd">    runtime dependencies (fastapi, uvicorn, ...) are declared in its PyPI</span>
+<span class="sd">    package and resolved by pip below, not duplicated here.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;seamm-webui&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">my</span><span class="o">.</span><span class="n">conda</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Creating the dedicated &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; Conda environment.&quot;</span><span class="p">)</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;name: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="se">\n</span><span class="s2">channels:</span><span class="se">\n</span><span class="s2">  - conda-forge</span><span class="se">\n</span><span class="s2">dependencies:</span><span class="se">\n</span><span class="s2">  - python</span><span class="se">\n</span><span class="s2">  - pip</span><span class="se">\n</span><span class="s2">&quot;</span>  <span class="c1"># noqa: E501</span>
+        <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;.yml&quot;</span><span class="p">,</span> <span class="n">delete</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
+            <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">fd</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">my</span><span class="o">.</span><span class="n">conda</span><span class="o">.</span><span class="n">create_environment</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">path</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">pip</span> <span class="o">=</span> <span class="n">my</span><span class="o">.</span><span class="n">conda</span><span class="o">.</span><span class="n">path</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;bin&quot;</span> <span class="o">/</span> <span class="s2">&quot;pip&quot;</span>
+    <span class="n">verb</span> <span class="o">=</span> <span class="s2">&quot;Updating&quot;</span> <span class="k">if</span> <span class="n">update</span> <span class="k">else</span> <span class="s2">&quot;Installing&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">verb</span><span class="si">}</span><span class="s2"> seamm-webui in the &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; environment.&quot;</span><span class="p">)</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">pip</span><span class="p">),</span> <span class="s2">&quot;install&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">update</span><span class="p">:</span>
+        <span class="n">cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;--upgrade&quot;</span><span class="p">)</span>
+    <span class="n">cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;seamm-webui&quot;</span><span class="p">)</span>
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 
 
@@ -330,7 +395,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2026.7.26 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SEAMM Installer Step 2026.8.10 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">seamm_installer.install</a></li> 
       </ul>
