@@ -1,6 +1,14 @@
 =======
 History
 =======
+2026.8.10.1 -- Bugfix: services create ignored a custom --root
+    * ``seamm-installer services create`` always hardcoded the ``--root``
+      baked into a new service's daemon to ``~/SEAMM``/``~/SEAMM_DEV``
+      (based on development mode), silently ignoring an explicit ``--root``
+      passed on the command line. Found while deploying/testing ``webui``
+      against a scratch root on MolSSI10. Now uses the actual resolved
+      ``--root`` value.
+
 2026.8.10 -- Install and daemonize seamm_webui
     * ``seamm-installer install seamm-webui`` creates a dedicated ``seamm-webui``
       Conda environment (it shares little with the rest of the SEAMM stack) and
