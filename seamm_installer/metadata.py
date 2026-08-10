@@ -42,6 +42,11 @@ molssi_plug_ins = (
     "thermal-conductivity-step",
 )
 external_plug_ins = []
+# Packages that install()/services.py handle directly (their own dedicated
+# Conda environment, not the shared main one; no Zenodo package-registry
+# entry) rather than through the generic install_packages()/per-package
+# Installer machinery. See install.py's install_seamm_webui().
+standalone_packages = ("seamm-webui",)
 
 excluded_plug_ins = (
     "chemical-formula",

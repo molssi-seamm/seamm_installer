@@ -1,6 +1,14 @@
 =======
 History
 =======
+2026.8.10 -- Install and daemonize seamm_webui
+    * ``seamm-installer install seamm-webui`` creates a dedicated ``seamm-webui``
+      Conda environment (it shares little with the rest of the SEAMM stack) and
+      installs ``seamm_webui`` from PyPI into it.
+    * ``seamm-installer services create webui`` (alongside the existing
+      ``dashboard``/``jobserver`` services) sets up and starts it as a persistent
+      systemd/launchd daemon, with a new ``--webui-host`` option.
+
 2026.7.26 -- Bugfix: clearer errors when the Zenodo package list can't be fetched
     * ``find_packages()`` now uses ``seamm_util.Zenodo.get_latest_public_record()``
       instead of hand-rolled requests calls to the Zenodo API. This also fixes a

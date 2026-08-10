@@ -4,11 +4,18 @@
 
 from datetime import datetime
 import platform
+import subprocess
+import tempfile
+from pathlib import Path
 
 from packaging.version import Version
 
 from . import datastore
-from .metadata import development_packages, development_packages_pip
+from .metadata import (
+    development_packages,
+    development_packages_pip,
+    standalone_packages,
+)
 from . import my
 from .util import (
     create_env,
@@ -92,12 +99,67 @@ def install():
             gui_only=my.options.gui_only,
         )
     else:
-        install_packages(
-            my.options.modules, update=my.options.update, gui_only=my.options.gui_only
-        )
+        # standalone_packages (currently just seamm-webui) aren't in the
+        # Zenodo-hosted package registry install_packages() reads from --
+        # not installed into the shared main environment, so they can't go
+        # through that generic per-package flow. Handle them directly here,
+        # then hand off anything else requested to install_packages() as
+        # usual.
+        modules = list(my.options.modules)
+        for package in standalone_packages:
+            if package in modules:
+                modules.remove(package)
+                install_seamm_webui(update=my.options.update)
+
+        if modules:
+            install_packages(
+                modules, update=my.options.update, gui_only=my.options.gui_only
+            )
 
     if my.development:
         install_development_environment()
+
+
+def install_seamm_webui(update=False):
+    """Create/update the dedicated `seamm-webui` Conda environment and
+    install (or upgrade) seamm_webui into it from PyPI.
+
+    seamm_webui doesn't fit the generic install_packages() flow: it isn't
+    published in the Zenodo-hosted package registry that flow reads from,
+    and unlike everything else there, it's meant to live in its own
+    dedicated environment rather than the shared main one -- the same
+    reasoning already applied to compute-engine environments like
+    mopac-step's `seamm-mopac`, but seamm_webui has no installer.py of its
+    own (a Python daemon, not a plug-in imported by the flowchart engine),
+    so it's handled directly here instead -- the same way `services.py`
+    already special-cases the `dashboard`/`jobserver` daemons rather than
+    going through the generic per-package Installer mechanism.
+
+    The environment itself only needs `python`/`pip` -- seamm_webui's own
+    runtime dependencies (fastapi, uvicorn, ...) are declared in its PyPI
+    package and resolved by pip below, not duplicated here.
+    """
+    name = "seamm-webui"
+
+    if not my.conda.exists(name):
+        print(f"Creating the dedicated '{name}' Conda environment.")
+        spec = f"name: {name}\nchannels:\n  - conda-forge\ndependencies:\n  - python\n  - pip\n"  # noqa: E501
+        with tempfile.NamedTemporaryFile("w", suffix=".yml", delete=False) as fd:
+            fd.write(spec)
+            path = Path(fd.name)
+        try:
+            my.conda.create_environment(path, name=name)
+        finally:
+            path.unlink(missing_ok=True)
+
+    pip = my.conda.path(name) / "bin" / "pip"
+    verb = "Updating" if update else "Installing"
+    print(f"{verb} seamm-webui in the '{name}' environment.")
+    cmd = [str(pip), "install"]
+    if update:
+        cmd.append("--upgrade")
+    cmd.append("seamm-webui")
+    subprocess.run(cmd, check=True)
 
 
 def install_packages(

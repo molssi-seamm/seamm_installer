@@ -22,7 +22,7 @@ elif system in ("Linux",):
 else:
     raise NotImplementedError(f"SEAMM does not support services on {system} yet.")
 
-known_services = ["dashboard", "jobserver"]
+known_services = ["dashboard", "jobserver", "webui"]
 
 
 def setup(parser):
@@ -56,6 +56,16 @@ def setup(parser):
     tmp_parser.add_argument(
         "--dashboard-name",
         default=f"{host} Development" if my.development else host,
+    )
+    tmp_parser.add_argument(
+        "--webui-host",
+        default="0.0.0.0",
+        help=(
+            "Host for the webui service to bind to (default: %(default)s, "
+            "i.e. reachable from other machines -- seamm_webui then "
+            "requires per-user login and self-signed HTTPS automatically; "
+            "use 127.0.0.1 for local-only, no-login access instead)."
+        ),
     )
     tmp_parser.add_argument(
         "services",
@@ -149,13 +159,31 @@ def create():
                 )
                 continue
         # Proceed to creating the service.
-        exe_path = shutil.which(f"seamm-{service}")
-        if exe_path is None:
-            exe_path = shutil.which(service)
-        if exe_path is None:
-            print(f"Could not find seamm-{service} or {service}. Is it installed?")
-            print()
-            continue
+        if service == "webui":
+            # Lives in its own dedicated Conda environment, not the active
+            # one -- see install.py's install_seamm_webui() -- so it can't
+            # be found with shutil.which() against the current PATH like
+            # dashboard/jobserver, which share the main environment.
+            try:
+                exe_path = str(my.conda.path("seamm-webui") / "bin" / "seamm-webui")
+            except ValueError:
+                exe_path = None
+            if exe_path is None or not Path(exe_path).is_file():
+                print(
+                    "Could not find seamm-webui in the 'seamm-webui' Conda "
+                    "environment. Run 'seamm-installer install seamm-webui' "
+                    "first."
+                )
+                print()
+                continue
+        else:
+            exe_path = shutil.which(f"seamm-{service}")
+            if exe_path is None:
+                exe_path = shutil.which(service)
+            if exe_path is None:
+                print(f"Could not find seamm-{service} or {service}. Is it installed?")
+                print()
+                continue
 
         root = "~/SEAMM_DEV" if my.development else "~/SEAMM"
         stderr_path = Path(f"{my.options.root}/logs/{service}.out").expanduser()
@@ -171,6 +199,19 @@ def create():
                 my.options.port,
                 "--dashboard-name",
                 my.options.dashboard_name,
+                stderr_path=str(stderr_path),
+                stdout_path=str(stdout_path),
+            )
+        elif service == "webui":
+            mgr.create(
+                service_name,
+                exe_path,
+                "--root",
+                root,
+                "--port",
+                my.options.port,
+                "--host",
+                my.options.webui_host,
                 stderr_path=str(stderr_path),
                 stdout_path=str(stdout_path),
             )
