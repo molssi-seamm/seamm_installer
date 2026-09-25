@@ -37,7 +37,6 @@ molssi_plug_ins = (
     "set-cell-step",
     "strain-step",
     "supercell-step",
-    "torchani-step",
     "table-step",
     "thermal-conductivity-step",
 )
